@@ -1,0 +1,70 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Explore Hub</title>
+    <link rel="shortcut icon" type="image/png" href="{% static 'images/logo.png' %}" >
+    <!-- font icons -->
+    <link rel="stylesheet" href="{% static 'assets/vendors/themify-icons/css/themify-icons.css' %}">
+    
+    <!-- owl carousel -->
+    <link rel="stylesheet" href="{% static 'assets/vendors/owl-carousel/css/owl.carousel.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/vendors/owl-carousel/css/owl.theme.default.css' %}">
+
+    <!-- Bootstrap + Ollie main styles -->
+	<link rel="stylesheet" href="{% static 'assets/css/ollie.css' %}">
+
+</head>
+<body data-spy="scroll" data-target=".navbar" data-offset="40" id="home">
+
+    <nav id="scrollspy" class="navbar navbar-light bg-light navbar-expand-lg fixed-top" data-spy="affix" data-offset-top="20">
+        <div class="container">
+            <a class="navbar-brand" href="#"><img src="{% static 'assets/imgs/logo.png' %}" alt="" class="brand-img"></a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a class="nav-link-md" href="{% url 'regularuser' %}">Home</a>
+                    </li>
+                        <a class="nav-link-md" href="{% url 'package' %}">Packages</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link-md" href="#group">Travel Group</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link-md" href="#guide">Local Guide</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link-md" href="#events">Events</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link-md" href="#contact">Contact</a>
+                    </li>
+                    {% if user.is_authenticated %}
+                    Welcome, {{ user.username }}
+                    <li class="nav-item ml-0 ml-lg-4">
+                        <a class="nav-link-lg btn btn-primary" href="{% url 'logout' %}">Logout</a>
+                    </li>
+                    {% else %}
+                    <li class="nav-item ml-0 ml-lg-4">
+                        <a class="nav-link-lg btn btn-primary" href="{% url 'login' %}">Login</a>
+                    </li>
+                    <li class="nav-item ml-0 ml-lg-4">
+                        <a class="nav-link-lg btn btn-primary" href="{% url 'register' %}">Register</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+</body>
+</html>

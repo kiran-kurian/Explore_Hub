@@ -1,0 +1,31 @@
+{% extends 'admin.html' %}
+
+{% block content %}
+{% if user.is_authenticated %}
+<h2>Welcome, {{ user.username }} </h2>
+<div class="admin-overview">
+    <div class="card">
+        <h3>Pending Approvals</h3>
+        <p><a href="{% url 'admin_approve_agencies' %}">View Pending Agencies</a></p>
+    </div>
+    <div class="card">
+        <h3>Total Packages</h3>
+        <p><a href="{% url 'admin_manage_packages' %}">Manage Packages</a></p>
+    </div>
+    <div class="card">
+        <h3>Travel Groups</h3>
+        <p><a href="{% url 'admin_manage_groups' %}">Manage Groups</a></p>
+    </div>
+    <div class="card">
+        <h3>Manage Users</h3>
+        <p><a href="{% url 'admin_manage_packages' %}">Manage Users</a></p>
+    </div>
+    <div class="card">
+        <h3>Manage Agencies</h3>
+        <p><a href="{% url 'admin_manage_packages' %}">Manage Agencies</a></p>
+    </div>
+</div>
+{% else %}
+<a href="{% url 'login' %}"> Login </a>
+{% endif %}
+{% endblock %}

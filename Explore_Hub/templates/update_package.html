@@ -1,0 +1,46 @@
+{% extends 'ta_layout.html' %}
+{% load static %}
+{% block body %}
+<head>
+    <title>Update Package</title>
+    <link rel="stylesheet" href="{% static 'assets/css/add_package.css' %}">
+</head>
+<section class="add-package">
+    <div class="container">
+        <h2>Update Package</h2>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="title">Title</label>
+                <input type="text" id="title" name="title" class="form-control" value="{{ package.title }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea id="description" name="description" class="form-control" rows="4" required>{{ package.description }}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="price">Price</label>
+                <input type="number" id="price" name="price" class="form-control" value="{{ package.price }}" step="0.01" required>
+            </div>
+
+            <div class="form-group">
+                <label for="image">Image</label>
+                <input type="file" id="image" name="image" class="form-control" accept="image/*">
+                {% if package.image %}
+                    <img src="{{ package.image.url }}" alt="{{ package.title }}" style="max-width: 200px; height: auto; margin-top: 10px;">
+                {% else %}
+                    <p>No image available</p>
+                {% endif %}
+            </div>
+
+            <div class="form-buttons">
+                <button type="submit" class="btn btn-primary">Update Package</button>
+                <a href="{% url 'tahome' %}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}

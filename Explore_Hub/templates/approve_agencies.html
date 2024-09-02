@@ -1,0 +1,54 @@
+{% extends 'admin.html' %}
+{% block content %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Review Travel Agencies</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <h1>Review Travel Agencies</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Agency Name</th>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Contact</th>
+                <th>Document</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for agency in agencies %}
+            <tr>
+                <td>{{ agency.name }}</td>
+                <td>{{ agency.username }}</td>
+                <td>{{ agency.email }}</td>
+                <td>{{ agency.contact }}</td>
+                <td><a href="{{ agency.documents.url }}">View Document</a></td>
+                <td>
+                    <form action="{% url 'approve_agency' agency.agency_id %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit">Approve</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
+{% endblock %}

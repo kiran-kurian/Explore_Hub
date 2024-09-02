@@ -1,0 +1,26 @@
+{% extends 'layout_main.html' %}
+{% load static %}
+{% block content %}
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'assets/css/package_style.css' %}">
+</head>
+<div class="body">
+    <h3>Available Packages</h3>
+    <div class="package-list">
+        {% for packages in package %}
+            <div class="package-box">
+                {% if packages.image %}
+                    <img src="{{ packages.image.url }}" alt="{{ packages.title }}">
+                {% endif %}
+                <h4>{{ packages.title }}</h4>
+                <p>{{ packages.description }}</p>
+                <p class="price">Price: {{ packages.price }}</p>
+                <a href="{% url 'package' %}" class='btn_book'>Book Now</a>
+            </div>
+        {% empty %}
+            <p>No packages available at the moment.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

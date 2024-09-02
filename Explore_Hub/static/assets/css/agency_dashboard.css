@@ -1,0 +1,153 @@
+/* General body styling */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+}
+
+/* Header styling */
+.header {
+    background-color: #333;
+    color: #fff;
+    padding: 20px;
+    position: fixed;
+    width: 100%;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+}
+
+.header .container_main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 24px;
+}
+
+.header nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+}
+
+.header nav ul li {
+    margin-left: 30px;
+}
+
+.header nav ul li a {
+    color: #fff;
+    text-decoration: none;
+    font-size: 16px;
+}
+
+/* Main dashboard styling */
+.dashboard {
+    padding: 100px 10px 50px; /* Adjusted for header */
+    background-color: #f4f4f4;
+}
+
+.dashboard .container {
+    display: flex;
+    flex-direction: column;
+    max-width: 1200px;
+    margin: auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard h2 {
+    margin-bottom: 30px;
+    text-align: center;
+    font-size: 28px;
+}
+
+/* Package box styling */
+.package-box {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 20px;
+    background: #fff;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    flex: 1 1 calc(33.333% - 40px); /* Adjust based on the container width */
+    box-sizing: border-box;
+    margin: 10px; /* Adjust spacing between boxes */
+}
+
+.package-box h3 {
+    margin-top: 0;
+    font-size: 20px;
+}
+
+.package-box p {
+    margin-bottom: 10px;
+    color: #666;
+}
+
+.package-box .price {
+    font-weight: bold;
+    color: #007bff;
+}
+
+.package-box .btn-group {
+    margin-top: 20px;
+}
+
+.package-box .btn-group a {
+    margin-right: 10px;
+    text-decoration: none;
+    padding: 10px 15px;
+    background-color: #007bff;
+    color: #fff;
+    border-radius: 5px;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+.package-box .btn-group a:hover {
+    background-color: #0056b3;
+}
+
+/* Package listing layout */
+.package-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between; /* Align items with equal spacing */
+    gap: 20px; /* Space between items */
+    margin: -10px; /* Adjust for margin collapse */
+    padding: 10px; /* Adjust for container padding */
+}
+
+/* Footer */
+.footer {
+    padding: 20px;
+    text-align: center;
+    background-color: #333;
+    color: #fff;
+    margin-top: 50px;
+}
+
+.btn_add {
+    margin-right: 10px;
+    text-decoration: none;
+    padding: 10px 15px;
+    background-color: #007bff;
+    color: #fff;
+    border-radius: 5px;
+    font-size: 14px;
+    transition: background-color 0.3s;
+    display: inline-block;
+}
+
+.btn_add:hover {
+    background-color: #0056b3;
+}
