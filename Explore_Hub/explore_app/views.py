@@ -127,22 +127,27 @@ def ta_registration_view(request):
         if not all([username, name, email, number, password]):
             return redirect('register')
         
-        hashed_password = make_password(password)
-        travelagency = TravelAgency(
-            username = username,
-            name = name,
-            email = email,
-            contact = number,
-            password = hashed_password,
-            documents = documents,
-            approved = False
-        )
-        travelagency.save()
+        try:
+            hashed_password = make_password(password)
+            travelagency = TravelAgency(
+                username = username,
+                name = name,
+                email = email,
+                contact = number,
+                password = hashed_password,
+                documents = documents,
+                approved = False
+            )
+            travelagency.save()
         #saving this to user table
-        user = CustomUser(username=username, first_name=name, email=email, password=hashed_password,phone_number=number, role='ta')
-        user.save()
-        login(request, user)
-        return HttpResponseRedirect(reverse("tahome"))
+            user = CustomUser(username=username, first_name=name, email=email, password=hashed_password,phone_number=number, role='ta', travel_agency=travelagency)
+            user.save()
+            login(request, user)
+            return HttpResponseRedirect(reverse("tahome"))
+        except IntegrityError:
+            return render(request, "registration.html", {
+                "message": "Data Repetition"
+            })
     else:
         return render(request, "ta_registration.html")
 
@@ -170,7 +175,8 @@ def approve_travel_agency(request, agency_id):
 
 @login_required
 def admin_manage_packages(request):
-    return render(request, 'admin_dashboard.html')
+    package = TravelPackage.objects.all()
+    return render(request, 'admin_manage_package.html', {'packages': package})
 
 def admin_manage_groups(request):
     return render(request, 'admin_dashboard.html')
@@ -246,5 +252,15 @@ def delete_package(request, package_id):
         package.delete()
         messages.success(request, 'Package deleted successfully!')
     except IntegrityError:
-        messages.error(request, 'Failed to delete the package due to integrity error.')
+        messages.error(request, 'Failed to delete the package')
     return redirect('tahome')
+
+#to delete package by admin
+def admin_delete_package(request, package_id):
+    try:
+        package = get_object_or_404(TravelPackage, pk=package_id)
+        package.delete()
+        messages.success(request, 'Package deleted successfully!')
+    except IntegrityError:
+        messages.error(request, "Failed to delelte the package")
+    return redirect('admin_manage_packages')
