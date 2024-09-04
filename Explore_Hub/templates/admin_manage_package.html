@@ -19,7 +19,7 @@
                     <p>{{ package.description }}</p>
                     <p class="price">Price: {{ package.price }}</p>
                     <div class="btn-group">
-                        <a href="{% url 'delete_package' package.package_id %}" class="btn" onclick="return confirmDelete();">Delete</a>
+                        <a href="{% url 'admin_delete_package' package.package_id %}" class="btn" onclick="return confirmDelete();">Delete</a>
                     </div>
                 </div>
             {% empty %}
