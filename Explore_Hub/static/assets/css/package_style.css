@@ -72,12 +72,16 @@
     background-color: cornflowerblue;
     border-radius: 30px;
     color: white;
-    display: flex;
     height: 40px;
     width: 100px;
+    display: table-caption;
+    position: relative;
+    left: 100px;
     text-align: center;
-    text-indent: 10px;
-    margin: auto;
+    justify-content: center;
+    padding-top: 10px;
+    /* text-indent: 10px; */
+    margin-top: 10px;
     vertical-align: middle;
 }
 
