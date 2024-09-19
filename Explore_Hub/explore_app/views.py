@@ -1,4 +1,4 @@
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib.auth import authenticate, login, logout
@@ -9,6 +9,12 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.views.decorators.cache import never_cache
 from django.contrib import messages
+from django.core.mail import send_mail
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
+from django.contrib.auth.tokens import default_token_generator
+from django.template.loader import render_to_string
+from django.contrib.auth import views as auth_views
 
 # Create your views here.
 
@@ -264,3 +270,41 @@ def admin_delete_package(request, package_id):
     except IntegrityError:
         messages.error(request, "Failed to delelte the package")
     return redirect('admin_manage_packages')
+
+#forgot password
+def forgot_password_view(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        try:
+            user = User.objects.get(email=email)
+            # Generate password reset token
+            token = default_token_generator.make_token(user)
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            # Send the reset email
+            reset_url = request.build_absolute_uri(f'/reset_password/{uid}/{token}/')
+            subject = 'Reset Your Password'
+            message = render_to_string('password_reset_email.html', {
+                'user': user,
+                'reset_url': reset_url,
+            })
+            send_mail(subject, message, 'explorehub123@gmail.com', [user.email], html_message=message)
+            return render(request, 'login.html', {"message": "Password reset link is sent"})
+        except User.DoesNotExist:
+            return render(request, 'forgot_password.html', {'error': 'No user found with that email.'})
+    return render(request, 'forgot_password.html')
+
+#resetting password
+def reset_password_view(request, uidb64, token):
+    if request.method == 'POST':
+        password = request.POST.get('password')
+        try:
+            uid = force_str(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=uid)
+            if default_token_generator.check_token(user, token):
+                # Update the user's password
+                user.password = make_password(password)
+                user.save()
+                return redirect('password_reset_complete')
+        except User.DoesNotExist:
+            return render(request, 'reset_password.html', {'error': 'Invalid link'})
+    return render(request, 'reset_password.html')

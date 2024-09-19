@@ -18,6 +18,8 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf.urls.static import static
 from Explore_Hub import settings
+from django.contrib.auth import views as auth_views
+
 from . views import *
 
 urlpatterns = [
@@ -38,6 +40,8 @@ urlpatterns = [
     path('addpackage/', add_package, name="add_package"),
     path('updatepackage/<int:package_id>/', update_package, name="update_package"),
     path('deletepackage/<int:package_id>/', delete_package, name="delete_package"),
+    path('forgot_password/', forgot_password_view, name='forgot_password'),
+    path('reset_password/<uidb64>/<token>/', reset_password_view, name='reset_password'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
