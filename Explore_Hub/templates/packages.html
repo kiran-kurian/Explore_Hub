@@ -33,7 +33,7 @@
                 <p>Origin: {{ package.origin }}</p>
                 <p>Destination: {{ package.destination }}</p>
                 <p>Departure Day: {{ package.departure_day }}</p>
-                <p>Includes Travel Charges: {{ package.charge_included|yesno:"Yes,No" }}</p>
+                <p class="charges">Includes Charges: {{ package.include_charges|yesno:"Yes,No" }}</p>
                 <a href="{% url 'package_detail' package.package_id %}" class='btn_book'>View Details</a>
             </div>
         {% empty %}

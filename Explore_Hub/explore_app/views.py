@@ -186,11 +186,24 @@ def approve_travel_agency(request, agency_id):
 
 @login_required
 def admin_manage_packages(request):
-    package = TravelPackage.objects.all()
+    package = TravelPackage.objects.prefetch_related('package_images').all()
     return render(request, 'admin_manage_package.html', {'packages': package})
 
 def admin_manage_groups(request):
     return render(request, 'admin_dashboard.html')
+
+#to manage users by admin
+@login_required
+def admin_manage_users(request):
+    users = CustomUser.objects.filter(is_superuser=False)
+    return render(request, 'admin_manage_users.html', {'users': users})
+
+#to delete the user by admin
+@login_required
+def admin_delete_user(request, user_id):
+    user = get_object_or_404(CustomUser, pk=user_id)
+    user.delete()
+    return redirect('admin_manage_users')
 
 def ta_home(request):
     try:
