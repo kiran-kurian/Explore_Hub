@@ -29,11 +29,48 @@
             <div class="form-group">
                 <label for="image">Image</label>
                 <input type="file" id="image" name="image" class="form-control" accept="image/*">
-                {% if package.image %}
-                    <img src="{{ package.image.url }}" alt="{{ package.title }}" style="max-width: 200px; height: auto; margin-top: 10px;">
+                {% if package.package_image %}
+                    <img src="{{ package.package_image.url }}" alt="{{ package.title }}" style="max-width: 200px; height: auto; margin-top: 10px;">
                 {% else %}
                     <p>No image available</p>
                 {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="origin">Origin</label>
+                <input type="text" id="origin" name="origin" class="form-control" value="{{ package.origin }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="destination">Destination</label>
+                <input type="text" id="destination" name="destination" class="form-control" value="{{ package.destination }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="number_of_days">Duration</label>
+                <input type="text" id="duration" name="duration" class="form-control" value="{{ package.duration }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="departure_day">Departure Day</label>
+                <select id="departure_day" name="departure_day" class="form-control" required>
+                    <option value="Monday" {% if package.departure_day == 'Monday' %}selected{% endif %}>Monday</option>
+                    <option value="Tuesday" {% if package.departure_day == 'Tuesday' %}selected{% endif %}>Tuesday</option>
+                    <option value="Wednesday" {% if package.departure_day == 'Wednesday' %}selected{% endif %}>Wednesday</option>
+                    <option value="Thursday" {% if package.departure_day == 'Thursday' %}selected{% endif %}>Thursday</option>
+                    <option value="Friday" {% if package.departure_day == 'Friday' %}selected{% endif %}>Friday</option>
+                    <option value="Saturday" {% if package.departure_day == 'Saturday' %}selected{% endif %}>Saturday</option>
+                    <option value="Sunday" {% if package.departure_day == 'Sunday' %}selected{% endif %}>Sunday</option>
+                    <option value="Everyday" {% if package.departure_day == 'Everyday' %}selected{% endif %}>Everyday</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="includes_charges">Include Charges for Reaching Destination:</label>
+                <select id="includes_charges" name="includes_charges" class="form-control" required>
+                    <option value="True" {% if package.include_charges %}selected{% endif %}>Yes</option>
+                    <option value="False" {% if not package.include_charges %}selected{% endif %}>No</option>
+                </select>
             </div>
 
             <div class="form-buttons">

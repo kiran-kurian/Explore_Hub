@@ -199,7 +199,7 @@ def ta_home(request):
             return render(request, "login.html", {
                 "message": "Approval pending"
             })
-        packages = TravelPackage.objects.filter(agency_id=agency)
+        packages = TravelPackage.objects.filter(agency_id=agency).prefetch_related('package_images')
     except TravelAgency.DoesNotExist:
         return redirect('register')
     return render(request, 'ta_home.html', {'agency': agency, 'packages': packages})
@@ -219,6 +219,9 @@ def add_package(request):
             title = request.POST.get('title')
             description = request.POST.get('description')
             price = request.POST.get('price')
+            if package.price <= 0:
+                messages.error(request, 'Price must be greater than 0.')
+                return render(request, 'add_package.html')
             duration = request.POST.get('duration')
             origin = request.POST.get('origin')
             destination = request.POST.get('destination')
@@ -257,22 +260,36 @@ def add_package(request):
 #to update package by the travel agency
 def update_package(request, package_id):
     package = get_object_or_404(TravelPackage, pk=package_id)
+    
     if request.method == 'POST':
         try:
-            # Update package attributes
             package.title = request.POST.get('title', package.title)
             package.description = request.POST.get('description', package.description)
-            package.price = request.POST.get('price', package.price)
+            package.price = float(request.POST.get('price', package.price))
+            if package.price <= 0:
+                messages.error(request, 'Price must be greater than 0.')
+                return render(request, 'update_package.html', {'package': package})
+            package.origin = request.POST.get('origin', package.origin)
+            package.destination = request.POST.get('destination', package.destination)
+            package.duration = request.POST.get('number_of_days', package.duration)
+            package.departure_day = request.POST.get('departure_day', package.departure_day)
 
-            # Handle image file upload
-            if 'image' in request.FILES:
-                package.image = request.FILES['image']
-            
+            # Set includes_charges based on dropdown selection
+            includes_charges_value = request.POST.get('includes_charges') == 'True'
+            package.include_charges = includes_charges_value
+
+            # Handle image file uploads
+            if 'images' in request.FILES:
+                for image in request.FILES.getlist('images'):
+                    new_image = PackageImage(travel_package=package, image=image)
+                    new_image.save()
+
             package.save()
             messages.success(request, 'Package updated successfully!')
             return redirect('tahome')
-        except:
-            messages.error(request, f'An error occurred')
+        except Exception as e:
+            messages.error(request, f'An error occurred: {e}')
+    
     return render(request, 'update_package.html', {'package': package})
 
 #to delete package by the travel agency
