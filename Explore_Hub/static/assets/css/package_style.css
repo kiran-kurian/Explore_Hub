@@ -1,91 +1,101 @@
-/* Package Listing Styles */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f4f8;
+}
 
 .body {
-    padding-top: 120px;
+    padding: 20px;
+    max-width: 1200px;
+    margin: auto;
+}
+
+h3 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 30px;
 }
 
 .package-list {
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-around;
-    padding: 20px;
-    box-sizing: border-box;
+    gap: 20px;
+    justify-content: center;
 }
 
 .package-box {
-    width: 100%;
-    max-width: 350px;
-    background-color: #f9f9f9;
+    width: 300px;
     border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 15px;
-    margin: 10px;
-    box-sizing: border-box;
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s ease;
+    border-radius: 10px;
+    overflow: hidden;
+    background-color: #fff;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s;
 }
 
 .package-box:hover {
-    transform: scale(1.02);
+    transform: scale(1.05);
 }
 
-.package-box h4 h3 {
-    font-size: 1.4em;
-    margin-bottom: 10px;
-    color: #333;
-    text-align: center;
+.slider-container {
+    width: 100%;
+    height: 200px; /* Fixed height for slider */
+    overflow: hidden;
 }
 
-.package-box p {
-    margin: 10px 0;
-    font-size: 1em;
-    color: #555;
-    text-align: justify;
-}
-
-.package-box .price {
-    font-weight: bold;
-    color: #e67e22;
-}
-
-.package-box img {
-    max-width: 100%;
+.slider-container img {
+    width: 100%;
     height: auto;
-    border-radius: 4px;
-    margin-left: auto;
-    margin-right: auto;
+    border-bottom: 3px solid #28a745; /* Green border below images */
 }
 
-@media (min-width: 768px) {
-    .package-box {
-        width: 48%;
-    }
+h4 {
+    font-size: 20px;
+    margin: 10px 0;
+    color: #28a745;
 }
 
-@media (min-width: 1024px) {
-    .package-box {
-        width: 30%;
-    }
+.price {
+    font-weight: bold;
+    color: #e67e22; /* Orange color for price */
 }
 
 .btn_book {
-    background-color: cornflowerblue;
-    border-radius: 30px;
+    display: inline-block;
+    margin: 10px auto;
+    padding: 10px 20px;
+    background-color: #28a745;
     color: white;
-    height: 40px;
-    width: 100px;
-    display: table-caption;
-    position: relative;
-    left: 100px;
-    text-align: center;
-    justify-content: center;
-    padding-top: 10px;
-    /* text-indent: 10px; */
-    margin-top: 10px;
-    vertical-align: middle;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background-color 0.3s;
 }
 
 .btn_book:hover {
-    background-color: dodgerblue;
-    color: white;
+    background-color: #218838;
+}
+
+/* Slider styles */
+.slick-slide {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.slick-dots {
+    bottom: -30px;
+}
+
+.slick-dots li button:before {
+    color: #28a745; /* Dot color */
+}
+
+.slick-dots li.slick-active button:before {
+    color: #333; /* Active dot color */
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .package-box {
+        width: 90%;
+    }
 }

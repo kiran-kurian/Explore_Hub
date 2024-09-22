@@ -1,93 +1,137 @@
-/* Container for the add-package section */
+body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(to right, #FF6F61, #D5006D);
+    color: #fff;
+    margin: 0;
+    padding: 0;
+}
+
 .add-package {
-    padding: 50px 10px; /* Adjust padding as needed */
-    background-color: #f9f9f9;
-    padding-top: 120px;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+    margin: 50px auto;
+    max-width: 600px;
+    transition: transform 0.3s, box-shadow 0.3s;
+    border: 5px solid #FF6F61;
 }
 
-/* Container for form elements */
-.add-package .container {
-    max-width: 800px;
-    margin: auto;
-    padding: 20px;
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+.add-package:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
 }
 
-/* Form title styling */
-.add-package h2 {
-    margin-bottom: 20px;
+h2 {
     text-align: center;
-    font-size: 28px;
-    color: #333;
+    color: #FF4F6D;
+    margin-bottom: 20px;
+    font-size: 32px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
 }
 
-/* Form group styling */
 .form-group {
     margin-bottom: 20px;
 }
 
-.form-group label {
+label {
     display: block;
-    margin-bottom: 8px;
     font-weight: bold;
+    margin-bottom: 8px;
     color: #333;
 }
 
-.form-group input,
-.form-group textarea {
+input[type="text"],
+input[type="number"],
+textarea,
+select {
     width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    box-sizing: border-box;
+    padding: 15px;
+    border: 2px solid #FF4F6D;
+    border-radius: 10px;
+    transition: border-color 0.3s, background-color 0.3s;
     font-size: 16px;
 }
 
-.form-group input:focus,
-.form-group textarea:focus {
-    border-color: #007bff;
+input[type="text"]:focus,
+input[type="number"]:focus,
+textarea:focus,
+select:focus {
+    border-color: #D5006D;
+    background-color: #ffe4e1;
     outline: none;
 }
 
-/* Button styling */
-.form-buttons {
+input[type="file"] {
+    padding: 10px;
+}
+
+.radio-group {
     display: flex;
     justify-content: space-between;
+    margin-top: 10px;
+}
+
+.radio-group label {
+    color: #333;
+}
+
+.form-buttons {
+    text-align: center;
+    margin-top: 30px;
 }
 
 .btn {
-    display: inline-block;
-    text-align: center;
-    padding: 10px 20px;
+    background-color: #28a745;
+    color: white;
+    padding: 15px 30px;
     border: none;
-    border-radius: 5px;
-    font-size: 16px;
-    text-decoration: none;
+    border-radius: 10px;
     cursor: pointer;
-    transition: background-color 0.3s, color 0.3s;
+    font-size: 18px;
+    transition: background-color 0.3s, transform 0.2s;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    margin: 0 10px;
 }
 
-.btn-primary {
-    background-color: #007bff;
-    color: #fff;
-}
-
-.btn-primary:hover {
-    background-color: #0056b3;
+.btn:hover {
+    background-color: #218838;
+    transform: translateY(-2px);
 }
 
 .btn-secondary {
     background-color: #6c757d;
-    color: #fff;
 }
 
 .btn-secondary:hover {
     background-color: #5a6268;
 }
 
-/* Adjust button spacing */
-.form-buttons .btn {
-    margin-right: 10px;
+/* Dropdown styles */
+select {
+        background-color: #fff;
+        color: #333;
+        border-radius: 10px;
+        border: 2px solid #FF4F6D;
+        padding: 15px; 
+        font-size: 18px; 
+        width: 100%;
+        appearance: none; 
+}
+
+/* Responsive styles */
+@media (max-width: 600px) {
+    .add-package {
+        padding: 20px;
+    }
+
+    h2 {
+        font-size: 24px;
+    }
+
+    .btn {
+        width: 100%;
+    }
 }

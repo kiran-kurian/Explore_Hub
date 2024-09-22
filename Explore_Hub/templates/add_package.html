@@ -7,7 +7,7 @@
 <section class="add-package">
     <div class="container">
         <h2>Add New Package</h2>
-        <form method="POST" enctype="multipart/form-data">
+        <form method="POST" action="{% url 'add_package' %}" enctype="multipart/form-data">
             {% csrf_token %}
             <div class="form-group">
                 <label for="title">Title</label>
@@ -25,8 +25,50 @@
             </div>
 
             <div class="form-group">
-                <label for="image">Image</label>
-                <input type="file" id="image" name="image" class="form-control" accept="image/*" required>
+                <label for="duration">Duration (e.g., 3D/2N):</label>
+                <input type="text" id="duration" name="duration" required>
+            </div>
+
+            <div class="form-group">
+                <label for="origin">Origin</label>
+                <input type="text" id="origin" name="origin" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="destination">Destination</label>
+                <input type="text" id="destination" name="destination" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="departure_day">Departure Day</label>
+                <select id="departure_day" name="departure_day" class="form-control" required>
+                    <option value="everyday">Everyday</option>
+                    <option value="monday">Monday</option>
+                    <option value="tuesday">Tuesday</option>
+                    <option value="wednesday">Wednesday</option>
+                    <option value="thursday">Thursday</option>
+                    <option value="friday">Friday</option>
+                    <option value="saturday">Saturday</option>
+                    <option value="sunday">Sunday</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="includes_charges">Include Charges for Reaching Destination:</label>
+                <select id="includes_charges" name="includes_charges" class="form-control" required>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="images">Images</label>
+                <input type="file" id="images" name="images" class="form-control" accept="image/*" multiple required>   
+            </div>
+
+            <div class="form-group">
+                <label for="itinerary">Itinerary (Enter details for each day separated by commas or line breaks)</label>
+                <textarea id="itinerary" name="itinerary" class="form-control" rows="6" required></textarea>
             </div>
 
             <div class="form-buttons">

@@ -120,6 +120,11 @@ def package_view(request):
     travel_package = TravelPackage.objects.all()
     return render(request, "packages.html", {'package': travel_package})
 
+#detailed package view
+def package_details(request, package_id):
+    package = get_object_or_404(TravelPackage, pk = package_id)
+    return render(request, 'package_detail.html', {'package': package})
+
 #Travel agent registration view
 def ta_registration_view(request):
     if request.method== "POST":
@@ -214,20 +219,39 @@ def add_package(request):
             title = request.POST.get('title')
             description = request.POST.get('description')
             price = request.POST.get('price')
-            image = request.FILES.get('image')
+            duration = request.POST.get('duration')
+            origin = request.POST.get('origin')
+            destination = request.POST.get('destination')
+            departure_day = request.POST.get('departure_day')
+            includes_charges = request.POST.get('includes_charges') == 'on'
+            itinerary = request.POST.get('itinerary')
+            images = request.FILES.getlist('images')
 
-            if title and description and price and image:
+            if title and description and price and duration and origin and destination and departure_day:
                 # Create and save the package
                 package = TravelPackage(
                     title=title,
                     description=description,
                     price=price,
-                    image=image,
-                    agency_id=travel_agency  # Set the current agency as the owner
+                    duration=duration,
+                    origin=origin,
+                    destination=destination,
+                    departure_day=departure_day,
+                    include_charges=includes_charges,
+                    itinerary=itinerary,
+                    agency_id=travel_agency
                 )
                 package.save()
 
-                return redirect('tahome')  # Redirect to the home page or another page
+                # Save multiple images for the package
+                for image in images:
+                    PackageImage.objects.create(
+                        travel_package=package,
+                        image=image,
+                    )
+
+
+                return redirect('tahome')
     return render(request, 'add_package.html')
 
 #to update package by the travel agency

@@ -32,4 +32,16 @@ class TravelPackage(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    image = models.ImageField(upload_to="package_images/")
+    duration = models.CharField(max_length=10)  
+    origin = models.CharField(max_length=200)
+    destination = models.CharField(max_length=200, default='Unknown')
+    departure_day = models.CharField(max_length=50, default='Everyday')
+    include_charges = models.BooleanField(default=False)
+    itinerary = models.TextField(null=True)
+    images = models.ManyToManyField('PackageImage')
+
+#table for storing images of the packages
+class PackageImage(models.Model):
+    travel_package = models.ForeignKey(TravelPackage, on_delete=models.CASCADE, related_name='package_images', null=True)
+    image = models.ImageField(upload_to='package_images/')
+    caption = models.CharField(max_length=255, blank=True)

@@ -4,23 +4,52 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{% static 'assets/css/package_style.css' %}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css">
 </head>
+
 <div class="body">
     <h3>Available Packages</h3>
     <div class="package-list">
-        {% for packages in package %}
+        {% for package in packages %}
             <div class="package-box">
-                {% if packages.image %}
-                    <img src="{{ packages.image.url }}" alt="{{ packages.title }}">
-                {% endif %}
-                <h4>{{ packages.title }}</h4>
-                <p>{{ packages.description }}</p>
-                <p class="price">Price: {{ packages.price }}</p>
-                <a href="{% url 'package' %}" class='btn_book'>Book Now</a>
+                <div class="slider-container">
+                    {% for image in package.images.all %}
+                        <div class="slide">
+                            <img src="{{ image.image.url }}" alt="{{ package.title }}">
+                        </div>
+                    {% empty %}
+                        <div class="slide">
+                            <img src="{{ package.image.url }}" alt="{{ package.title }}">
+                        </div>
+                    {% endfor %}
+                </div>
+                <h4>{{ package.title }}</h4>
+                <p>{{ package.description }}</p>
+                <p class="price">Price: {{ package.price }}</p>
+                <a href="{% url 'package_detail' package.package_id %}" class='btn_book'>View Details</a>
             </div>
         {% empty %}
             <p>No packages available at the moment.</p>
         {% endfor %}
     </div>
 </div>
+
+<script type="text/javascript">
+    $(document).ready(function(){
+        $('.slider-container').slick({
+            dots: true,
+            infinite: true,
+            speed: 500,
+            slidesToShow: 1,
+            adaptiveHeight: true,
+            autoplay: true,
+            autoplaySpeed: 2000,
+            arrows: false,
+        });
+    });
+</script>
+
 {% endblock %}
