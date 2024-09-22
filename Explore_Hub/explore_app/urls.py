@@ -28,6 +28,7 @@ urlpatterns = [
     path('', reg_user_home_view, name='regularuser'),
     path("logout/", logout_view, name="logout"),
     path('packages/', package_view, name="package"),    
+    path('package_details/<int:package_id>/', package_details, name="package_detail"),
     path('admindashboard/', admin_dashboard, name='admin_dashboard'),
     path('adminmain/approve-agencies/', admin_approve_agencies, name='admin_approve_agencies'),
     path('approve-agency/<int:agency_id>/', approve_travel_agency, name='approve_agency'),

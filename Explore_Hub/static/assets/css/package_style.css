@@ -32,6 +32,30 @@ h3 {
     transition: transform 0.3s;
 }
 
+.package-box {
+    display: flex;                
+    flex-direction: column;       
+    align-items: center;          
+    width: 30%;                   
+    margin: 20px 30px;           /* Increased top margin to lower the boxes */
+    padding: 20px;    
+    padding-top: 20px;            
+    border: 1px solid #ccc;       
+    border-radius: 8px;          
+    background-color: #f9f9f9;   
+}
+
+.package-container {
+    display: flex;                
+    flex-wrap: wrap;              
+    justify-content: space-around; 
+    margin-top: 50px;            /* Add margin to the top of the container */
+}
+
+.package-detail {
+    margin: 10px 0;              /* Add margin to separate details */
+    text-align: center;           /* Center text within each detail */
+}
 .package-box:hover {
     transform: scale(1.05);
 }
@@ -98,4 +122,23 @@ h4 {
     .package-box {
         width: 90%;
     }
+}
+.slider-container {
+    width: 100%;
+    margin: 0 auto;
+}
+
+.slide img {
+    width: 100%; /* Adjust based on your layout */
+    height: auto; /* Maintain aspect ratio */
+    border-radius: 8px; /* Optional for rounded corners */
+}
+.slick-prev, .slick-next {
+    font-size: 24px; /* Adjust size as needed */
+    color: black; /* Change color as needed */
+    z-index: 1; /* Ensure they're above other elements */
+}
+
+p{
+    text-align: justify;
 }

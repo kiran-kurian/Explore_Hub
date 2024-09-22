@@ -117,8 +117,8 @@ def register_view(request):
 
 #Package listing view
 def package_view(request):
-    travel_package = TravelPackage.objects.all()
-    return render(request, "packages.html", {'package': travel_package})
+    travel_package = TravelPackage.objects.prefetch_related('package_images').all()
+    return render(request, "packages.html", {'packages': travel_package})
 
 #detailed package view
 def package_details(request, package_id):

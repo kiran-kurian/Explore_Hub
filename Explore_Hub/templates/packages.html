@@ -4,10 +4,10 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{% static 'assets/css/package_style.css' %}">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css">
+    <script src="{% static "assets/vendors/jquery/jquery-3.4.1.js" %}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
 </head>
 
 <div class="body">
@@ -16,19 +16,24 @@
         {% for package in packages %}
             <div class="package-box">
                 <div class="slider-container">
-                    {% for image in package.images.all %}
+                    {% for image in package.package_images.all %}
                         <div class="slide">
                             <img src="{{ image.image.url }}" alt="{{ package.title }}">
                         </div>
                     {% empty %}
                         <div class="slide">
-                            <img src="{{ package.image.url }}" alt="{{ package.title }}">
+                            <img src="{% static 'assets/images/default_image.jpg' %}" alt="Default Image">
                         </div>
                     {% endfor %}
                 </div>
                 <h4>{{ package.title }}</h4>
                 <p>{{ package.description }}</p>
                 <p class="price">Price: {{ package.price }}</p>
+                <p>No. of Days: {{ package.number_of_days }}</p>
+                <p>Origin: {{ package.origin }}</p>
+                <p>Destination: {{ package.destination }}</p>
+                <p>Departure Day: {{ package.departure_day }}</p>
+                <p>Includes Travel Charges: {{ package.travel_charges_included|yesno:"Yes,No" }}</p>
                 <a href="{% url 'package_detail' package.package_id %}" class='btn_book'>View Details</a>
             </div>
         {% empty %}
@@ -47,9 +52,8 @@
             adaptiveHeight: true,
             autoplay: true,
             autoplaySpeed: 2000,
-            arrows: false,
+            arrows: true,
         });
     });
 </script>
-
 {% endblock %}
