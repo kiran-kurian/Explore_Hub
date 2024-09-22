@@ -1,3 +1,4 @@
+import re
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
@@ -81,6 +82,13 @@ def register_view(request):
         except ValidationError:
             return render(request, "registration.html", {
                 "message": "Invalid email format."
+            })
+        
+        # Validate phone number
+        phone_pattern = r'^[6-9]\d{9}$'
+        if not re.match(phone_pattern, number):
+            return render(request, "registration.html", {
+                "message": "Enter a valid 10-digit phone number"
             })
         
         # Attempt to create new user
