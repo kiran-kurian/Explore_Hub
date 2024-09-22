@@ -1,0 +1,78 @@
+{% extends 'layout_main.html' %}
+{% load static %}
+{% block content %}
+<head>
+    <link rel="stylesheet" href="{% static 'assets/css/package_detail_style.css' %}">
+</head>
+<!-- Package Detail Container -->
+<div class="container package-detail-container">
+    <div class="package-header">
+        <h1>{{ package.title }}</h1>
+    </div>
+
+    <!-- Package Overview Section with colorful cards -->
+    <div class="row package-overview">
+        <div class="col-md-6">
+            <div class="card text-white bg-info mb-3">
+                <div class="card-header">Overview</div>
+                <div class="card-body">
+                    <h5 class="card-title">Details</h5>
+                    <p><strong>Description:</strong> {{ package.description }}</p>
+                    <p><strong>Price:</strong> ${{ package.price }}</p>
+                    <p><strong>Duration:</strong> {{ package.duration }} days</p>
+                    <p><strong>Origin:</strong> {{ package.origin }}</p>
+                    <p><strong>Destination:</strong> {{ package.destination }}</p>
+                    <p><strong>Departure Day:</strong> {{ package.departure_day }}</p>
+                    <p><strong>Includes Travel Charges:</strong>
+                        {% if package.includes_charges %}
+                            Yes
+                        {% else %}
+                            No
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Itinerary Section -->
+        <div class="col-md-6">
+            {% if package.itinerary %}
+            <div class="card text-dark bg-light mb-3">
+                <div class="card-header">Itinerary</div>
+                <div class="card-body">
+                    <h5 class="card-title">Trip Plan</h5>
+                    <p>{{ package.itinerary|linebreaks }}</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Image Gallery -->
+    <div class="gallery-section">
+        <h2>Gallery</h2>
+        <div class="row">
+            {% if package.package_images.all %}
+                {% for image in package.package_images.all %}
+                    <div class="col-md-4">
+                        <div class="card mb-3">
+                            <img src="{{ image.image.url }}" alt="{{ image.caption }}" class="card-img-top" style="max-height: 200px; object-fit: cover;">
+                            <div class="card-body">
+                                <p class="card-text">{{ image.caption }}</p>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No images available for this package.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons mt-4 text-center">
+        <a href="#" class="btn btn-success btn-lg">Book Now</a>
+        <a href="{% url 'package' %}" class="btn btn-secondary btn-lg">Back to Packages</a>
+    </div>
+</div>
+{% endblock %}
