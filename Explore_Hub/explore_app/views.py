@@ -297,14 +297,18 @@ def forgot_password_view(request):
 def reset_password_view(request, uidb64, token):
     if request.method == 'POST':
         password = request.POST.get('password')
+        confirm_password = request.POST.get('confirm_password')
+        if password != confirm_password:
+            return render(request, 'reset_password.html', {'error': 'Passwords do not match'})
         try:
             uid = force_str(urlsafe_base64_decode(uidb64))
             user = User.objects.get(pk=uid)
             if default_token_generator.check_token(user, token):
                 # Update the user's password
-                user.password = make_password(password)
+                user.set_password(password)
                 user.save()
-                return redirect('password_reset_complete')
+                logout(request)
+                return render(request, 'login.html', {"message": "Reset complete, Login now"})
         except User.DoesNotExist:
             return render(request, 'reset_password.html', {'error': 'Invalid link'})
     return render(request, 'reset_password.html')
