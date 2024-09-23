@@ -1,0 +1,46 @@
+{% extends "ta_layout.html" %}
+{% load static %}
+{% block title %}Manage Profile{% endblock %}
+
+{% block body %}
+<head>
+    <link rel="stylesheet" href="{% static 'assets/css/ta_manage_profile.css' %}">
+</head>
+<div class="profile-container">
+    <h2>Manage Profile</h2>
+
+    <!-- Display success or error messages -->
+    {% if success %}
+        <p class="success-message">{{ success }}</p>
+    {% endif %}
+    {% if error %}
+        <p class="error-message">{{ error }}</p>
+    {% endif %}
+
+    <form method="POST">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="username">Username (cannot be changed)</label>
+            <input type="text" id="username" value="{{ travel_agency.username }}" disabled>
+        </div>
+
+        <div class="form-group">
+            <label for="name">Name</label>
+            <input type="text" name="name" id="name" value="{{ travel_agency.name }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="contact">Phone Number</label>
+            <input type="text" name="contact" id="contact" value="{{ travel_agency.contact }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" name="email" id="email" value="{{ travel_agency.email }}" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Update Profile</button>
+    </form>
+</div>
+{% endblock %}

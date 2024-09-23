@@ -226,8 +226,23 @@ def ta_home(request):
     return render(request, 'ta_home.html', {'agency': agency, 'packages': packages})
 
 #to manage profile of travel agency
-def manage_profile(request):
-    return render("ta_home.html")
+def ta_manage_profile(request):
+    travel_agency= TravelAgency.objects.get(username=request.user.username)
+    if request.method == "POST":
+        # Get the updated details from the form
+        name = request.POST.get("name")
+        contact = request.POST.get("contact")
+        email = request.POST.get("email")
+
+        # Update the travel agency user details
+        travel_agency.name = name
+        travel_agency.contact = contact
+        travel_agency.email = email
+
+        # Save the updated information
+        travel_agency.save()
+        return redirect('tahome')
+    return render(request, "ta_manage_profile.html", { 'travel_agency': travel_agency })
 
 #to add package by the travel agency
 @login_required

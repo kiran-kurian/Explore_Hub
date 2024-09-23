@@ -14,7 +14,7 @@
             <div class="dashboard-options">
                 {% for package in packages %}
                     <div class="package-box">
-                        {% for image in package.package_images.all %}  <!-- Assuming a related name for images -->
+                        {% for image in package.package_images.all %}  
                                 <img src="{{ image.image.url }}" alt="{{ package.title }} Image" style="max-width: 200px; height: auto; margin: 5px;">
                             {% empty %}
                                 <p>No images available</p>
