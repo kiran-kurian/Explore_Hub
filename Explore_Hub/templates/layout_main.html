@@ -46,7 +46,7 @@
                         <a class="nav-link-md" href="#contact">Contact</a>
                     </li>
                     {% if user.is_authenticated %}
-                    Welcome, {{ user.username }}
+                    Welcome, {{ user.first_name }}
                     <li class="nav-item ml-0 ml-lg-4">
                         <a class="nav-link-lg btn btn-primary" href="{% url 'logout' %}">Logout</a>
                     </li>

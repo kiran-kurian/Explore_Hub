@@ -1,130 +1,216 @@
 /* General Styles */
 body {
     font-family: 'Arial', sans-serif;
-    background-color: #f0f4f7;
+    background-color: #f8f9fa; /* Light Gray Background */
     margin: 0;
     padding: 0;
 }
 
+/* Header Styles */
 header {
-    background-color: #007bff;
+    background-color: #1f4e79; /* Dark Blue */
     padding: 20px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     color: white;
+    text-align: center;
 }
 
 h1 {
     margin: 0;
-    font-size: 2.5rem;
+    font-size: 2.2rem;
     font-weight: bold;
-    text-align: center;
 }
 
-/* Navigation Menu */
 nav {
-    text-align: center;
-    margin-top: 10px;
+    display: flex;
+    justify-content: flex-end;
+    padding-right: 20px;
+    background-color: #1f4e79;
 }
 
-nav ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-nav ul li {
-    display: inline-block;
-    margin-right: 20px;
-}
-
-nav ul li a {
-    text-decoration: none;
+nav a {
     color: white;
-    font-size: 1.1rem;
-    background-color: #007bff;
-    padding: 10px 15px;
-    border-radius: 8px;
-    transition: background-color 0.3s;
+    text-decoration: none;
+    font-size: 1rem;
+    margin: 0 10px;
+    padding: 10px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
 }
 
-nav ul li a:hover {
-    background-color: #0056b3;
-    color: #fff;
+nav a:hover {
+    background-color: #145276; /* Slightly lighter blue on hover */
+}
+
+/* Sidebar Styles */
+.sidebar {
+    width: 250px;
+    background-color: #1f4e79; /* Dark blue */
+    position: fixed;
+    top: 80px;
+    left: 0;
+    height: 100%;
+    padding-top: 30px;
+    color: white;
+}
+
+.sidebar a {
+    display: block;
+    padding: 15px 20px;
+    color: white;
+    text-decoration: none;
+    font-size: 1rem;
+    margin-bottom: 10px;
+    transition: background-color 0.3s ease;
+}
+
+.sidebar a:hover {
+    background-color: #145276;
+}
+
+.sidebar h2 {
+    padding: 10px 20px;
+    font-size: 1.5rem;
+    border-bottom: 1px solid #145276;
 }
 
 /* Main Content */
 main {
-    max-width: 1200px;
-    margin: 40px auto;
+    margin-left: 270px; /* Adjusted for sidebar */
+    padding: 40px;
     background-color: #ffffff;
-    padding: 30px;
     border-radius: 10px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    min-height: 400px;
 }
 
 main h2 {
-    font-size: 2rem;
-    color: #007bff;
+    font-size: 1.8rem;
+    color: #145276;
     margin-bottom: 20px;
+    border-bottom: 2px solid #febf34; /* Goldish Underline */
+    padding-bottom: 10px;
+}
+
+/* Admin Table */
+.table-container {
+    margin-top: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+}
+
+table thead {
+    background-color: #febf34; /* Gold */
+    color: white;
+}
+
+table th, table td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+table th {
+    font-size: 1.1rem;
+}
+
+table tbody tr:hover {
+    background-color: #f1f1f1;
+}
+
+table tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
 }
 
 /* Buttons */
 button, .btn {
     display: inline-block;
-    padding: 10px 20px;
+    padding: 10px 15px;
     font-size: 1rem;
     border: none;
     border-radius: 5px;
     color: #fff;
-    background-color: #007bff;
-    transition: background-color 0.3s;
+    background-color: #28a745; /* Green */
+    transition: background-color 0.3s ease;
     cursor: pointer;
-    margin-right: 10px;
 }
 
 button:hover, .btn:hover {
-    background-color: #0056b3;
+    background-color: #218838; /* Darker Green */
 }
 
-/* Links in content */
-a {
-    color: #007bff;
-    text-decoration: none;
-    transition: color 0.3s;
+/* Add New Button */
+.add-new-btn {
+    background-color: #28a745;
+    padding: 10px 20px;
+    border-radius: 5px;
+    color: white;
+    font-size: 1.1rem;
+    margin-bottom: 20px;
+    transition: background-color 0.3s;
 }
 
-a:hover {
-    color: #0056b3;
-    text-decoration: underline;
+.add-new-btn:hover {
+    background-color: #218838;
 }
 
 /* Footer */
 footer {
     text-align: center;
     padding: 20px 0;
-    background-color: #007bff;
+    background-color: #1f4e79;
     color: white;
     margin-top: 40px;
 }
 
-/* Media Query for Mobile Responsiveness */
+/* Media Queries for Responsive Design */
 @media (max-width: 768px) {
-    nav ul li {
-        display: block;
-        margin: 10px 0;
-    }
-
-    header {
-        text-align: center;
+    .sidebar {
+        width: 100%;
+        position: relative;
+        height: auto;
     }
 
     main {
-        margin: 20px;
+        margin-left: 0;
         padding: 20px;
     }
 
-    button, .btn {
-        margin-bottom: 10px;
+    table th, table td {
+        padding: 10px;
     }
+}
+
+/* For horizontal navigation */
+ul {
+    list-style: none; /* Remove bullet points */
+    padding: 0;
+    margin: 0;
+    display: flex; /* Align items horizontally */
+    justify-content: space-around; /* Evenly space the items */
+    background-color: #1f4e79; /* Dark blue background */
+    padding: 10px 0;
+}
+
+li {
+    margin: 0 15px; /* Space between list items */
+}
+
+li a {
+    text-decoration: none;
+    color: white; /* Text color */
+    padding: 10px 20px; /* Padding for clickable area */
+    font-size: 1.1rem;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+li a:hover {
+    background-color: #145276; /* Slightly lighter blue on hover */
 }

@@ -211,6 +211,11 @@ def admin_manage_users(request):
 @login_required
 def admin_delete_user(request, user_id):
     user = get_object_or_404(CustomUser, pk=user_id)
+    try:
+        travel_agency = TravelAgency.objects.get(username=user.username)
+        travel_agency.delete()
+    except TravelAgency.DoesNotExist:
+        pass
     user.delete()
     return redirect('admin_manage_users')
 
@@ -255,8 +260,8 @@ def add_package(request):
 
             title = request.POST.get('title')
             description = request.POST.get('description')
-            price = request.POST.get('price')
-            if package.price <= 0:
+            price = float(request.POST.get('price'))
+            if price <= 0:
                 messages.error(request, 'Price must be greater than 0.')
                 return render(request, 'add_package.html')
             duration = request.POST.get('duration')
