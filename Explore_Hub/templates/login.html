@@ -100,6 +100,7 @@
             display: flex;
             justify-content: center;
             margin-top: 20px;
+            text-decoration: none;
         }
 
         .google-button {
@@ -116,6 +117,12 @@
             font-size: 20px;
             gap: 10px;
             cursor: pointer;
+            text-decoration: none;
+        }
+
+        .social-login a {
+            text-decoration: none;
+            width: 100%;
         }
 
         .google-button:hover {
@@ -161,10 +168,12 @@
                 <button type="submit" class="button">Login</button>
             </form>
             <div class="social-login">
-                <button class="google-button">
-                    <img src="{% static 'images/google.png' %}" alt="Google Logo" style="width: 24px; height: 24px;">
-                    Login with Google
-                </button>
+                <a href="{% url 'social:begin' 'google-oauth2' %}">
+                    <button class="google-button">
+                        <img src="{% static 'images/google.png' %}" alt="Google Logo" style="width: 24px; height: 24px;">
+                        Login with Google
+                    </button>
+                </a>
             </div>
             <div>
                 <a href="{% url 'forgot_password' %}" class="forgot-password">Forgot Password?</a>

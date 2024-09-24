@@ -18,7 +18,7 @@ class TravelAgency(models.Model):
 #to ammend the already known table with phone number and role
 class CustomUser(User):
     phone_number = models.CharField(max_length=15, unique=True)
-    role = models.CharField(max_length=30)
+    role = models.CharField(max_length=30,default='reguser')
     travel_agency = models.ForeignKey(TravelAgency, on_delete=models.CASCADE, null=True, blank=True)
 
     class Meta:

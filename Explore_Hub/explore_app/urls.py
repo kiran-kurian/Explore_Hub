@@ -27,6 +27,7 @@ urlpatterns = [
     path('register/', register_view, name = 'register'),
     path('', reg_user_home_view, name='regularuser'),
     path("logout/", logout_view, name="logout"),
+    path('oauth/', include('social_django.urls', namespace='social')),
     path('packages/', package_view, name="package"),    
     path('package_details/<int:package_id>/', package_details, name="package_detail"),
     path('admindashboard/', admin_dashboard, name='admin_dashboard'),
