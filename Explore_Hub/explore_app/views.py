@@ -115,7 +115,7 @@ def register_view(request):
                 # user.role = role
                 user.save()
 
-            login(request, user)
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             return HttpResponseRedirect(reverse("regularuser"))
         except IntegrityError:
             return render(request, "registration.html", {
@@ -132,7 +132,7 @@ def package_view(request):
 #detailed package view
 def package_details(request, package_id):
     package = get_object_or_404(TravelPackage, pk = package_id)
-    return render(request, 'package_detail.html', {'package': package})
+    return render(request, 'package_detail.html', {'package': package, 'agency_name': package.agency_id.name})
 
 #Travel agent registration view
 def ta_registration_view(request):
@@ -219,6 +219,8 @@ def admin_delete_user(request, user_id):
     user.delete()
     return redirect('admin_manage_users')
 
+#view for home page of travel agency
+@never_cache
 def ta_home(request):
     try:
         agency = TravelAgency.objects.get(username=request.user.username)
@@ -228,10 +230,11 @@ def ta_home(request):
             })
         packages = TravelPackage.objects.filter(agency_id=agency).prefetch_related('package_images')
     except TravelAgency.DoesNotExist:
-        return redirect('register')
+        return redirect('login')
     return render(request, 'ta_home.html', {'agency': agency, 'packages': packages})
 
 #to manage profile of travel agency
+@never_cache
 def ta_manage_profile(request):
     travel_agency= TravelAgency.objects.get(username=request.user.username)
     if request.method == "POST":
@@ -395,3 +398,9 @@ def reset_password_view(request, uidb64, token):
         except User.DoesNotExist:
             return render(request, 'reset_password.html', {'error': 'Invalid link'})
     return render(request, 'reset_password.html')
+
+#check username for live validation
+def check_username(request):
+    username = request.GET.get('username', None)
+    is_taken = CustomUser.objects.filter(username=username).exists()
+    return JsonResponse({'is_taken': is_taken})

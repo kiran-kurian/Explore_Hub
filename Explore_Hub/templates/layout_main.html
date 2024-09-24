@@ -6,16 +6,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Explore Hub</title>
     <link rel="shortcut icon" type="image/png" href="{% static 'images/logo.png' %}" >
-    <!-- font icons -->
+    
+    <!-- Font icons -->
     <link rel="stylesheet" href="{% static 'assets/vendors/themify-icons/css/themify-icons.css' %}">
     
-    <!-- owl carousel -->
+    <!-- Owl Carousel (if needed) -->
     <link rel="stylesheet" href="{% static 'assets/vendors/owl-carousel/css/owl.carousel.css' %}">
     <link rel="stylesheet" href="{% static 'assets/vendors/owl-carousel/css/owl.theme.default.css' %}">
 
     <!-- Bootstrap + Ollie main styles -->
 	<link rel="stylesheet" href="{% static 'assets/css/ollie.css' %}">
-
+    
+    <!-- Slick Carousel CSS from CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick-theme.css" />
 </head>
 <body data-spy="scroll" data-target=".navbar" data-offset="40" id="home">
 
@@ -31,6 +35,7 @@
                     <li class="nav-item">
                         <a class="nav-link-md" href="{% url 'regularuser' %}">Home</a>
                     </li>
+                    <li class="nav-item">
                         <a class="nav-link-md" href="{% url 'package' %}">Packages</a>
                     </li>
                     <li class="nav-item">
@@ -66,18 +71,50 @@
         {% block content %}
         {% endblock %}
     </main>
-    	<!-- core  -->
-        <script src="{% static "assets/vendors/jquery/jquery-3.4.1.js" %}"></script>
-        <script src="{% static "assets/vendors/bootstrap/bootstrap.bundle.js" %}"></script>
-    
-        <!-- bootstrap 3 affix -->
-        <script src=></script>
-        
-        <!-- Owl carousel  -->
-        <script src="{% static "assets/vendors/owl-carousel/js/owl.carousel.js" %}"></script>
-    
-    
-        <!-- Ollie js -->
-        <script src="{% static "assets/js/Ollie.js" %}"></script>
+
+    <!-- Core JS files -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="{% static 'assets/vendors/bootstrap/bootstrap.bundle.js' %}"></script>
+
+    <!-- Owl Carousel (if needed) -->
+    <script src="{% static 'assets/vendors/owl-carousel/js/owl.carousel.js' %}"></script>
+
+    <!-- Slick Carousel JS from CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.js"></script>
+
+    <!-- Slick Carousel Initialization -->
+    <script>
+        $(document).ready(function(){
+            $('.your-class').slick({
+                slidesToShow: 3,
+                slidesToScroll: 1,
+                autoplay: true,
+                autoplaySpeed: 2000,
+                dots: true,
+                arrows: true,
+                responsive: [
+                    {
+                        breakpoint: 1024,
+                        settings: {
+                            slidesToShow: 2,
+                            slidesToScroll: 1,
+                            infinite: true,
+                            dots: true
+                        }
+                    },
+                    {
+                        breakpoint: 600,
+                        settings: {
+                            slidesToShow: 1,
+                            slidesToScroll: 1
+                        }
+                    }
+                ]
+            });
+        });
+    </script>
+
+    <!-- Ollie JS -->
+    <script src="{% static 'assets/js/Ollie.js' %}"></script>
 </body>
 </html>

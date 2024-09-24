@@ -46,6 +46,7 @@ urlpatterns = [
     path('deletepackage/<int:package_id>/', delete_package, name="delete_package"),
     path('forgot_password/', forgot_password_view, name='forgot_password'),
     path('reset_password/<uidb64>/<token>/', reset_password_view, name='reset_password'),
+    path('check_username/', check_username, name='check_username'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

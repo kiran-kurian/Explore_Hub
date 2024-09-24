@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="shortcut icon" type="image/png" href="{% static 'images/logo.png' %}" >
-    <title>Login-Explore Hub</title>
+    <link rel="shortcut icon" type="image/png" href="{% static 'images/logo.png' %}">
+    <title>Register - Explore Hub</title>
     <style>
         * {
             margin: 0;
@@ -41,7 +41,7 @@
 
         .login-box {
             width: 35%;
-            height: 90%;
+            min-height: 80%; /* Ensure a minimum height, adjust based on design */
             max-width: 600px;
             padding: 40px;
             background: rgba(170, 177, 187, 0.35);
@@ -51,6 +51,8 @@
             text-align: center;
             z-index: 10;
             margin-bottom: 10px;
+            overflow: hidden; /* Prevent scrollbars */
+            position: relative;
         }
 
         .login-box h1 {
@@ -80,7 +82,6 @@
             border: none;
             outline: none;
             text-align: center;
-            margin-top: 5px;
         }
 
         .button {
@@ -143,10 +144,20 @@
             margin-right: 50px;
         }
 
-        /* For better contrast of text on background */
         .login-box h1, .forgot-password, .new-user, .button, .ta, p {
             color: #FFF;
         }
+
+        /* Error message styling */
+        .error {
+            color: #e74c3c; /* Soft red for error messages */
+            font-size: 14px;
+            margin-top: 5px;
+            width: 100%;
+            text-align: left; /* Align error messages to the left */
+            padding-left: 10px;
+        }
+
     </style>
 </head>
 <body>
@@ -155,25 +166,38 @@
         <div class="login-box">
             <h1>Explore Hub</h1>
             <h2>Register</h2>
-            {% comment %} to print any error messages {% endcomment %}
-            {% if message %}    
-                <div>{{ message }}</div>
+            {% if message %}
+                <div class="error">{{ message }}</div>
             {% endif %}
-            <form method="post" action={% url 'register' %}>
+            <form id="registrationForm" method="post" action={% url 'register' %} novalidate>
                 {% csrf_token %}
-                <input type="text" name="username" class="input-field" placeholder="Username" required>
-                <input type="text" name="name" class="input-field" placeholder="Name" required>
-                <input type="email" name="email" class="input-field" placeholder="Email" required>
-                <input type="password" name="password" class="input-field" placeholder="Enter Password" required>
-                <input type="password" name="confirmpassword" class="input-field" placeholder="Confirm Password" required>
-                <input type="Number" name="number" class="input-field" placeholder="Phone Number" required>
-                <select name="role" class="input-field" required>
+                <input type="text" id="username" name="username" class="input-field" placeholder="Username" required>
+                <span id="usernameError" class="error"></span>
+
+                <input type="text" id="name" name="name" class="input-field" placeholder="Name" required>
+                <span id="nameError" class="error"></span>
+
+                <input type="email" id="email" name="email" class="input-field" placeholder="Email" required>
+                <span id="emailError" class="error"></span>
+
+                <input type="password" id="password" name="password" class="input-field" placeholder="Enter Password" required>
+                <span id="passwordError" class="error"></span>
+
+                <input type="password" id="confirmpassword" name="confirmpassword" class="input-field" placeholder="Confirm Password" required>
+                <span id="confirmPasswordError" class="error"></span>
+
+                <input type="number" id="number" name="number" class="input-field" placeholder="Phone Number" required>
+                <span id="phoneError" class="error"></span>
+
+                <select name="role" id="role" class="input-field" required>
                     <option value="" disabled selected>Select Role</option>
                     <option value="reguser">Regular User</option>
                     <option value="ta">Travel Agency</option>
                     <option value="guide">Local Guide</option>
                     <option value="eorg">Event Organizer</option>
                 </select>
+                <span id="roleError" class="error"></span>
+
                 <button type="submit" class="button">Register</button>
             </form>
             <div>
@@ -181,5 +205,94 @@
             </div>
         </div>
     </div>
+
+    <script>
+        // Function to validate individual fields
+        function validateField(field, errorElement, condition, message) {
+            if (condition) {
+                document.getElementById(errorElement).innerText = message;
+                return false;
+            } else {
+                document.getElementById(errorElement).innerText = "";
+                return true;
+            }
+        }
+
+        // Real-time validation for username with AJAX check
+        document.getElementById('username').addEventListener('input', function() {
+            const username = this.value.trim();
+            if (username === "") {
+                validateField('username', 'usernameError', true, "Username is required.");
+            } else {
+                fetch(`/check_username/?username=${username}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.is_taken) {
+                            validateField('username', 'usernameError', true, "Username is already taken.");
+                        } else {
+                            validateField('username', 'usernameError', false, "");
+                        }
+                    });
+            }
+        });
+
+        // Real-time name validation for letters only
+        document.getElementById('name').addEventListener('input', function() {
+            const namePattern = /^[a-zA-Z\s]+$/;
+            validateField('name', 'nameError', !namePattern.test(this.value), "Name should contain only letters.");
+        });
+
+        // Real-time email validation
+        document.getElementById('email').addEventListener('input', function() {
+            const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+            const endsWithCom = this.value.endsWith(".com");
+            validateField('email', 'emailError', !emailPattern.test(this.value) || !endsWithCom, "Please enter a valid email address ending with '.com'.");
+        });
+
+        // Real-time password and confirm password validation
+        document.getElementById('password').addEventListener('input', function() {
+            validateField('password', 'passwordError', this.value.trim() === "", "Password is required.");
+        });
+
+        document.getElementById('confirmpassword').addEventListener('input', function() {
+            const password = document.getElementById('password').value;
+            validateField('confirmpassword', 'confirmPasswordError', this.value !== password, "Passwords do not match.");
+        });
+
+        // Real-time phone number validation for Indian number
+        document.getElementById('number').addEventListener('input', function() {
+            const phonePattern = /^[6789]\d{9}$/;
+            validateField('number', 'phoneError', !phonePattern.test(this.value), "Phone number must start with 6, 7, 8, or 9 and be 10 digits.");
+        });
+
+        // Real-time role validation
+        document.getElementById('role').addEventListener('blur', function() {
+            validateField('role', 'roleError', this.value === "", "Please select a role.");
+        });
+
+        // Final validation on form submit
+        document.getElementById('registrationForm').addEventListener('submit', function(event) {
+            let isValid = true;
+
+            isValid &= validateField('username', 'usernameError', document.getElementById('username').value.trim() === "", "Username is required.");
+            isValid &= validateField('name', 'nameError', document.getElementById('name').value.trim() === "", "Name is required.");
+
+            const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+            const emailValue = document.getElementById('email').value;
+            isValid &= validateField('email', 'emailError', !emailPattern.test(emailValue) || !emailValue.endsWith(".com"), "Please enter a valid email address ending with '.com'.");
+
+            isValid &= validateField('password', 'passwordError', document.getElementById('password').value.trim() === "", "Password is required.");
+            isValid &= validateField('confirmpassword', 'confirmPasswordError', document.getElementById('confirmpassword').value !== document.getElementById('password').value, "Passwords do not match.");
+
+            const phonePattern = /^[789]\d{9}$/;
+            isValid &= validateField('number', 'phoneError', !phonePattern.test(document.getElementById('number').value), "Phone number must start with 7, 8, or 9 and be 10 digits.");
+
+            isValid &= validateField('role', 'roleError', document.getElementById('role').value === "", "Please select a role.");
+
+            if (!isValid) {
+                event.preventDefault(); // Prevent form submission if validation fails
+            }
+        });
+    </script>
 </body>
 </html>
