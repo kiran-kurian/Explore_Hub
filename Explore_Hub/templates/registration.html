@@ -221,9 +221,17 @@
         // Real-time validation for username with AJAX check
         document.getElementById('username').addEventListener('input', function() {
             const username = this.value.trim();
+            
+            // Regular expression to ensure username doesn't start with a digit
+            const usernamePattern = /^[a-zA-Z][a-zA-Z0-9_]*$/;
+            
             if (username === "") {
                 validateField('username', 'usernameError', true, "Username is required.");
+            } else if (!usernamePattern.test(username)) {
+                // Check if the username starts with a letter
+                validateField('username', 'usernameError', true, "Enter a valid username");
             } else {
+                // If the username passes the local validation, proceed with AJAX check
                 fetch(`/check_username/?username=${username}`)
                     .then(response => response.json())
                     .then(data => {
@@ -242,11 +250,20 @@
             validateField('name', 'nameError', !namePattern.test(this.value), "Name should contain only letters.");
         });
 
+        const validTLDs = ['com', 'org', 'net', 'edu', 'gov', 'co', 'in']; 
+
         // Real-time email validation
         document.getElementById('email').addEventListener('input', function() {
-            const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
-            const endsWithCom = this.value.endsWith(".com");
-            validateField('email', 'emailError', !emailPattern.test(this.value) || !endsWithCom, "Please enter a valid email address ending with '.com'.");
+            // Updated regular expression to validate the email format
+            const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            const email = this.value;
+            const domainPart = email.substring(email.lastIndexOf('.') + 1).toLowerCase();
+            
+            // Check if the domain ends with a valid TLD
+            const isValidTLD = validTLDs.includes(domainPart);
+            
+            // Show error if the pattern is invalid or the TLD is not valid
+            validateField('email', 'emailError', !emailPattern.test(email) || !isValidTLD, "Please enter a valid email address.");
         });
 
         // Real-time password and confirm password validation
@@ -262,7 +279,7 @@
         // Real-time phone number validation for Indian number
         document.getElementById('number').addEventListener('input', function() {
             const phonePattern = /^[6789]\d{9}$/;
-            validateField('number', 'phoneError', !phonePattern.test(this.value), "Phone number must start with 6, 7, 8, or 9 and be 10 digits.");
+            validateField('number', 'phoneError', !phonePattern.test(this.value), "Enter a valid phone number");
         });
 
         // Real-time role validation

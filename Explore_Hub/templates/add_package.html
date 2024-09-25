@@ -7,6 +7,11 @@
 <section class="add-package">
     <div class="container">
         <h3>Add New Package</h3>
+        {% if message %}
+            <ul class="messages">
+                {{ message }}
+            </ul>
+        {% endif %}
         <form method="POST" action="{% url 'add_package' %}" enctype="multipart/form-data">
             {% csrf_token %}
             <div class="form-group">

@@ -17,6 +17,8 @@ from django.contrib.auth.tokens import default_token_generator
 from django.template.loader import render_to_string
 from django.contrib.auth import views as auth_views
 from django.core.cache import cache
+from django.core.files.uploadedfile import UploadedFile
+from django.core.files.storage import default_storage
 
 # Create your views here.
 
@@ -34,11 +36,13 @@ def login_view(request):
         if user is not None:
             login(request, user)
             if user.is_superuser:
+                request.session['master'] = user.id
                 return HttpResponseRedirect(reverse('admin_dashboard'))
             else:
                 custom_user = CustomUser.objects.get(id=user.id)
                 role = custom_user.role
                 if role == 'ta':
+                    request.session['travel'] = user.id
                     return HttpResponseRedirect(reverse('tahome'))
                 else:
                     return HttpResponseRedirect(reverse("regularuser"))
@@ -265,8 +269,7 @@ def add_package(request):
             description = request.POST.get('description')
             price = float(request.POST.get('price'))
             if price <= 0:
-                messages.error(request, 'Price must be greater than 0.')
-                return render(request, 'add_package.html')
+                return render(request, 'add_package.html', {'message': 'Price cannot be zero or less than'})
             duration = request.POST.get('duration')
             origin = request.POST.get('origin')
             destination = request.POST.get('destination')
@@ -275,7 +278,14 @@ def add_package(request):
             itinerary = request.POST.get('itinerary')
             images = request.FILES.getlist('images')
 
+            valid_image_types = ['image/jpeg', 'image/png', 'image/gif']
+
             if title and description and price and duration and origin and destination and departure_day:
+
+                for image in images:
+                    if isinstance(image, UploadedFile):
+                        if image.content_type not in valid_image_types:
+                            return render(request, 'add_package.html', {'message': 'Insert valid image format'})
                 # Create and save the package
                 package = TravelPackage(
                     title=title,
@@ -323,9 +333,25 @@ def update_package(request, package_id):
             includes_charges_value = request.POST.get('includes_charges') == 'True'
             package.include_charges = includes_charges_value
 
+            delete_image_ids = request.POST.getlist('delete_images')
+            if delete_image_ids:
+                for image_id in delete_image_ids:
+                    image = get_object_or_404(PackageImage, id=image_id)
+                    # Delete the image file from storage
+                    if default_storage.exists(image.image.path):
+                        default_storage.delete(image.image.path)
+                    # Delete the image record from the database
+                    image.delete()
+
             # Handle image file uploads
+            valid_image_types = ['image/jpeg', 'image/png', 'image/jpg']
             if 'images' in request.FILES:
                 for image in request.FILES.getlist('images'):
+                    if isinstance(image, UploadedFile):
+                        if image.content_type not in valid_image_types:
+                            messages.error(request, f"File '{image.name}' is not a valid image type.")
+                            return render(request, 'update_package.html', {'package': package,
+                                                                           'message':'Not a valid image type'})
                     new_image = PackageImage(travel_package=package, image=image)
                     new_image.save()
 
