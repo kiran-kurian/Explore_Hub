@@ -28,19 +28,61 @@
         <div class="form-group">
             <label for="name">Name</label>
             <input type="text" name="name" id="name" value="{{ travel_agency.name }}" required>
+            <span id="nameError" class="error-message"></span> <!-- Error message for name -->
         </div>
-
+        
         <div class="form-group">
             <label for="contact">Phone Number</label>
-            <input type="text" name="contact" id="contact" value="{{ travel_agency.contact }}" required>
+            <input type="number" name="contact" id="contact" value="{{ travel_agency.contact }}" required>
+            <span id="phoneError" class="error-message"></span> <!-- Error message for phone -->
         </div>
-
+        
         <div class="form-group">
             <label for="email">Email</label>
             <input type="email" name="email" id="email" value="{{ travel_agency.email }}" required>
+            <span id="emailError" class="error-message"></span> <!-- Error message for email -->
         </div>
 
         <button type="submit" class="btn btn-primary">Update Profile</button>
     </form>
 </div>
+
+<script>
+    function validateField(fieldValue, errorElement, condition, message) {
+        if (condition) {
+            document.getElementById(errorElement).innerText = message;
+            return false;
+        } else {
+            document.getElementById(errorElement).innerText = "";
+            return true;
+        }
+    }
+    
+    // Real-time name validation for letters only
+    document.getElementById('name').addEventListener('input', function() {
+        const namePattern = /^[a-zA-Z\s]+$/;
+        validateField(this.value, 'nameError', !namePattern.test(this.value), "Name should contain only letters.");
+    });
+    
+    const validTLDs = ['com', 'org', 'net', 'edu', 'gov', 'co', 'in'];
+    
+    // Real-time email validation
+    document.getElementById('email').addEventListener('input', function() {
+        const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        const email = this.value;
+        const domainPart = email.substring(email.lastIndexOf('.') + 1).toLowerCase();
+    
+        const isValidTLD = validTLDs.includes(domainPart);
+        
+        validateField(this.value, 'emailError', !emailPattern.test(email) || !isValidTLD, "Please enter a valid email address.");
+    });
+    
+    // Real-time phone number validation for Indian numbers
+    document.getElementById('contact').addEventListener('input', function() {
+        const phonePattern = /^[6789]\d{9}$/;
+        validateField(this.value, 'phoneError', !phonePattern.test(this.value), "Enter a valid phone number");
+    });
+</script>
 {% endblock %}
+
+
