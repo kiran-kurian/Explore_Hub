@@ -76,8 +76,10 @@ nav a:hover {
 
 /* Main Content */
 main {
-    margin-left: 270px; /* Adjusted for sidebar */
-    padding: 40px;
+    margin-left: 20px;
+    margin-right: 20px;
+    padding: 20px;
+    padding-top: 20px;
     background-color: #ffffff;
     border-radius: 10px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -85,6 +87,7 @@ main {
 
 main h2 {
     font-size: 1.8rem;
+    text-align: center;
     color: #145276;
     margin-bottom: 20px;
     border-bottom: 2px solid #febf34; /* Goldish Underline */
@@ -213,4 +216,50 @@ li a {
 
 li a:hover {
     background-color: #145276; /* Slightly lighter blue on hover */
+}
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+/* Dropdown button */
+.dropbtn {
+    color: white;
+    padding: 16px;
+    font-size: 1.1rem;
+    border: none;
+    cursor: pointer;
+}
+
+/* Dropdown content (hidden by default) */
+.dropdown-content {
+    display: none;
+    position: absolute;
+    font-size: 1.1rem;
+    color: #f9f9f9;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+}
+
+/* Dropdown content links */
+.dropdown-content a {
+    color: white;
+    padding: 12px 16px;
+    text-decoration: none;
+    font-size: 1.1rem;
+    display: block;
+}
+
+/* Show the dropdown menu on hover */
+.dropdown:hover .dropdown-content {
+    display: block;
+    background-color: #1f4e79;
+    font-size: 1.1rem;
+}
+
+/* Change the color of dropdown links on hover */
+.dropdown-content a:hover {
+    background-color: #145276;
 }

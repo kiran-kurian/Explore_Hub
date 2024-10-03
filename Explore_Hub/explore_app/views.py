@@ -29,6 +29,19 @@ def login_view(request):
         # Attempt to sign user in
         username = request.POST["username"]
         password = request.POST["password"]
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            # If no user exists with that username, return the error
+            return render(request, "login.html", {
+                "message": "Invalid username and/or password."
+            })
+
+        # Check if the user is inactive
+        if not user.is_active:
+            return render(request, "login.html", {
+                "message": "Account is inactive. Please contact the admin."
+            })
         user = authenticate(request, username=username, password=password)
 
 
@@ -132,7 +145,7 @@ def register_view(request):
 
 #Package listing view
 def package_view(request):
-    travel_package = TravelPackage.objects.prefetch_related('package_images').all()
+    travel_package = TravelPackage.objects.prefetch_related('package_images').filter(is_archived=False)
     return render(request, "packages.html", {'packages': travel_package})
 
 #detailed package view
@@ -208,7 +221,15 @@ def approve_travel_agency(request, agency_id):
 @login_required(login_url='login')
 def admin_manage_packages(request):
     if 'master' in request.session:
-        package = TravelPackage.objects.prefetch_related('package_images').all()
+        package = TravelPackage.objects.prefetch_related('package_images').filter(is_archived=False)
+        return render(request, 'admin_manage_package.html', {'packages': package})
+    else:
+        return redirect('login')
+
+@login_required(login_url='login')
+def admin_manage_archived_packages(request):
+    if 'master' in request.session:
+        package = TravelPackage.objects.prefetch_related('package_images').filter(is_archived=True)
         return render(request, 'admin_manage_package.html', {'packages': package})
     else:
         return redirect('login')
@@ -233,12 +254,17 @@ def admin_manage_users(request):
 @login_required(login_url='login')
 def admin_delete_user(request, user_id):
     user = get_object_or_404(CustomUser, pk=user_id)
-    try:
-        travel_agency = TravelAgency.objects.get(username=user.username)
-        travel_agency.delete()
-    except TravelAgency.DoesNotExist:
-        pass
-    user.delete()
+    if not user.is_active:
+        subject = "Account Unblocked"
+        message = render_to_string("account_unblocked_email.html", { "user": user })
+        user.is_active = True
+        send_mail(subject, message, 'explorehub123@gmail.com', [user.email], html_message=message)
+    else:
+        subject = "Account Blocked"
+        message = render_to_string("account_blocked_email.html", { "user": user })
+        user.is_active = False
+        send_mail(subject, message, 'explorehub123@gmail.com', [user.email], html_message=message)
+    user.save()
     return redirect('admin_manage_users')
 
 #view for home page of travel agency
@@ -252,10 +278,27 @@ def ta_home(request):
                 return render(request, "login.html", {
                     "message": "Approval pending"
                 })
-            packages = TravelPackage.objects.filter(agency_id=agency).prefetch_related('package_images')
+            packages = TravelPackage.objects.filter(agency_id=agency, is_archived=False).prefetch_related('package_images')
         except TravelAgency.DoesNotExist:
             return redirect('login')
         return render(request, 'ta_home.html', {'agency': agency, 'packages': packages})
+    else:
+        return redirect('login')
+
+@never_cache
+@login_required(login_url='login')
+def manage_archived_packages(request):
+    if 'travel' in request.session:
+        try:
+            agency = TravelAgency.objects.get(username=request.user.username)
+            if not agency.approved:
+                return render(request, "login.html", {
+                    "message": "Approval pending"
+                })
+            packages = TravelPackage.objects.filter(agency_id=agency, is_archived=True).prefetch_related('package_images')
+        except TravelAgency.DoesNotExist:
+            return redirect('login')
+        return render(request, 'ta_archived.html', {'agency': agency, 'packages': packages})
     else:
         return redirect('login')
 
@@ -359,6 +402,7 @@ def update_package(request, package_id):
                 package.destination = request.POST.get('destination', package.destination)
                 package.duration = request.POST.get('number_of_days', package.duration)
                 package.departure_day = request.POST.get('departure_day', package.departure_day)
+                package.itinerary = request.POST.get('itinerary', package.itinerary)
 
                 # Set includes_charges based on dropdown selection
                 includes_charges_value = request.POST.get('includes_charges') == 'True'
@@ -385,7 +429,7 @@ def update_package(request, package_id):
                                                                             'message':'Not a valid image type'})
                         new_image = PackageImage(travel_package=package, image=image)
                         new_image.save()
-
+                package.is_archived = False
                 package.save()
                 messages.success(request, 'Package updated successfully!')
                 return redirect('tahome')
@@ -407,13 +451,28 @@ def delete_package(request, package_id):
     return redirect('tahome')
 
 #to delete package by admin
-def admin_delete_package(request, package_id):
+def admin_archive_package(request, package_id):
+    if request.method == 'POST':
+        reason = request.POST.get('archiveReason')
+        if not reason:
+            return JsonResponse({'error':"Please enter the reason to archive"}, status=400)
     try:
         package = get_object_or_404(TravelPackage, pk=package_id)
-        package.delete()
-        messages.success(request, 'Package deleted successfully!')
+        package.is_archived = True
+        package.save()
+        send_mail(
+                'Package Archived Notification',
+                f'Dear {package.agency_id.name},\n\n'
+                f'Your package titled "{package.title}" has been archived for the following reason:\n'
+                f'{reason}\n\n'
+                'Please review your package\n'
+                'If you have any questions, please contact support.',
+                'explorehub123@gmail.com',
+                [package.agency_id.email]
+            )
+        return JsonResponse({'success': 'Package archived successfully!'})
     except IntegrityError:
-        messages.error(request, "Failed to delelte the package")
+        return JsonResponse({'error': "Failed to archive the package."}, status=400)
     return redirect('admin_manage_packages')
 
 #forgot password
@@ -454,7 +513,9 @@ def reset_password_view(request, uidb64, token):
                 user.save()
                 logout(request)
                 return render(request, 'login.html', {"message": "Reset complete, Login now"})
-        except User.DoesNotExist:
+            else:
+                return render(request, 'reset_password.html', {'error':'Invalid or expired reset link. Please request a new password reset.'})
+        except:
             return render(request, 'reset_password.html', {'error': 'Invalid link'})
     return render(request, 'reset_password.html')
 

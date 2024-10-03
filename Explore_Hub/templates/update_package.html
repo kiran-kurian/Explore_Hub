@@ -7,7 +7,7 @@
 </head>
 <section class="add-package">
     <div class="container">
-        <h2>Update Package</h2>
+        <h3>Update Package</h3>
         {% if message %}
             <ul class="messages">
                 {{ message }}
@@ -82,6 +82,10 @@
                     <option value="True" {% if package.include_charges %}selected{% endif %}>Yes</option>
                     <option value="False" {% if not package.include_charges %}selected{% endif %}>No</option>
                 </select>
+            </div>
+            <div class="form-group">
+                <label for="itinerary">Itinerary (Enter details for each day separated by commas or line breaks)</label>
+                <textarea id="itinerary" name="itinerary" class="form-control" rows="6" required> {{ package.itinerary }} </textarea>
             </div>
 
             <div class="form-buttons">

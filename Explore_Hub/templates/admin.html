@@ -16,7 +16,14 @@
             <ul>
                 <li><a href="{% url 'admin_dashboard' %}">Dashboard</a></li>
                 <li><a href="{% url 'admin_approve_agencies' %}">Approve Agencies</a></li>
-                <li><a href="{% url 'admin_manage_packages' %}">Manage Packages</a></li>
+                <li class="dropdown">
+                    <a href="#" class="dropbtn">Manage Packages</a>
+                    <div class="dropdown-content">
+                        <a href="{% url 'admin_manage_packages' %}">Active</a>
+                        <a href="{% url 'admin_manage_archived_packages' %}">Archived</a>
+                    </div>
+                </li>
+                {% comment %} <li><a href="{% url 'admin_manage_packages' %}">Manage Packages</a></li> {% endcomment %}
                 <li><a href="{% url 'admin_manage_groups' %}">Manage Groups</a></li>
                 <li><a href="{% url 'admin_manage_users' %}">Manage Users</a></li>
                 <li><a href="{% url 'logout' %}">Logout</a></li>

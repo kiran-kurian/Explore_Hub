@@ -145,6 +145,9 @@ body {
 .package-box img {
     border-radius: 8px;
     transition: transform 0.3s ease;
+    position: relative;
+    height: 40px;
+    width: auto;
 }
 
 .package-box img:hover {
@@ -204,4 +207,59 @@ body {
     background-color: #333;
     color: #fff;
     margin-top: 50px;
+}
+/* Dropdown */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+/* Dropdown button */
+.dropbtn {
+    color: white;
+    padding: 12px 16px;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    background: none; /* No background, just the text */
+}
+
+/* Dropdown button hover effect */
+.dropbtn:hover {
+    color: #f0a500; /* Matches your header link hover effect */
+}
+
+/* Dropdown content (hidden by default) */
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background: linear-gradient(90deg, #4b6cb7, #182848);
+    font-size: 16px;
+    min-width: 160px;
+    z-index: 1;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    /* background-color: #fff;  */
+    border-radius: 6px;
+    overflow: hidden; /* Smooth edges */
+}
+
+/* Dropdown content links */
+.dropdown-content a {
+    color: #333; /* Darker text for better visibility */
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* Dropdown content links hover effect */
+.dropdown-content a:hover {
+    /* background-color: #f0a500;  */
+    color: white;
+}
+
+/* Show the dropdown menu on hover */
+.dropdown:hover .dropdown-content {
+    display: block;
 }

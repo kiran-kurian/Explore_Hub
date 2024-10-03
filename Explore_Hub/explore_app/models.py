@@ -39,6 +39,7 @@ class TravelPackage(models.Model):
     include_charges = models.BooleanField(default=False)
     itinerary = models.TextField(null=True)
     images = models.ManyToManyField('PackageImage')
+    is_archived = models.BooleanField(default=False)
 
 #table for storing images of the packages
 class PackageImage(models.Model):
