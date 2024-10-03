@@ -46,3 +46,15 @@ class PackageImage(models.Model):
     travel_package = models.ForeignKey(TravelPackage, on_delete=models.CASCADE, related_name='package_images', null=True)
     image = models.ImageField(upload_to='package_images/')
     caption = models.CharField(max_length=255, blank=True)
+
+#table for travel groups
+class TravelGroup(models.Model):
+    group_id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=200)
+    destination = models.CharField(max_length=200)
+    max_members = models.IntegerField(default=10)
+    creator = models.ForeignKey(CustomUser, on_delete=models.CASCADE) 
+    current_members = models.ManyToManyField(CustomUser, related_name='group_members')
+    description = models.TextField()  # Optional, for group details
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)

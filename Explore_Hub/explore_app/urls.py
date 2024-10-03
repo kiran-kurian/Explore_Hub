@@ -49,6 +49,8 @@ urlpatterns = [
     path('forgot_password/', forgot_password_view, name='forgot_password'),
     path('reset_password/<uidb64>/<token>/', reset_password_view, name='reset_password'),
     path('check_username/', check_username, name='check_username'),
+    path('groups/',group_view, name='groups'),
+    path('create_group/', create_group, name='create_group'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

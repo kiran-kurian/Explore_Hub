@@ -19,6 +19,7 @@ from django.contrib.auth import views as auth_views
 from django.core.cache import cache
 from django.core.files.uploadedfile import UploadedFile
 from django.core.files.storage import default_storage
+from django.db.models import F, Count
 
 # Create your views here.
 
@@ -524,3 +525,37 @@ def check_username(request):
     username = request.GET.get('username', None)
     is_taken = CustomUser.objects.filter(username=username).exists()
     return JsonResponse({'is_taken': is_taken})
+
+#view for listing available groups
+def group_view(request):
+    groups = TravelGroup.objects.filter(is_active=True).annotate(current_count=Count('current_members')).filter(current_count__lt=F('max_members'))
+    return render(request, 'travel_group.html',{'groups':groups})
+
+def create_group(request):
+    if 'normal' in request.session:
+        if request.method == 'POST':
+            group_name = request.POST.get('group_name')
+            destination = request.POST.get('destination')
+            max_members = request.POST.get('max_members')
+            description = request.POST.get('description')
+
+            username = request.user.username
+            creator = CustomUser.objects.get(username=username)
+            # Create a new group
+            new_group = TravelGroup(
+                name=group_name,
+                destination=destination,
+                max_members=max_members,
+                creator=creator,  
+                description=description
+            )
+            new_group.save()
+
+            # Add the creator as the first member of the group
+            new_group.current_members.add(creator)
+
+            
+            return redirect('groups')
+        return render(request, 'create_group.html')
+    else:
+        return redirect('login')

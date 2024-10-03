@@ -1,0 +1,114 @@
+{% extends 'layout_main.html' %}
+{% block content %}
+<div class="container1">
+    <div class="header1">
+        <h1 class="title">Travel Groups</h1>
+        <a href="{% url 'create_group' %}" class="create-group-btn">Create Group</a>
+    </div>
+
+    <div class="group-list">
+        {% for group in groups %}
+            <div class="group-box">
+                <h3 class="group-name">{{ group.name }}</h3>
+                <p><strong>Destination:</strong> {{ group.destination }}</p>
+                <p><strong>Members:</strong> {{ group.current_members.count }}/{{ group.max_members }}</p>
+                <p class="group-description">{{ group.description }}</p>
+                <a href="#" class="join-btn">Join Group</a>
+            </div>
+        {% empty %}
+            <p>No active groups available at the moment.</p>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    .container1 {
+        width: 100%;
+        padding: 100px;
+        box-sizing: border-box;
+        font-family: Arial, sans-serif;
+        color: #333;
+        background-color: #f8f9fa;
+    }
+    
+    .header1 {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px; 
+        padding-top: 20px; 
+        padding-bottom: 20px; 
+    }
+    
+    .title {
+        font-size: 2.5rem;
+        color: #ff6666;
+        margin: 0;
+    }
+    
+    .create-group-btn {
+        background-color: #ff6666;
+        color: white;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 1.0rem;
+        margin-top: 0; 
+        align-self: flex-start; 
+        transition: background-color 0.3s ease;
+    }
+    
+    .create-group-btn:hover {
+        background-color: #e65c5c;
+        color: white;
+    }
+    
+    .group-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+    }
+    
+    .group-box {
+        background-color: white;
+        border: 1px solid #ddd;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        transition: transform 0.3s ease;
+    }
+    
+    .group-box:hover {
+        transform: scale(1.05);
+        box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.15);
+    }
+    
+    .group-name {
+        font-size: 1.8rem;
+        color: #ff6666;
+        margin-bottom: 10px;
+    }
+    
+    .group-description {
+        font-size: 1rem;
+        color: #666;
+        margin: 15px 0;
+    }
+    
+    .join-btn {
+        background-color: #ff6666;
+        color: white;
+        padding: 10px 20px;
+        text-decoration: none;
+        border-radius: 5px;
+        font-size: 1.1rem;
+    }
+    
+    .join-btn:hover {
+        background-color: #e65c5c;
+    }
+    
+</style>
+{% endblock %}
