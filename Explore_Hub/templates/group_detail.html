@@ -1,7 +1,7 @@
 {% extends 'layout_main.html' %} 
 
 {% block content %}
-<div class="container mt-5" style="padding-top: 100px;"> <!-- Adjusting padding for navbar -->
+<div class="container mt-5" style="padding-top: 100px;"> 
     <div class="card">
         <div class="card-header">
             <h2>{{ group.name }}</h2>
@@ -20,7 +20,7 @@
 
             <p><strong>Maximum Members Allowed:</strong> {{ group.max_members }}</p>
             
-            <form action="#" method="post" id="leave-group-form">
+            <form action="{% url 'leave_group' group.group_id %}" method="post" id="leave-group-form">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-danger">Leave Group</button>
             </form>
@@ -51,7 +51,7 @@ document.getElementById('leave-group-form').onsubmit = function(event) {
         document.getElementById('message').innerText = data.message; 
         document.getElementById('message').style.display = 'block';
         setTimeout(() => {
-            window.location.href = 'user_group'; // Redirect after a short delay
+            window.location.href = "{% url 'user_group' %}"; 
         }, 2000); // 2 seconds delay before redirect
     })
     .catch(error => {

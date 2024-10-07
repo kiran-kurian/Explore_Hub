@@ -619,7 +619,7 @@ def leave_group_view(request, group_id):
         user_id = request.session.get('normal') 
         if user_id:
             current_user = CustomUser.objects.get(id=user_id)
-            group = get_object_or_404(TravelGroup, id=group_id)
+            group = get_object_or_404(TravelGroup, group_id=group_id)
             group.current_members.remove(current_user)
 
             return JsonResponse({'message': 'You have successfully left the group.'})
