@@ -135,8 +135,8 @@ def register_view(request):
                 # user.role = role
                 user.save()
 
-            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-            return HttpResponseRedirect(reverse("regularuser"))
+            # login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+            return HttpResponseRedirect(reverse("login"))
         except IntegrityError:
             return render(request, "registration.html", {
                 "message": "Username already taken."
@@ -182,8 +182,8 @@ def ta_registration_view(request):
         #saving this to user table
             user = CustomUser(username=username, first_name=name, email=email, password=hashed_password,phone_number=number, role='ta', travel_agency=travelagency)
             user.save()
-            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-            return HttpResponseRedirect(reverse("tahome"))
+            # login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+            return HttpResponseRedirect(reverse("login"))
         except IntegrityError:
             return render(request, "registration.html", {
                 "message": "Data Repetition"
@@ -530,6 +530,22 @@ def check_username(request):
 def group_view(request):
     groups = TravelGroup.objects.filter(is_active=True).annotate(current_count=Count('current_members')).filter(current_count__lt=F('max_members'))
     return render(request, 'travel_group.html',{'groups':groups})
+    
+#view for available groups
+def available_groups(request):
+    if 'normal' in request.session:
+        available_groups = TravelGroup.objects.filter(is_active=True).exclude(current_members=request.user).annotate(current_count=Count('current_members')).filter(current_count__lt=F('max_members'))
+        return render(request, 'available_group.html',{'available_groups': available_groups})
+    else:
+        return redirect('login')
+
+#view for user joined group
+def user_group(request):
+    if 'normal' in request.session:
+        user_group = TravelGroup.objects.filter(current_members=request.user.id)
+        return render(request, 'user_group.html',{'user_groups': user_group})
+    else:
+        return render('login')
 
 def create_group(request):
     if 'normal' in request.session:
@@ -559,3 +575,55 @@ def create_group(request):
         return render(request, 'create_group.html')
     else:
         return redirect('login')
+    
+#view for joining group
+def join_group(request, group_id):
+    if 'normal' in request.session:
+        group = get_object_or_404(TravelGroup, pk=group_id)
+
+        # Check if the user is already a member of the group
+        if group.current_members.filter(id=request.user.id).exists():
+            return JsonResponse({
+                'status': 'warning',
+                'message': 'You are already a member of this group.'
+            })
+
+        # Check if the group has space for more members
+        if group.current_members.count() >= group.max_members:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'This group is already full.'
+            })
+
+        user_id = request.session.get('normal')
+        current_user = CustomUser.objects.get(id=user_id)
+        group.current_members.add(current_user)
+        return JsonResponse({
+            'status': 'success',
+            'message': f'You have successfully joined the group "{group.name}".'
+        })
+    else:
+        return redirect('login')
+    
+#view for detailed group view
+def group_detail_view(request, group_id):
+    if 'normal' in request.session:
+        group = get_object_or_404(TravelGroup, group_id=group_id)
+        return render(request, 'group_detail.html', {'group': group})
+    else:
+        return redirect('login')
+
+#view for leaving the joined group
+def leave_group_view(request, group_id):
+    if request.method == 'POST':
+        user_id = request.session.get('normal') 
+        if user_id:
+            current_user = CustomUser.objects.get(id=user_id)
+            group = get_object_or_404(TravelGroup, id=group_id)
+            group.current_members.remove(current_user)
+
+            return JsonResponse({'message': 'You have successfully left the group.'})
+
+        return JsonResponse({'message': 'User not found.'}, status=404)
+
+    return JsonResponse({'message': 'Invalid request.'}, status=400)

@@ -51,6 +51,11 @@ urlpatterns = [
     path('check_username/', check_username, name='check_username'),
     path('groups/',group_view, name='groups'),
     path('create_group/', create_group, name='create_group'),
+    path('available_group/', available_groups, name='available_group'),
+    path('user_group/', user_group,name='user_group'),
+    path('join_group/<int:group_id>/', join_group, name='join_group'),
+    path('groups/<int:group_id>/',group_detail_view,name='group_details'),
+    path('leave_group/<int:group_id>/', leave_group_view, name='leave_group'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

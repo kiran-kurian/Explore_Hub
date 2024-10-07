@@ -7,5 +7,6 @@ def set_role(backend, user, response, *args, **kwargs):
     # Set the role to 'reguser'
     custom_user.role = 'reguser'
     custom_user.save()
-
+    session = kwargs['request'].session
+    session['normal'] = user.id
     return

@@ -36,6 +36,12 @@
         background-color: #e65c5c;
         color: white;
     }
+    .btn-secondary {
+        text-decoration: none;
+        border-radius: 5px;
+        margin: 20px auto;
+        padding: 10px 20px;
+    }
 </style>
 <div class="body">
     <h3>Create a Group</h3>
@@ -62,6 +68,7 @@
         </div>
 
         <button type="submit" class="btn btn_create">Create Group</button>
+        <a href="{% url 'available_group' %}" class="btn btn-secondary">Cancel</a>
     </form>
 </div>
 {% endblock %}

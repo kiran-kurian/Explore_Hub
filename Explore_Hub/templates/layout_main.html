@@ -38,9 +38,21 @@
                     <li class="nav-item">
                         <a class="nav-link-md" href="{% url 'package' %}">Packages</a>
                     </li>
+                    {% if not 'normal' in request.session %}
                     <li class="nav-item">
                         <a class="nav-link-md" href="{% url 'groups' %}">Travel Group</a>
                     </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <li class="dropdown">
+                            <a href="#" class="dropbtn">Travel Group</a>
+                            <div class="dropdown-content">
+                                <a href="{% url 'user_group' %}">Your Groups</a>
+                                <a href="{% url 'available_group' %}">Available Groups</a>
+                            </div>
+                        </li>
+                    </li>
+                    {% endif %}
                     <li class="nav-item">
                         <a class="nav-link-md" href="#guide">Local Guide</a>
                     </li>
@@ -48,7 +60,9 @@
                         <a class="nav-link-md" href="#events">Events</a>
                     </li>
                     {% if user.is_authenticated %}
-                    Welcome, {{ user.first_name }}
+                    <li class="nav-item">
+                        <a class="nav-link-md" href="#">Welcome,{{ user.first_name }}</a>
+                    </li>
                     <li class="nav-item ml-0 ml-lg-4">
                         <a class="nav-link-lg btn btn-primary" href="{% url 'logout' %}">Logout</a>
                     </li>

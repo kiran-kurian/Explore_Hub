@@ -1,0 +1,65 @@
+{% extends 'layout_main.html' %} 
+
+{% block content %}
+<div class="container mt-5" style="padding-top: 100px;"> <!-- Adjusting padding for navbar -->
+    <div class="card">
+        <div class="card-header">
+            <h2>{{ group.name }}</h2>
+        </div>
+        <div class="card-body">
+            <p class="lead"><strong>Description:</strong> {{ group.description }}</p>
+
+            <h5>Current Members:</h5>
+            <ul class="list-group mb-4">
+                {% for member in group.current_members.all %}
+                    <li class="list-group-item small">{{ member.first_name }}</li> 
+                {% empty %}
+                    <li class="list-group-item">No members yet.</li>
+                {% endfor %}
+            </ul>
+
+            <p><strong>Maximum Members Allowed:</strong> {{ group.max_members }}</p>
+            
+            <form action="#" method="post" id="leave-group-form">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">Leave Group</button>
+            </form>
+            
+            <div id="message" class="mt-3" style="display:none;"></div> 
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('leave-group-form').onsubmit = function(event) {
+    event.preventDefault(); 
+    fetch(this.action, {
+        method: 'POST',
+        body: new URLSearchParams(new FormData(this)),
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+    })
+    .then(response => {
+        if (response.ok) {
+            return response.json(); 
+        }
+        throw new Error('Network response was not ok.');
+    })
+    .then(data => {
+        document.getElementById('message').innerText = data.message; 
+        document.getElementById('message').style.display = 'block';
+        setTimeout(() => {
+            window.location.href = 'user_group'; // Redirect after a short delay
+        }, 2000); // 2 seconds delay before redirect
+    })
+    .catch(error => {
+        console.error('There was a problem with the fetch operation:', error);
+        document.getElementById('message').innerText = 'An error occurred. Please try again.'; 
+        document.getElementById('message').style.display = 'block';
+    });
+};
+</script>
+
+{% endblock %}

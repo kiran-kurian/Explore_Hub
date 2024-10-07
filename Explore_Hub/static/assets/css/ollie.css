@@ -63,7 +63,7 @@ article, aside, figcaption, figure, footer, header, hgroup, main, nav, section {
 
 body {
   margin: 0;
-  font-family: "Raleway", sans-serif;
+  font-family: sans-serif;
   font-size: 1rem;
   font-weight: 400;
   line-height: 1.5;
@@ -187,7 +187,55 @@ a:not([href]):not([tabindex]):hover, a:not([href]):not([tabindex]):focus {
 a:not([href]):not([tabindex]):focus {
   outline: 0;
 }
+.nav-item .a:active {
+  color: #e91b1b;
+}
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
 
+/* Dropdown button */
+.dropbtn {
+  color: #f06161;
+  padding: 16px;
+  /* font-size: 1.1rem; */
+  border: none;
+  cursor: pointer;
+}
+
+/* Dropdown content (hidden by default) */
+.dropdown-content {
+  display: none;
+  position: absolute;
+  /* font-size: 1.1rem; */
+  color: #f06161;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+/* Dropdown content links */
+.dropdown-content a {
+  color: #f06161;
+  padding: 12px 16px;
+  text-decoration: none;
+  font-size: 1.1rem;
+  display: block;
+}
+
+/* Show the dropdown menu on hover */
+.dropdown:hover .dropdown-content {
+  display: block;
+  background-color: #f8f9fa;
+  font-size: 1.1rem;
+}
+
+/* Change the color of dropdown links on hover */
+.dropdown-content a:hover {
+  background-color: #145276;
+  color: white;
+}
 pre,
 code,
 kbd,
@@ -5075,7 +5123,7 @@ input[type="button"].btn-block {
           flex-direction: column;
   min-width: 0;
   word-wrap: break-word;
-  background-color: #fff;
+  /* background-color: #fff; */
   background-clip: border-box;
   border: 1px solid rgba(0, 0, 0, 0.125);
   border-radius: 0;
@@ -11457,7 +11505,7 @@ p {
 }
 
 .navbar-nav .nav-link.active {
-  color: #f06161 !important;
+  color: #f06161;
 }
 
 @media (max-width: 767.98px) {
