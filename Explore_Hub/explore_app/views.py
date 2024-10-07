@@ -571,7 +571,7 @@ def create_group(request):
             new_group.current_members.add(creator)
 
             
-            return redirect('groups')
+            return redirect('user_group')
         return render(request, 'create_group.html')
     else:
         return redirect('login')
