@@ -1,0 +1,68 @@
+{% extends 'admin.html' %}
+
+{% block content %}
+<style>
+    .button-danger {
+        background-color: #e74c3c;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        cursor: pointer;
+    }
+
+    .button-success {
+        background-color: #2ecc71;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        cursor: pointer;
+    }
+
+    .button-danger:hover {
+        opacity: 0.8;
+        background-color: #e74c3c;
+    }
+    .button-success:hover {
+        opacity: 0.8;
+    }
+</style>
+
+<div class="container">
+    <h1>Manage Groups</h1><br>
+    <table>
+        <thead>
+            <tr>
+                <th>Group Name</th>
+                <th>Destination</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for group in groups %}
+            <tr>
+                <td>{{ group.name }}</td>
+                <td>{{ group.destination }}</td>
+                <td>
+                    {% if group.is_active %}
+                        <span style="color:green;">Active</span>
+                    {% else %}
+                        <span style="color:red;">Inactive</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <form method="post" action="{% url 'admin_delete_group' group.group_id %}">
+                        {% csrf_token %}
+                        {% if group.is_active %}
+                            <button type="submit" class="button-danger">Make Inactive</button>
+                        {% else %}
+                            <button type="submit" class="button-success">Make Active</button>
+                        {% endif %}
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

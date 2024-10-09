@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Successful</title>
+    <script>
+        // Redirect to the homepage after a delay
+        setTimeout(function() {
+            window.location.href = "{% url 'package' %}"; // Redirect to the homepage URL
+        }, 3000); // Redirect after 3 seconds
+        function downloadPDF() {
+            const pdfData = "{{ pdf_data }}"; // Retrieve the PDF data from the template
+            const link = document.createElement('a');
+            link.href = 'data:application/pdf;base64,' + pdfData;
+            link.download = 'Booking_{{ booking.booking_id }}.pdf'; // Set the filename
+            document.body.appendChild(link);
+            link.click(); // Trigger the download
+            document.body.removeChild(link); // Clean up
+        }
+
+        // Trigger PDF download when the page loads
+        window.onload = downloadPDF;
+    </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            color: #2980b9;
+        }
+        p {
+            font-size: 18px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>Payment Successful!</h1>
+    <p>Your booking for "{{ booking.package.title }}" has been confirmed. Booking ID: {{ booking.booking_id }}</p>
+    <p>You will be redirected to the homepage shortly.</p>
+    <p><a href="data:application/pdf;base64,{{ pdf_data }}" download="Booking_{{ booking.booking_id }}.pdf">Download your booking details</a></p>
+    <p><a href="{% url 'package' %}">Back to page</a></p>
+</body>
+</html>

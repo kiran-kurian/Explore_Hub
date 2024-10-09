@@ -1,0 +1,41 @@
+{% extends 'layout_main.html' %}
+
+{% block content %}
+<style>
+    .body {
+        padding-top:120px;
+    }
+</style>
+<div class="container">
+    <div class="body">
+    <h2>Book Package</h2>
+
+    <h3>Package Details</h3>
+    <p><strong>Package Name:</strong> {{ package.title }}</p>
+    <p><strong>Description:</strong> {{ package.description }}</p>
+    <p><strong>Price:</strong> ₹{{ package.price }}</p>
+    
+    <h3>Your Details</h3>
+    <form method="POST" action="{% url 'book_package' package.package_id %}">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" value="{{ user.first_name }}" readonly class="form-control" />
+        </div>
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" value="{{ user.email }}" readonly class="form-control" />
+        </div>
+        <div class="form-group">
+            <label for="number_of_people">Number of People:</label>
+            <input type="number" id="number_of_people" name="number_of_people" value="{{ request.GET.number_of_people }}" min="1" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label for="phone_number">Phone Number:</label>
+            <input type="number" id="phone_number" name="phone_number" class="form-control" value="{{ user.phone_number }}" required />
+        </div>
+        <button type="submit" class="btn btn-primary">Confirm Booking</button>
+    </form>
+</div>
+</div>
+{% endblock %}

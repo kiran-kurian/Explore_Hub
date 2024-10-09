@@ -28,4 +28,9 @@
     padding: 15px 30px;
     font-size: 1.25rem;
     margin: 10px;
+    color: white;
+}
+.action-buttons .btn-secondary {
+    font-size: 1.1rem;
+    
 }

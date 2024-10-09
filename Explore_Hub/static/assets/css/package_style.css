@@ -69,6 +69,7 @@ h4 {
     font-size: 20px;
     margin: 10px 0;
     color: #ff6666;
+    text-align: center;
 }
 
 .price {
@@ -89,6 +90,7 @@ h4 {
 
 .btn_book:hover {
     background-color: #e65c5c;
+    color: white;
 }
 
 /* Slider styles */

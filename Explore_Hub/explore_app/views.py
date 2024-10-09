@@ -1,3 +1,4 @@
+from datetime import timezone, datetime
 import re
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
@@ -10,7 +11,7 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.views.decorators.cache import never_cache, cache_control
 from django.contrib import messages
-from django.core.mail import send_mail
+from django.core.mail import send_mail, EmailMessage
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import default_token_generator
@@ -20,6 +21,13 @@ from django.core.cache import cache
 from django.core.files.uploadedfile import UploadedFile
 from django.core.files.storage import default_storage
 from django.db.models import F, Count
+import uuid
+import razorpay
+from django.views.decorators.csrf import csrf_exempt
+from reportlab.lib.pagesizes import letter, A4
+from reportlab.pdfgen import canvas
+from io import BytesIO
+import base64
 
 # Create your views here.
 
@@ -154,10 +162,28 @@ def package_details(request, package_id):
     package = get_object_or_404(TravelPackage, pk = package_id)
     return render(request, 'package_detail.html', {'package': package, 'agency_name': package.agency_id.name})
 
+#view for profile updation
+def update_profile(request):
+    if 'normal' in request.session:
+        user = request.user.customuser 
+
+        if request.method == 'POST':
+            user.first_name = request.POST.get('name')
+            user.email = request.POST.get('email')
+            user.phone_number = request.POST.get('number')
+            # Don't update role here
+            user.save()
+            return redirect('regularuser') 
+
+        return render(request, 'update_profile.html', {'user': user})
+    else:
+        return redirect('login')
+
 #Travel agent registration view
 def ta_registration_view(request):
     if request.method== "POST":
         documents = request.FILES.get("documents")
+        agreement = request.POST.get("agreement") == 'on'
         username = request.session.get("username")
         name = request.session.get("name")
         email = request.session.get("email")
@@ -167,27 +193,29 @@ def ta_registration_view(request):
         if not all([username, name, email, number, password]):
             return redirect('register')
         
-        try:
-            hashed_password = make_password(password)
-            travelagency = TravelAgency(
-                username = username,
-                name = name,
-                email = email,
-                contact = number,
-                password = hashed_password,
-                documents = documents,
-                approved = False
-            )
-            travelagency.save()
-        #saving this to user table
-            user = CustomUser(username=username, first_name=name, email=email, password=hashed_password,phone_number=number, role='ta', travel_agency=travelagency)
-            user.save()
-            # login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-            return HttpResponseRedirect(reverse("login"))
-        except IntegrityError:
-            return render(request, "registration.html", {
-                "message": "Data Repetition"
-            })
+        if agreement:
+            try:
+                hashed_password = make_password(password)
+                travelagency = TravelAgency(
+                    username = username,
+                    name = name,
+                    email = email,
+                    contact = number,
+                    password = hashed_password,
+                    documents = documents,
+                    agreement = agreement,
+                    approved = False
+                )
+                travelagency.save()
+                #saving this to user table
+                user = CustomUser(username=username, first_name=name, email=email, password=hashed_password,phone_number=number, role='ta', travel_agency=travelagency)
+                user.save()
+                # login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+                return HttpResponseRedirect(reverse("login"))
+            except IntegrityError:
+                return render(request, "registration.html", {
+                    "message": "Data Repetition"
+                })
     else:
         return render(request, "ta_registration.html")
 
@@ -214,10 +242,22 @@ def admin_approve_agencies(request):
 
 @login_required(login_url='login')
 def approve_travel_agency(request, agency_id):
-    agency = get_object_or_404(TravelAgency, pk=agency_id)
-    agency.approved = True
-    agency.save()
-    return redirect('admin_approve_agencies')
+    if 'master' in request.session:
+        agency = get_object_or_404(TravelAgency, pk=agency_id)
+        agency.approved = True
+        agency.save()
+        send_mail(
+                'Account Approved Notification',
+                f'Dear {agency.name},\n\n'
+                f'This email is to inform you that your account with EXPLORE HUB has been approved.'
+                'You can start using our platform from now on.'
+                'If you have any questions, please contact support.',
+                'explorehub123@gmail.com',
+                [agency.email]
+            )
+        return redirect('admin_approve_agencies')
+    else:
+        return redirect('login')
 
 @login_required(login_url='login')
 def admin_manage_packages(request):
@@ -238,7 +278,18 @@ def admin_manage_archived_packages(request):
 @login_required(login_url='login')
 def admin_manage_groups(request):
     if 'master' in request.session:
-        return render(request, 'admin_dashboard.html')
+        groups = TravelGroup.objects.all() 
+        return render(request, 'admin_manage_group.html', {'groups': groups})
+    else:
+        return redirect('login')
+    
+#make a group inactive by admin
+def admin_delete_group(request, group_id):
+    if 'master' in request.session:
+        group = get_object_or_404(TravelGroup, group_id=group_id)
+        group.is_active = not group.is_active  # Toggle the active status
+        group.save()
+        return redirect('admin_manage_groups')
     else:
         return redirect('login')
 
@@ -345,7 +396,7 @@ def add_package(request):
                 origin = request.POST.get('origin')
                 destination = request.POST.get('destination')
                 departure_day = request.POST.get('departure_day')
-                includes_charges = request.POST.get('includes_charges') == 'on'
+                cancellation = request.POST.get('cancellation') == 'on'
                 itinerary = request.POST.get('itinerary')
                 images = request.FILES.getlist('images')
 
@@ -366,7 +417,7 @@ def add_package(request):
                         origin=origin,
                         destination=destination,
                         departure_day=departure_day,
-                        include_charges=includes_charges,
+                        cancellation=cancellation,
                         itinerary=itinerary,
                         agency_id=travel_agency
                     )
@@ -405,9 +456,8 @@ def update_package(request, package_id):
                 package.departure_day = request.POST.get('departure_day', package.departure_day)
                 package.itinerary = request.POST.get('itinerary', package.itinerary)
 
-                # Set includes_charges based on dropdown selection
-                includes_charges_value = request.POST.get('includes_charges') == 'True'
-                package.include_charges = includes_charges_value
+                cancellation = request.POST.get('cancellation') == 'True'
+                package.cancellation = cancellation
 
                 delete_image_ids = request.POST.getlist('delete_images')
                 if delete_image_ids:
@@ -540,12 +590,13 @@ def available_groups(request):
         return redirect('login')
 
 #view for user joined group
+@never_cache
 def user_group(request):
     if 'normal' in request.session:
         user_group = TravelGroup.objects.filter(current_members=request.user.id)
         return render(request, 'user_group.html',{'user_groups': user_group})
     else:
-        return render('login')
+        return redirect('login')
 
 def create_group(request):
     if 'normal' in request.session:
@@ -615,15 +666,183 @@ def group_detail_view(request, group_id):
 
 #view for leaving the joined group
 def leave_group_view(request, group_id):
+    if 'normal' in request.session:
+        if request.method == 'POST':
+            user_id = request.session.get('normal') 
+            if user_id:
+                current_user = CustomUser.objects.get(id=user_id)
+                group = get_object_or_404(TravelGroup, group_id=group_id)
+                group.current_members.remove(current_user)
+
+                return JsonResponse({'message': 'You have successfully left the group.'})
+
+            return JsonResponse({'message': 'User not found.'}, status=404)
+
+        return JsonResponse({'message': 'Invalid request.'}, status=400)
+    else:
+        return redirect('login')
+
+#view for booking package
+def book_package_view(request, package_id):
+    package = get_object_or_404(TravelPackage, pk=package_id)
+    user = request.user.customuser
+    print(settings.RAZORPAY_KEY_SECRET)
+    razorpay_client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
     if request.method == 'POST':
-        user_id = request.session.get('normal') 
-        if user_id:
-            current_user = CustomUser.objects.get(id=user_id)
-            group = get_object_or_404(TravelGroup, group_id=group_id)
-            group.current_members.remove(current_user)
+        number_of_people = int(request.POST.get('number_of_people', 1))
+        total_amount = package.price * number_of_people
+        
+        # Create a new booking entry
+        booking = Booking.objects.create(
+            user=request.user,
+            package=package,
+            total_amount=total_amount,
+            booking_id=str(uuid.uuid4()),
+            number_of_people=number_of_people,
+            payment_status='pending',  # Initially set payment status to pending
+        )
+        
+        # Create Razorpay order
+        razorpay_order = razorpay_client.order.create({
+            'amount': int(total_amount * 100),  # Amount in paise (100 paise = 1 INR)
+            'currency': 'INR',
+            'payment_capture': '1'
+        })
+        
+        # Store Razorpay order ID in session for further verification
+        request.session['razorpay_order_id'] = booking.booking_id
+        
+        context = {
+            'package': package,
+            'booking': booking,
+            'razorpay_key': settings.RAZORPAY_KEY_ID,
+            'razorpay_order_id': razorpay_order['id'],
+            'total_amount': total_amount,
+        }
+        return render(request, 'payment_page.html', context) 
+    
+    return render(request, 'book_package.html', {'package': package, 'user': user})
 
-            return JsonResponse({'message': 'You have successfully left the group.'})
+#payment confirmation view
+@csrf_exempt
+def payment_success(request):
+    razorpay_client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+    if request.method == 'POST':
+        payment_id = request.POST.get('razorpay_payment_id', '')
+        razorpay_order_id = request.POST.get('razorpay_order_id', '')
+        signature = request.POST.get('razorpay_signature', '')
+        
+        try:
+            # Verify payment signature
+            params_dict = {
+                'razorpay_order_id': razorpay_order_id,
+                'razorpay_payment_id': payment_id,
+                'razorpay_signature': signature
+            }
+            
+            # Verify signature
+            razorpay_client.utility.verify_payment_signature(params_dict)
+            
+            # If successful, mark the booking as confirmed
+            booking = Booking.objects.get(booking_id=request.session['razorpay_order_id'])
+            booking.payment_status = 'completed'
+            booking.transaction_id = payment_id
+            booking.is_confirmed = True
+            booking.payment_date = datetime.now()
+            booking.save()
 
-        return JsonResponse({'message': 'User not found.'}, status=404)
+            user = request.user.customuser
 
-    return JsonResponse({'message': 'Invalid request.'}, status=400)
+            # Send confirmation email
+            # send_mail(
+            #     'Booking Confirmation',
+            #     f"Dear {booking.user.first_name},\n\nYour booking for {booking.package.title} has been confirmed.\n\nBooking ID: {booking.booking_id}\nTotal Amount: ₹{booking.total_amount}\nNumber of People: {booking.number_of_people}\nPhone Number: {user.phone_number}\n\nThank you for booking with us!",
+            #     settings.DEFAULT_FROM_EMAIL,
+            #     [booking.user.email],
+            #     fail_silently=False,
+            # )
+            
+            pdf_buffer = BytesIO()
+            generate_pdf(booking, pdf_buffer)
+            pdf_buffer.seek(0)
+            
+            
+            # Here you can send the PDF as an email attachment if needed
+            # send_mail(
+            #     'Booking Confirmation',
+            #     f"Dear {booking.user.first_name},\n\nYour booking for {booking.package.title} has been confirmed.\n\nBooking ID: {booking.booking_id}\nTotal Amount: ₹{booking.total_amount}\nNumber of People: {booking.number_of_people}\nPhone Number: {user.phone_number}\n\nThank you for booking with us!",
+            #     'Please find attached your booking details.',
+            #     settings.DEFAULT_FROM_EMAIL,
+            #     [booking.user.email],
+            #     fail_silently=False,
+            #     attachments=[('booking_details.pdf', pdf_buffer.read(), 'application/pdf')]
+            # )
+            email = EmailMessage(
+            subject='Booking Confirmation',
+            body=f'Your booking for {booking.package.title} has been confirmed. Booking ID: {booking.booking_id}',
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[booking.user.email],
+            )
+
+            # Attach the PDF
+            email.attach('booking_details.pdf', pdf_buffer.getvalue(), 'application/pdf')
+
+            # Send the email
+            email.send(fail_silently=False)
+            pdf_data = base64.b64encode(pdf_buffer.getvalue()).decode('utf-8')
+            pdf_buffer.close()
+            
+
+            # Render success page with a message
+            return render(request, 'payment_success.html', {'booking': booking, 'pdf_data': pdf_data})
+
+        except razorpay.errors.SignatureVerificationError:
+            return HttpResponse("Payment failed. Signature verification failed.", status=400)
+
+    return HttpResponse("Invalid request.")
+
+def generate_pdf(booking, buffer):
+    # Create a canvas object
+    p = canvas.Canvas(buffer, pagesize=A4)
+
+    # Set title and document properties
+    p.setTitle("Booking Invoice")
+
+    # Draw invoice title
+    p.setFont("Helvetica-Bold", 24)
+    p.drawString(200, 800, "Booking Invoice")
+
+    # Draw company details
+    p.setFont("Helvetica", 12)
+    p.drawString(50, 770, "Explore Hub")
+    p.drawString(50, 755, "123 Travel Street")
+    p.drawString(50, 740, "Travel City, TC 12345")
+    p.drawString(50, 725, "Phone: +91 1234567890")
+    p.drawString(50, 710, "Email: explorehub123@gmail.com")
+
+    # Draw a horizontal line
+    p.line(50, 695, 550, 695)
+
+    # Draw customer details
+    p.drawString(50, 670, f"Customer: {booking.user.username}")
+    p.drawString(50, 655, f"Email: {booking.user.email}")
+    p.drawString(50, 640, f"Booking ID: {booking.booking_id}")
+    p.drawString(50, 625, f"Package: {booking.package.title}")
+
+    # Draw booking details
+    p.drawString(50, 600, f"Amount Paid: ₹{booking.total_amount}")
+    p.drawString(50, 585, f"Payment Date: {booking.payment_date.strftime('%d-%m-%Y')}")
+    p.drawString(50, 570, f"Transaction ID: {booking.transaction_id}")
+
+    # Draw a horizontal line
+    p.line(50, 550, 550, 550)
+
+    # Draw footer
+    p.setFont("Helvetica-Oblique", 10)
+    p.drawString(50, 500, "Thank you for booking with Explore Hub!")
+    p.drawString(50, 485, "Please contact us if you have any questions regarding your booking.")
+
+    # Save the PDF to the buffer
+    p.showPage()
+    p.save()
+

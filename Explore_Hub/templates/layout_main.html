@@ -61,7 +61,7 @@
                     </li>
                     {% if user.is_authenticated %}
                     <li class="nav-item">
-                        <a class="nav-link-md" href="#">Welcome,{{ user.first_name }}</a>
+                        <a class="nav-link-md" href="{% url 'update_profile' %}">Welcome,{{ user.first_name }}</a>
                     </li>
                     <li class="nav-item ml-0 ml-lg-4">
                         <a class="nav-link-lg btn btn-primary" href="{% url 'logout' %}">Logout</a>
@@ -82,6 +82,13 @@
         {% block content %}
         {% endblock %}
     </main>
+    <script>
+        window.addEventListener("pageshow", function(event) {
+            if (event.persisted || window.performance && window.performance.navigation.type === 2) {
+                window.location.reload();
+            }
+        });
+    </script>
 
     <!-- Core JS files -->
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>

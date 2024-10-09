@@ -1,7 +1,7 @@
 from django.db import models
-# Create your models here.
 from django.contrib.auth.models import User, AbstractUser
 from django.db import models
+from django.conf import settings
 from django.contrib.auth.hashers import make_password
 
 #travel agency table
@@ -13,6 +13,7 @@ class TravelAgency(models.Model):
     contact = models.CharField(max_length=10)
     email = models.EmailField(unique=True)
     documents = models.FileField(upload_to='documents/')
+    agreement = models.BooleanField(default=False)
     approved = models.BooleanField(default=False)
 
 #to ammend the already known table with phone number and role
@@ -36,7 +37,7 @@ class TravelPackage(models.Model):
     origin = models.CharField(max_length=200)
     destination = models.CharField(max_length=200, default='Unknown')
     departure_day = models.CharField(max_length=50, default='Everyday')
-    include_charges = models.BooleanField(default=False)
+    cancellation = models.BooleanField(default=False)
     itinerary = models.TextField(null=True)
     images = models.ManyToManyField('PackageImage')
     is_archived = models.BooleanField(default=False)
@@ -58,3 +59,30 @@ class TravelGroup(models.Model):
     description = models.TextField()  # Optional, for group details
     created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
+
+#table for package booking
+class Booking(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    package = models.ForeignKey('TravelPackage', on_delete=models.CASCADE)
+    booking_date = models.DateTimeField(auto_now_add=True)
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    booking_id = models.CharField(max_length=100, unique=True)
+    is_confirmed = models.BooleanField(default=False)
+    number_of_people = models.PositiveIntegerField(default=1)
+    is_cancelled = models.BooleanField(default=False)  
+    cancellation_reason = models.TextField(null=True, blank=True)
+    cancellation = models.BooleanField(default=False)
+    payment_status = models.CharField(max_length=20, choices=[
+        ('pending', 'Pending'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
+    ], default='pending')  
+    transaction_id = models.CharField(max_length=100, unique=True, null=True, blank=True)  
+    payment_method = models.CharField(max_length=50, choices=[
+        ('credit_card', 'Credit Card'),
+        ('debit_card', 'Debit Card'),
+        ('paypal', 'PayPal'),
+        ('net_banking', 'Net Banking'),
+        ('upi', 'UPI'),
+    ], null=True, blank=True)  
+    payment_date = models.DateTimeField(null=True, blank=True)

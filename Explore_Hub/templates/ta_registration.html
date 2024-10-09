@@ -157,6 +157,9 @@
             <form action="{% url 'ta_registration' %}" method="post" enctype="multipart/form-data">
                 {% csrf_token %}
                 <input type="file" name="documents" class="input-field" placeholder="Upload supporting documents" required>
+                <label for="agreement">
+                <input type="checkbox" name="agreement" class="agreement" required>
+                I agree to pay a commission of 10% on each package booking made through this platform</label>
                 <button type="submit" class="button">Submit</button>
             </form>
         </div>

@@ -23,8 +23,8 @@
                     <p><strong>Origin:</strong> {{ package.origin }}</p>
                     <p><strong>Destination:</strong> {{ package.destination }}</p>
                     <p><strong>Departure Day:</strong> {{ package.departure_day }}</p>
-                    <p><strong>Includes Travel Charges:</strong>
-                        {% if package.include_charges %}
+                    <p><strong>Cancellation Policy:</strong>
+                        {% if package.cancellation %}
                             Yes
                         {% else %}
                             No
@@ -72,8 +72,14 @@
 
     <!-- Action Buttons -->
     <div class="action-buttons mt-4 text-center">
-        <a href="#" class="btn btn-success btn-lg">Book Now</a>
-        <a href="{% url 'package' %}" class="btn btn-secondary btn-lg">Back to Packages</a>
+        <form action="{% url 'book_package' package.package_id %}" method="GET" class="form-inline justify-content-center">
+            <div class="form-group mx-2">
+                <label for="number_of_people" class="mr-2">Number of People:</label>
+                <input type="number" name="number_of_people" id="number_of_people" class="form-control" value="1" min="1" max="10" required>
+            </div>
+            <button type="submit" class="btn btn-success btn-lg mx-2">Book Now</button>
+        </form>
+        <a href="{% url 'package' %}" class="btn btn-secondary btn-sm">Back to Packages</a>
     </div>
 </div>
 {% endblock %}

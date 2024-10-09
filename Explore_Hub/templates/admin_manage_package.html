@@ -24,8 +24,8 @@
                     <p><strong>Origin:</strong> {{ package.origin }}</p>
                     <p><strong>Destination:</strong> {{ package.destination }}</p>
                     <p><strong>Departure Day:</strong> {{ package.departure_day }}</p>
-                    <p><strong>Includes Destination Charges:</strong> 
-                        {% if package.include_charges %}
+                    <p><strong>Cancellation:</strong> 
+                        {% if package.cancellation %}
                             Yes
                         {% else %}
                             No

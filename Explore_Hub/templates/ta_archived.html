@@ -25,7 +25,7 @@
                         <p class="origin">Origin: {{ package.origin }}</p>
                         <p class="destination">Destination: {{ package.destination }}</p>
                         <p class="departure-day">Departure Day: {{ package.departure_day }}</p>
-                        <p class="charges">Includes Charges: {{ package.include_charges|yesno:"Yes,No" }}</p>
+                        <p class="charges">Cancellation: {{ package.cancellation|yesno:"Yes,No" }}</p>
                         <div class="btn-group">
                             <a href="{% url 'update_package' package.package_id %}" class="btn">Update</a>
                             <a href="{% url 'delete_package' package.package_id %}" class="btn" onclick="return confirmDelete();">Delete</a>

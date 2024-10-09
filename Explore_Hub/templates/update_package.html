@@ -77,10 +77,10 @@
             </div>
 
             <div class="form-group">
-                <label for="includes_charges">Include Charges for Reaching Destination:</label>
-                <select id="includes_charges" name="includes_charges" class="form-control" required>
-                    <option value="True" {% if package.include_charges %}selected{% endif %}>Yes</option>
-                    <option value="False" {% if not package.include_charges %}selected{% endif %}>No</option>
+                <label for="cancellation">Cancellation:</label>
+                <select id="cancellation" name="cancellation" class="form-control" required>
+                    <option value="True" {% if package.cancellation %}selected{% endif %}>Yes</option>
+                    <option value="False" {% if not package.cancellation %}selected{% endif %}>No</option>
                 </select>
             </div>
             <div class="form-group">
