@@ -63,17 +63,8 @@
             </div>
 
             <div class="form-group">
-                <label for="departure_day">Departure Day</label>
-                <select id="departure_day" name="departure_day" class="form-control" required>
-                    <option value="Monday" {% if package.departure_day == 'Monday' %}selected{% endif %}>Monday</option>
-                    <option value="Tuesday" {% if package.departure_day == 'Tuesday' %}selected{% endif %}>Tuesday</option>
-                    <option value="Wednesday" {% if package.departure_day == 'Wednesday' %}selected{% endif %}>Wednesday</option>
-                    <option value="Thursday" {% if package.departure_day == 'Thursday' %}selected{% endif %}>Thursday</option>
-                    <option value="Friday" {% if package.departure_day == 'Friday' %}selected{% endif %}>Friday</option>
-                    <option value="Saturday" {% if package.departure_day == 'Saturday' %}selected{% endif %}>Saturday</option>
-                    <option value="Sunday" {% if package.departure_day == 'Sunday' %}selected{% endif %}>Sunday</option>
-                    <option value="Everyday" {% if package.departure_day == 'Everyday' %}selected{% endif %}>Everyday</option>
-                </select>
+                <label for="departure_day">Discount Percentage (If Any)</label>
+                <input type="number" id="discount_percentage" name="discount_percentage" class="form-control" value="{{ package.discount_percentage }}">
             </div>
 
             <div class="form-group">

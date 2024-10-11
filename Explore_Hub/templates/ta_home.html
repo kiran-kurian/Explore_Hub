@@ -22,10 +22,11 @@
                         <h3>{{ package.title }}</h3>
                         <p>{{ package.description }}</p>
                         <p class="price">Price: {{ package.price }}</p>
+                        <p class="offer">Offer: {{ package.discount_percentage|floatformat:0 }}%</p>
+                        <p class="final_price">Final Price: {{ package.discounted_price|floatformat:2 }}</p>
                         <p class="duration">Duration: {{ package.duration }}</p>
                         <p class="origin">Origin: {{ package.origin }}</p>
                         <p class="destination">Destination: {{ package.destination }}</p>
-                        <p class="departure-day">Departure Day: {{ package.departure_day }}</p>
                         <p class="charges">Cancellation: {{ package.cancellation|yesno:"Yes,No" }}</p>
                         <div class="btn-group">
                             <a href="{% url 'update_package' package.package_id %}" class="btn">Update</a>

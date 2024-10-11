@@ -36,11 +36,16 @@ class TravelPackage(models.Model):
     duration = models.CharField(max_length=10)  
     origin = models.CharField(max_length=200)
     destination = models.CharField(max_length=200, default='Unknown')
-    departure_day = models.CharField(max_length=50, default='Everyday')
     cancellation = models.BooleanField(default=False)
     itinerary = models.TextField(null=True)
     images = models.ManyToManyField('PackageImage')
     is_archived = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+    discount_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+
+    def discounted_price(self):
+        discount_amount = (self.discount_percentage / 100) * self.price
+        return self.price - discount_amount
 
 #table for storing images of the packages
 class PackageImage(models.Model):
@@ -64,6 +69,7 @@ class TravelGroup(models.Model):
 class Booking(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     package = models.ForeignKey('TravelPackage', on_delete=models.CASCADE)
+    trip_date = models.DateField(null=True, blank=False)
     booking_date = models.DateTimeField(auto_now_add=True)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     booking_id = models.CharField(max_length=100, unique=True)

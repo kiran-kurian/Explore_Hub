@@ -28,11 +28,18 @@
                 </div>
                 <h4>{{ package.title }}</h4>
                 <p>{{ package.description }}</p>
-                <p class="price">Price: {{ package.price }}</p>
+                <div class="price-info">
+                    {% if package.discount_percentage %}
+                        <p class="original-price">Price: <span class="strikethrough">{{ package.price }}</span></p>
+                        <p class="discounted-price">Discounted Price: {{ package.discounted_price|floatformat:2 }}</p>
+                        <span class="discount-badge">Save {{ package.discount_percentage }}%</span><br>
+                    {% else %}
+                        <p class="price">Price: {{ package.price }}</p>
+                    {% endif %}
+                </div>
                 <p>No. of Days: {{ package.duration }}</p>
                 <p>Origin: {{ package.origin }}</p>
                 <p>Destination: {{ package.destination }}</p>
-                <p>Departure Day: {{ package.departure_day }}</p>
                 <p class="charges">Cancellation: {{ package.cancellation|yesno:"Yes,No" }}</p>
                 <a href="{% url 'package_detail' package.package_id %}" class='btn_book'>View Details</a>
             </div>

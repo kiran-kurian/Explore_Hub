@@ -1,4 +1,4 @@
-from datetime import timezone, datetime
+from datetime import datetime
 import re
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
@@ -25,9 +25,12 @@ import uuid
 import razorpay
 from django.views.decorators.csrf import csrf_exempt
 from reportlab.lib.pagesizes import letter, A4
+from reportlab.lib import colors
+from reportlab.platypus import Table, TableStyle
 from reportlab.pdfgen import canvas
 from io import BytesIO
 import base64
+from django.utils import timezone
 
 # Create your views here.
 
@@ -262,7 +265,7 @@ def approve_travel_agency(request, agency_id):
 @login_required(login_url='login')
 def admin_manage_packages(request):
     if 'master' in request.session:
-        package = TravelPackage.objects.prefetch_related('package_images').filter(is_archived=False)
+        package = TravelPackage.objects.prefetch_related('package_images').filter(is_archived=False, is_active=True)
         return render(request, 'admin_manage_package.html', {'packages': package})
     else:
         return redirect('login')
@@ -270,7 +273,7 @@ def admin_manage_packages(request):
 @login_required(login_url='login')
 def admin_manage_archived_packages(request):
     if 'master' in request.session:
-        package = TravelPackage.objects.prefetch_related('package_images').filter(is_archived=True)
+        package = TravelPackage.objects.prefetch_related('package_images').filter(is_archived=True, is_active=True)
         return render(request, 'admin_manage_package.html', {'packages': package})
     else:
         return redirect('login')
@@ -305,19 +308,22 @@ def admin_manage_users(request):
 #to delete the user by admin
 @login_required(login_url='login')
 def admin_delete_user(request, user_id):
-    user = get_object_or_404(CustomUser, pk=user_id)
-    if not user.is_active:
-        subject = "Account Unblocked"
-        message = render_to_string("account_unblocked_email.html", { "user": user })
-        user.is_active = True
-        send_mail(subject, message, 'explorehub123@gmail.com', [user.email], html_message=message)
+    if 'master' in request.session:
+        user = get_object_or_404(CustomUser, pk=user_id)
+        if not user.is_active:
+            subject = "Account Unblocked"
+            message = render_to_string("account_unblocked_email.html", { "user": user })
+            user.is_active = True
+            send_mail(subject, message, 'explorehub123@gmail.com', [user.email], html_message=message)
+        else:
+            subject = "Account Blocked"
+            message = render_to_string("account_blocked_email.html", { "user": user })
+            user.is_active = False
+            send_mail(subject, message, 'explorehub123@gmail.com', [user.email], html_message=message)
+        user.save()
+        return redirect('admin_manage_users')
     else:
-        subject = "Account Blocked"
-        message = render_to_string("account_blocked_email.html", { "user": user })
-        user.is_active = False
-        send_mail(subject, message, 'explorehub123@gmail.com', [user.email], html_message=message)
-    user.save()
-    return redirect('admin_manage_users')
+        return redirect('login')
 
 #view for home page of travel agency
 @never_cache
@@ -330,7 +336,7 @@ def ta_home(request):
                 return render(request, "login.html", {
                     "message": "Approval pending"
                 })
-            packages = TravelPackage.objects.filter(agency_id=agency, is_archived=False).prefetch_related('package_images')
+            packages = TravelPackage.objects.filter(agency_id=agency, is_archived=False, is_active=True).prefetch_related('package_images')
         except TravelAgency.DoesNotExist:
             return redirect('login')
         return render(request, 'ta_home.html', {'agency': agency, 'packages': packages})
@@ -347,7 +353,7 @@ def manage_archived_packages(request):
                 return render(request, "login.html", {
                     "message": "Approval pending"
                 })
-            packages = TravelPackage.objects.filter(agency_id=agency, is_archived=True).prefetch_related('package_images')
+            packages = TravelPackage.objects.filter(agency_id=agency, is_archived=True, is_active=True).prefetch_related('package_images')
         except TravelAgency.DoesNotExist:
             return redirect('login')
         return render(request, 'ta_archived.html', {'agency': agency, 'packages': packages})
@@ -395,14 +401,14 @@ def add_package(request):
                 duration = request.POST.get('duration')
                 origin = request.POST.get('origin')
                 destination = request.POST.get('destination')
-                departure_day = request.POST.get('departure_day')
+                discount_percentage = request.POST.get('discount_percentage')
                 cancellation = request.POST.get('cancellation') == 'on'
                 itinerary = request.POST.get('itinerary')
                 images = request.FILES.getlist('images')
 
                 valid_image_types = ['image/jpeg', 'image/png', 'image/gif']
 
-                if title and description and price and duration and origin and destination and departure_day:
+                if title and description and price and duration and origin and destination:
 
                     for image in images:
                         if isinstance(image, UploadedFile):
@@ -416,7 +422,7 @@ def add_package(request):
                         duration=duration,
                         origin=origin,
                         destination=destination,
-                        departure_day=departure_day,
+                        discount_percentage=discount_percentage,
                         cancellation=cancellation,
                         itinerary=itinerary,
                         agency_id=travel_agency
@@ -453,9 +459,8 @@ def update_package(request, package_id):
                 package.origin = request.POST.get('origin', package.origin)
                 package.destination = request.POST.get('destination', package.destination)
                 package.duration = request.POST.get('number_of_days', package.duration)
-                package.departure_day = request.POST.get('departure_day', package.departure_day)
+                package.discount_percentage = request.POST.get('discount_percentage', package.discount_percentage)
                 package.itinerary = request.POST.get('itinerary', package.itinerary)
-
                 cancellation = request.POST.get('cancellation') == 'True'
                 package.cancellation = cancellation
 
@@ -493,38 +498,45 @@ def update_package(request, package_id):
 
 #to delete package by the travel agency
 def delete_package(request, package_id):
-    try:
-        package = get_object_or_404(TravelPackage, pk=package_id)
-        package.delete()
-        messages.success(request, 'Package deleted successfully!')
-    except IntegrityError:
-        messages.error(request, 'Failed to delete the package')
-    return redirect('tahome')
+    if 'travel' in request.session:
+        try:
+            package = get_object_or_404(TravelPackage, pk=package_id)
+            package.is_active = False
+            package.save()
+            messages.success(request, 'Package deleted successfully!')
+        except IntegrityError:
+            messages.error(request, 'Failed to delete the package')
+        return redirect('tahome')
+    else:
+        return redirect('login')
 
 #to delete package by admin
 def admin_archive_package(request, package_id):
-    if request.method == 'POST':
-        reason = request.POST.get('archiveReason')
-        if not reason:
-            return JsonResponse({'error':"Please enter the reason to archive"}, status=400)
-    try:
-        package = get_object_or_404(TravelPackage, pk=package_id)
-        package.is_archived = True
-        package.save()
-        send_mail(
-                'Package Archived Notification',
-                f'Dear {package.agency_id.name},\n\n'
-                f'Your package titled "{package.title}" has been archived for the following reason:\n'
-                f'{reason}\n\n'
-                'Please review your package\n'
-                'If you have any questions, please contact support.',
-                'explorehub123@gmail.com',
-                [package.agency_id.email]
-            )
-        return JsonResponse({'success': 'Package archived successfully!'})
-    except IntegrityError:
-        return JsonResponse({'error': "Failed to archive the package."}, status=400)
-    return redirect('admin_manage_packages')
+    if 'master' in request.session:
+        if request.method == 'POST':
+            reason = request.POST.get('archiveReason')
+            if not reason:
+                return JsonResponse({'error':"Please enter the reason to archive"}, status=400)
+        try:
+            package = get_object_or_404(TravelPackage, pk=package_id)
+            package.is_archived = True
+            package.save()
+            send_mail(
+                    'Package Archived Notification',
+                    f'Dear {package.agency_id.name},\n\n'
+                    f'Your package titled "{package.title}" has been archived for the following reason:\n'
+                    f'{reason}\n\n'
+                    'Please review your package\n'
+                    'If you have any questions, please contact support.',
+                    'explorehub123@gmail.com',
+                    [package.agency_id.email]
+                )
+            return JsonResponse({'success': 'Package archived successfully!'})
+        except IntegrityError:
+            return JsonResponse({'error': "Failed to archive the package."}, status=400)
+        return redirect('admin_manage_packages')
+    else:
+        return redirect('login')
 
 #forgot password
 def forgot_password_view(request):
@@ -598,6 +610,7 @@ def user_group(request):
     else:
         return redirect('login')
 
+#view for creating group
 def create_group(request):
     if 'normal' in request.session:
         if request.method == 'POST':
@@ -684,165 +697,170 @@ def leave_group_view(request, group_id):
 
 #view for booking package
 def book_package_view(request, package_id):
-    package = get_object_or_404(TravelPackage, pk=package_id)
-    user = request.user.customuser
-    print(settings.RAZORPAY_KEY_SECRET)
-    razorpay_client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
-    if request.method == 'POST':
-        number_of_people = int(request.POST.get('number_of_people', 1))
-        total_amount = package.price * number_of_people
+    if 'normal' in request.session:
+        package = get_object_or_404(TravelPackage, pk=package_id)
+        user = request.user.customuser
+        razorpay_client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+        if request.method == 'POST':
+            number_of_people = int(request.POST.get('number_of_people', 1))
+            date_of_travel = request.POST.get('date_of_travel')
+            discount_price = package.discounted_price()
+            total_amount = float(discount_price) * number_of_people
+            cancellation = package.cancellation
+            print(cancellation)
+            print(timezone.localtime())
+            print(datetime.now())
+            
+            # Create a new booking entry
+            booking = Booking.objects.create(
+                user=request.user,
+                package=package,
+                total_amount=total_amount,
+                booking_id=str(uuid.uuid4()),
+                number_of_people=number_of_people,
+                trip_date=date_of_travel,
+                payment_status='pending', 
+                cancellation = cancellation, 
+            )
+            
+            # Create Razorpay order
+            razorpay_order = razorpay_client.order.create({
+                'amount': int(total_amount * 100),  # Amount in paise (100 paise = 1 INR)
+                'currency': 'INR',
+                'payment_capture': '1'
+            })
+            
+            # Store Razorpay order ID in session for further verification
+            request.session['razorpay_order_id'] = booking.booking_id
+            
+            context = {
+                'package': package,
+                'booking': booking,
+                'razorpay_key': settings.RAZORPAY_KEY_ID,
+                'razorpay_order_id': razorpay_order['id'],
+                'total_amount': total_amount,
+            }
+            return render(request, 'payment_page.html', context) 
         
-        # Create a new booking entry
-        booking = Booking.objects.create(
-            user=request.user,
-            package=package,
-            total_amount=total_amount,
-            booking_id=str(uuid.uuid4()),
-            number_of_people=number_of_people,
-            payment_status='pending',  # Initially set payment status to pending
-        )
-        
-        # Create Razorpay order
-        razorpay_order = razorpay_client.order.create({
-            'amount': int(total_amount * 100),  # Amount in paise (100 paise = 1 INR)
-            'currency': 'INR',
-            'payment_capture': '1'
-        })
-        
-        # Store Razorpay order ID in session for further verification
-        request.session['razorpay_order_id'] = booking.booking_id
-        
-        context = {
-            'package': package,
-            'booking': booking,
-            'razorpay_key': settings.RAZORPAY_KEY_ID,
-            'razorpay_order_id': razorpay_order['id'],
-            'total_amount': total_amount,
-        }
-        return render(request, 'payment_page.html', context) 
-    
-    return render(request, 'book_package.html', {'package': package, 'user': user})
+        return render(request, 'book_package.html', {'package': package, 'user': user})
+    else:
+        return redirect('login')
 
 #payment confirmation view
 @csrf_exempt
 def payment_success(request):
-    razorpay_client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
-    if request.method == 'POST':
-        payment_id = request.POST.get('razorpay_payment_id', '')
-        razorpay_order_id = request.POST.get('razorpay_order_id', '')
-        signature = request.POST.get('razorpay_signature', '')
-        
-        try:
-            # Verify payment signature
-            params_dict = {
-                'razorpay_order_id': razorpay_order_id,
-                'razorpay_payment_id': payment_id,
-                'razorpay_signature': signature
-            }
+    if 'normal' in request.session:
+        razorpay_client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+        if request.method == 'POST':
+            payment_id = request.POST.get('razorpay_payment_id', '')
+            razorpay_order_id = request.POST.get('razorpay_order_id', '')
+            signature = request.POST.get('razorpay_signature', '')
             
-            # Verify signature
-            razorpay_client.utility.verify_payment_signature(params_dict)
-            
-            # If successful, mark the booking as confirmed
-            booking = Booking.objects.get(booking_id=request.session['razorpay_order_id'])
-            booking.payment_status = 'completed'
-            booking.transaction_id = payment_id
-            booking.is_confirmed = True
-            booking.payment_date = datetime.now()
-            booking.save()
+            try:
+                # Verify payment signature
+                params_dict = {
+                    'razorpay_order_id': razorpay_order_id,
+                    'razorpay_payment_id': payment_id,
+                    'razorpay_signature': signature
+                }
+                
+                # Verify signature
+                razorpay_client.utility.verify_payment_signature(params_dict)
+                
+                # If successful, mark the booking as confirmed
+                booking = Booking.objects.get(booking_id=request.session['razorpay_order_id'])
+                booking.payment_status = 'completed'
+                booking.transaction_id = payment_id
+                booking.is_confirmed = True
+                booking.payment_date = timezone.localtime()
+                booking.save()
 
-            user = request.user.customuser
+                user = request.user.customuser
+                
+                pdf_buffer = BytesIO()
+                generate_pdf(booking, pdf_buffer)
+                pdf_buffer.seek(0)
 
-            # Send confirmation email
-            # send_mail(
-            #     'Booking Confirmation',
-            #     f"Dear {booking.user.first_name},\n\nYour booking for {booking.package.title} has been confirmed.\n\nBooking ID: {booking.booking_id}\nTotal Amount: ₹{booking.total_amount}\nNumber of People: {booking.number_of_people}\nPhone Number: {user.phone_number}\n\nThank you for booking with us!",
-            #     settings.DEFAULT_FROM_EMAIL,
-            #     [booking.user.email],
-            #     fail_silently=False,
-            # )
-            
-            pdf_buffer = BytesIO()
-            generate_pdf(booking, pdf_buffer)
-            pdf_buffer.seek(0)
-            
-            
-            # Here you can send the PDF as an email attachment if needed
-            # send_mail(
-            #     'Booking Confirmation',
-            #     f"Dear {booking.user.first_name},\n\nYour booking for {booking.package.title} has been confirmed.\n\nBooking ID: {booking.booking_id}\nTotal Amount: ₹{booking.total_amount}\nNumber of People: {booking.number_of_people}\nPhone Number: {user.phone_number}\n\nThank you for booking with us!",
-            #     'Please find attached your booking details.',
-            #     settings.DEFAULT_FROM_EMAIL,
-            #     [booking.user.email],
-            #     fail_silently=False,
-            #     attachments=[('booking_details.pdf', pdf_buffer.read(), 'application/pdf')]
-            # )
-            email = EmailMessage(
-            subject='Booking Confirmation',
-            body=f'Your booking for {booking.package.title} has been confirmed. Booking ID: {booking.booking_id}',
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[booking.user.email],
-            )
+                email = EmailMessage(
+                subject='Booking Confirmation',
+                body=f'Your booking for {booking.package.title} has been confirmed. Booking ID: {booking.booking_id}',
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[booking.user.email],
+                )
 
-            # Attach the PDF
-            email.attach('booking_details.pdf', pdf_buffer.getvalue(), 'application/pdf')
+                # Attach the PDF
+                email.attach('booking_details.pdf', pdf_buffer.getvalue(), 'application/pdf')
 
-            # Send the email
-            email.send(fail_silently=False)
-            pdf_data = base64.b64encode(pdf_buffer.getvalue()).decode('utf-8')
-            pdf_buffer.close()
-            
+                # Send the email
+                email.send(fail_silently=False)
+                pdf_data = base64.b64encode(pdf_buffer.getvalue()).decode('utf-8')
+                pdf_buffer.close()
+                
 
-            # Render success page with a message
-            return render(request, 'payment_success.html', {'booking': booking, 'pdf_data': pdf_data})
+                # Render success page with a message
+                return render(request, 'payment_success.html', {'booking': booking, 'pdf_data': pdf_data})
 
-        except razorpay.errors.SignatureVerificationError:
-            return HttpResponse("Payment failed. Signature verification failed.", status=400)
+            except razorpay.errors.SignatureVerificationError:
+                return HttpResponse("Payment failed. Signature verification failed.", status=400)
 
-    return HttpResponse("Invalid request.")
+        return HttpResponse("Invalid request.")
+    else:
+        return redirect('login')
 
 def generate_pdf(booking, buffer):
-    # Create a canvas object
     p = canvas.Canvas(buffer, pagesize=A4)
 
-    # Set title and document properties
+    logo_path = "static/images/logo.png" 
+    p.drawImage(logo_path, 50, 770, width=40, height=50) 
+
     p.setTitle("Booking Invoice")
 
-    # Draw invoice title
     p.setFont("Helvetica-Bold", 24)
-    p.drawString(200, 800, "Booking Invoice")
+    p.drawCentredString(300, 740, "Booking Invoice") 
 
-    # Draw company details
     p.setFont("Helvetica", 12)
-    p.drawString(50, 770, "Explore Hub")
-    p.drawString(50, 755, "123 Travel Street")
-    p.drawString(50, 740, "Travel City, TC 12345")
-    p.drawString(50, 725, "Phone: +91 1234567890")
-    p.drawString(50, 710, "Email: explorehub123@gmail.com")
+    p.drawString(50, 725, "Explore Hub")
+    p.drawString(50, 710, "123 Travel Street")
+    p.drawString(50, 695, "Travel City, TC 12345")
+    p.drawString(50, 680, "Phone: +91 1234567890")
+    p.drawString(50, 665, "Email: explorehub123@gmail.com")
 
-    # Draw a horizontal line
-    p.line(50, 695, 550, 695)
+    p.line(50, 655, 550, 655)
 
-    # Draw customer details
-    p.drawString(50, 670, f"Customer: {booking.user.username}")
-    p.drawString(50, 655, f"Email: {booking.user.email}")
-    p.drawString(50, 640, f"Booking ID: {booking.booking_id}")
-    p.drawString(50, 625, f"Package: {booking.package.title}")
+    discounted_price = booking.package.discounted_price()
 
-    # Draw booking details
-    p.drawString(50, 600, f"Amount Paid: ₹{booking.total_amount}")
-    p.drawString(50, 585, f"Payment Date: {booking.payment_date.strftime('%d-%m-%Y')}")
-    p.drawString(50, 570, f"Transaction ID: {booking.transaction_id}")
+    customer_details = [
+        ["Customer Name:", booking.user.first_name],
+        ["Email:", booking.user.email],
+        ["Booking ID:", booking.booking_id],
+        ["Package:", booking.package.title],
+        ["Date of Travel:", booking.trip_date.strftime('%d-%m-%Y')],
+        ["Amount Paid:", f"₹{booking.total_amount:.2f}"], 
+        ["Discounted Price:", f"₹{discounted_price:.2f}"], 
+        ["Payment Date:", booking.payment_date.strftime('%d-%m-%Y')],
+        ["Transaction ID:", booking.transaction_id]
+    ]
 
-    # Draw a horizontal line
-    p.line(50, 550, 550, 550)
+    table = Table(customer_details, colWidths=[150, 350])
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),  
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),  
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),  
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),  
+        ('FONTSIZE', (0, 0), (-1, 0), 12),  
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),  
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige), 
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),  
+    ]))
 
-    # Draw footer
+    table.wrapOn(p, 400, 600)
+    table.drawOn(p, 50, 400) 
+
+    p.line(50, 380, 550, 380)
+
     p.setFont("Helvetica-Oblique", 10)
-    p.drawString(50, 500, "Thank you for booking with Explore Hub!")
-    p.drawString(50, 485, "Please contact us if you have any questions regarding your booking.")
+    p.drawCentredString(300, 120, "Thank you for booking with Explore Hub!")
+    p.drawCentredString(300, 105, "Please contact us if you have any questions regarding your booking.")
 
-    # Save the PDF to the buffer
     p.showPage()
     p.save()
-

@@ -24,7 +24,7 @@ h3 {
 }
 
 .package-box {
-    width: 30%; /* Set width to 30% to fit three boxes in a row */
+    width: 320px; /* Set width to 30% to fit three boxes in a row */
     border: 1px solid #ddd;
     border-radius: 10px;
     overflow: hidden;
@@ -75,6 +75,36 @@ h4 {
 .price {
     font-weight: bold;
     color: #e67e22; 
+}
+
+.price-info {
+    margin-top: 10px;
+    text-align: center;
+}
+
+.original-price {
+    font-size: 18px;
+    color: #999;
+    text-align: center;
+}
+
+.strikethrough {
+    text-decoration: line-through;
+}
+
+.discounted-price {
+    color: #e74c3c; 
+    font-weight: bold;
+}
+
+.discount-badge {
+    display: inline-block;
+    /* margin-top: 5px; */
+    padding: 5px 10px;
+    background-color: #28a745; /* Change this to your preferred color */
+    color: white;
+    border-radius: 5px;
+    font-weight: bold;
 }
 
 .btn_book {
