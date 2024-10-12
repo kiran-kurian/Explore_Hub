@@ -197,7 +197,7 @@ a:not([href]):not([tabindex]):focus {
 
 /* Dropdown button */
 .dropbtn {
-  color: #f06161;
+  color: black;
   padding: 16px;
   /* font-size: 1.1rem; */
   border: none;

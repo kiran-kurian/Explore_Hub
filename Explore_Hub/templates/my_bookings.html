@@ -1,0 +1,59 @@
+{% extends 'layout_main.html' %}
+
+{% block content %}
+<style>
+    .container h2 {
+        padding-top: 120px;
+    }
+</style>
+<div class="container mt-5">
+    
+    <h2 class="text-center mb-4">My Bookings</h2>
+    {% if messages %}
+        {% for message in messages %}
+            {{ message }}
+        {% endfor %}
+    {% endif %}
+    <div class="table-responsive">
+        <table class="table table-bordered">
+            <thead class="thead-light">
+                <tr>
+                    <th>Booking ID</th>
+                    <th>Package</th>
+                    <th>Trip Date</th>
+                    <th>Amount Paid</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for booking in my_bookings %}
+                <tr>
+                    <td>{{ booking.booking_id }}</td>
+                    <td>{{ booking.package.title }}</td>
+                    <td>{{ booking.trip_date|date:"d-m-Y" }}</td>
+                    <td>₹{{ booking.total_amount|floatformat:2 }}</td>
+                    {% if booking.is_confirmed %}
+                    <td>Confirmed</td>
+                    {% endif %}
+                    <td>
+                        {% if booking.is_confirmed %}
+                        <form action="{% url 'cancel_booking' booking.id %}" method="POST" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger btn-sm">Cancel</button>
+                        </form>
+                        {% else %}
+                        <span class="text-muted">Cancelled</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center">No bookings found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

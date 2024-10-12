@@ -20,6 +20,7 @@
     <!-- Slick Carousel CSS from CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick-theme.css" />
+    <link rel="stylesheet" href="{% static 'node_modules/bootstrap-icons/font/bootstrap-icons.css' %}">
 </head>
 <body data-spy="scroll" data-target=".navbar" data-offset="40" id="home">
 
@@ -44,13 +45,13 @@
                     </li>
                     {% else %}
                     <li class="nav-item">
-                        <li class="dropdown">
-                            <a href="#" class="dropbtn">Travel Group</a>
-                            <div class="dropdown-content">
+                        {% comment %} <li class="dropdown"> {% endcomment %}
+                            <a href="{% url 'available_group' %}" class="nav-link-md">Travel Group</a>
+                            {% comment %} <div class="dropdown-content">
                                 <a href="{% url 'user_group' %}">Your Groups</a>
                                 <a href="{% url 'available_group' %}">Available Groups</a>
-                            </div>
-                        </li>
+                            </div> {% endcomment %}
+                        {% comment %} </li> {% endcomment %}
                     </li>
                     {% endif %}
                     <li class="nav-item">
@@ -60,12 +61,20 @@
                         <a class="nav-link-md" href="#events">Events</a>
                     </li>
                     {% if user.is_authenticated %}
-                    <li class="nav-item">
-                        <a class="nav-link-md" href="{% url 'update_profile' %}">Welcome,{{ user.first_name }}</a>
+                    <li class="nav-item ml-5">
+                        <li class="dropdown">
+                            <a class="dropbtn" href="{% url 'update_profile' %}">&#128100;{{ user.first_name }}<span style="font-size: 10px;">&#9660;</span></a>
+                            <div class="dropdown-content">
+                                <a href="{% url 'user_group' %}">My groups</a>
+                                <a href="{% url 'my_bookings' %}">My Bookings</a>
+                                <a href="{% url 'update_profile' %}">Update Profile</a>
+                                <a href="{% url 'logout' %}">Logout</a>
+                            </div>
+                        </li>
                     </li>
-                    <li class="nav-item ml-0 ml-lg-4">
+                    {% comment %} <li class="nav-item ml-0 ml-lg-4">
                         <a class="nav-link-lg btn btn-primary" href="{% url 'logout' %}">Logout</a>
-                    </li>
+                    </li> {% endcomment %}
                     {% else %}
                     <li class="nav-item ml-0 ml-lg-4">
                         <a class="nav-link-lg btn btn-primary" href="{% url 'login' %}">Login</a>

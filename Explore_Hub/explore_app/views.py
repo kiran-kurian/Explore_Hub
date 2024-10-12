@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import re
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
@@ -725,7 +725,7 @@ def book_package_view(request, package_id):
             
             # Create Razorpay order
             razorpay_order = razorpay_client.order.create({
-                'amount': int(total_amount * 100),  # Amount in paise (100 paise = 1 INR)
+                'amount': int(total_amount * 100),  
                 'currency': 'INR',
                 'payment_capture': '1'
             })
@@ -773,6 +773,7 @@ def payment_success(request):
                 booking.transaction_id = payment_id
                 booking.is_confirmed = True
                 booking.payment_date = timezone.localtime()
+                booking.razorpay_payment_id = payment_id
                 booking.save()
 
                 user = request.user.customuser
@@ -864,3 +865,47 @@ def generate_pdf(booking, buffer):
 
     p.showPage()
     p.save()
+
+#view for displaying the bookings of the user
+def my_bookings(request):
+    if 'normal' in request.session:
+        user = request.user
+        my_bookings = Booking.objects.filter(user = user)
+        return render(request, 'my_bookings.html', {'my_bookings': my_bookings})
+    else:
+        return redirect('login')
+    
+def cancel_booking(request, booking_id):
+    if 'normal' in request.session:
+        booking = get_object_or_404(Booking, id=booking_id)
+        current_date = timezone.now().date()
+
+        if request.method == 'POST':
+            # Check if the trip date is more than a week away
+            if booking.trip_date > current_date + timedelta(weeks=1):
+                booking.is_cancelled = True
+                booking.is_confirmed = False  
+                booking.refunded_amount = booking.total_amount  # Set the amount to be refunded
+                client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+
+                try:
+                    # Create a refund
+                    refund_response = client.payment.refund(booking.razorpay_payment_id, {
+                        'amount': int(booking.total_amount * 100)  # Amount in paise
+                    })
+
+                    if refund_response.get('id'):
+                        booking.save()  # Save booking changes after successful refund
+                        messages.success(request, 'Booking has been cancelled successfully. Amount refunded.')
+                    else:
+                        messages.error(request, 'Refund failed. Please contact support.')
+                except Exception as e:
+                    messages.error(request, f'Error processing refund: {str(e)}')
+            else:
+                messages.error(request, 'Cancellation is only allowed if the trip date is more than a week away.')
+        else:
+            messages.error(request, 'Failed to cancel the booking.')
+
+        return redirect('my_bookings')
+    else:
+        return redirect('login')

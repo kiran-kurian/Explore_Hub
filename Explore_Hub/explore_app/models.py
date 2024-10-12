@@ -92,3 +92,5 @@ class Booking(models.Model):
         ('upi', 'UPI'),
     ], null=True, blank=True)  
     payment_date = models.DateTimeField(null=True, blank=True)
+    refunded_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    razorpay_payment_id = models.CharField(max_length=255, blank=True, null=True)
