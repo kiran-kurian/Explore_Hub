@@ -37,13 +37,15 @@
                     <td>Confirmed</td>
                     {% endif %}
                     <td>
-                        {% if booking.is_confirmed %}
+                        {% if booking.is_confirmed and booking.cancellation %}
                         <form action="{% url 'cancel_booking' booking.id %}" method="POST" style="display:inline;">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-danger btn-sm">Cancel</button>
                         </form>
-                        {% else %}
+                        {% elif booking.is_cancelled %}
                         <span class="text-muted">Cancelled</span>
+                        {% else %}
+                        <span class="text-muted">Not available</span>
                         {% endif %}
                     </td>
                 </tr>

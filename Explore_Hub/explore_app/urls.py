@@ -52,6 +52,7 @@ urlpatterns = [
     path('addpackage/', add_package, name="add_package"),
     path('updatepackage/<int:package_id>/', update_package, name="update_package"),
     path('deletepackage/<int:package_id>/', delete_package, name="delete_package"),
+    path('ta_bookings/', ta_bookings, name='ta_bookings'),
     path('forgot_password/', forgot_password_view, name='forgot_password'),
     path('reset_password/<uidb64>/<token>/', reset_password_view, name='reset_password'),
     path('check_username/', check_username, name='check_username'),

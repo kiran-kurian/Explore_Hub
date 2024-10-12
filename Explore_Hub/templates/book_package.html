@@ -14,6 +14,7 @@
     <p><strong>Package Name:</strong> {{ package.title }}</p>
     <p><strong>Description:</strong> {{ package.description }}</p>
     <p><strong>Price:</strong> ₹{{ package.discounted_price|floatformat:2 }}</p>
+    <p><strong>Note: Cancellation is only possible if the agency has agreed and the cancellation should be made 7 days prior to the trip date</strong></p>
     
     <h3>Your Details</h3>
     <form method="POST" action="{% url 'book_package' package.package_id %}">

@@ -1,0 +1,54 @@
+{% extends 'ta_layout.html' %}
+
+{% block body %}
+<div class="dashboard">
+    <h2 class="text-center mb-4">Your Bookings</h2>
+    
+    {% if bookings %}
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Booking ID</th>
+                        <th>User</th>
+                        <th>Package</th>
+                        <th>User Contact</th>
+                        <th>Number of People</th>
+                        <th>Trip Date</th>
+                        <th>Total Amount</th>
+                        <th>Payment Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for booking in bookings %}
+                    <tr>
+                        <td>{{ booking.booking_id }}</td>
+                        <td>{{ booking.user.first_name }}</td>
+                        <td>{{ booking.package.title }}</td>
+                        <td>{{ booking.user.customuser.phone_number }}  / {{ booking.user.email }}</td>
+                        <td>{{ booking.number_of_people }}</td>
+                        <td>{{ booking.trip_date|date:"d-m-Y" }}</td>
+                        <td>₹ {{ booking.total_amount }}</td>
+                        <td>
+                            {% if booking.is_cancelled %}
+                            <span class="badge badge-danger">Cancelled</span>
+                            {% elif booking.payment_status == "pending" %}
+                                <span class="badge badge-warning">Pending</span>
+                            {% elif booking.payment_status == "completed" %}
+                                <span class="badge badge-success">Completed</span>
+                            {% else %}
+                                <span class="badge badge-danger">Failed</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-info" role="alert">
+            No bookings found for your agency.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -881,31 +881,43 @@ def cancel_booking(request, booking_id):
         current_date = timezone.now().date()
 
         if request.method == 'POST':
+            if booking.cancellation:
             # Check if the trip date is more than a week away
-            if booking.trip_date > current_date + timedelta(weeks=1):
-                booking.is_cancelled = True
-                booking.is_confirmed = False  
-                booking.refunded_amount = booking.total_amount  # Set the amount to be refunded
-                client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+                if booking.trip_date > current_date + timedelta(weeks=1):
+                    booking.is_cancelled = True
+                    booking.is_confirmed = False  
+                    booking.refunded_amount = booking.total_amount  # Set the amount to be refunded
+                    client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
 
-                try:
-                    # Create a refund
-                    refund_response = client.payment.refund(booking.razorpay_payment_id, {
-                        'amount': int(booking.total_amount * 100)  # Amount in paise
-                    })
+                    try:
+                        # Create a refund
+                        refund_response = client.payment.refund(booking.razorpay_payment_id, {
+                            'amount': int(booking.total_amount * 100)  # Amount in paise
+                        })
 
-                    if refund_response.get('id'):
-                        booking.save()  # Save booking changes after successful refund
-                        messages.success(request, 'Booking has been cancelled successfully. Amount refunded.')
-                    else:
-                        messages.error(request, 'Refund failed. Please contact support.')
-                except Exception as e:
-                    messages.error(request, f'Error processing refund: {str(e)}')
+                        if refund_response.get('id'):
+                            booking.save()  # Save booking changes after successful refund
+                            messages.success(request, 'Booking has been cancelled successfully. Amount refunded.')
+                        else:
+                            messages.error(request, 'Refund failed. Please contact support.')
+                    except Exception as e:
+                        messages.error(request, f'Error processing refund: {str(e)}')
+                else:
+                    messages.error(request, 'Cancellation is only allowed if the trip date is more than a week away.')
             else:
-                messages.error(request, 'Cancellation is only allowed if the trip date is more than a week away.')
+                messages.error(request, 'Cancellation is not available for this package')
         else:
             messages.error(request, 'Failed to cancel the booking.')
 
         return redirect('my_bookings')
+    else:
+        return redirect('login')
+    
+#view for listing the booking for a travel agency
+def ta_bookings(request):
+    if 'travel' in request.session:
+        travel_agency = TravelAgency.objects.get(username=request.user.username)
+        bookings = Booking.objects.filter(package__agency_id = travel_agency)
+        return render(request, 'ta_bookings.html', {'bookings': bookings})
     else:
         return redirect('login')

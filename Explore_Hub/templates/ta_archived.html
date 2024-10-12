@@ -32,7 +32,9 @@
                         </div>
                     </div>
                 {% empty %}
-                    <p>No archived packages</p>
+                    <div class="alert alert-info" role="alert">
+                        No archived packages available.
+                    </div>
                 {% endfor %}
                 <script>
                     function confirmDelete() {

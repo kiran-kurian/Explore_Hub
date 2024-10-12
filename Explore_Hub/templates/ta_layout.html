@@ -7,6 +7,7 @@
     <link rel="shortcut icon" type="image/png" href="{% static 'images/logo.png' %}" >
     <title>Travel Agency Dashboard</title>
     <link rel="stylesheet" href="{% static 'assets/css/agency_dashboard.css' %}">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
 <body>
     <header class="header">
@@ -14,6 +15,7 @@
             <h2>Explore Hub</h2>
             <nav>
                 <ul>
+                    <li><a href="{% url 'ta_bookings' %}">Bookings</a></li>
                     <li class="dropdown">
                         <a href="#" class="dropbtn">Manage Packages</a>
                         <div class="dropdown-content">

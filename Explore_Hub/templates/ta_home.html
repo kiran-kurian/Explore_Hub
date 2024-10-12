@@ -34,7 +34,10 @@
                         </div>
                     </div>
                 {% empty %}
-                    <p>No packages available</p>
+                <br>
+                <div class="alert alert-info" role="alert">
+                    No packages available.
+                </div>
                 {% endfor %}
                 <script>
                     function confirmDelete() {
