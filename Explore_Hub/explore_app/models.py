@@ -46,6 +46,10 @@ class TravelPackage(models.Model):
     def discounted_price(self):
         discount_amount = (self.discount_percentage / 100) * self.price
         return self.price - discount_amount
+    
+    def you_save(self):
+        discount_amount = (self.discount_percentage / 100) * self.price
+        return discount_amount
 
 #table for storing images of the packages
 class PackageImage(models.Model):

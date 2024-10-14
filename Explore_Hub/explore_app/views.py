@@ -157,7 +157,7 @@ def register_view(request):
 
 #Package listing view
 def package_view(request):
-    travel_package = TravelPackage.objects.prefetch_related('package_images').filter(is_archived=False)
+    travel_package = TravelPackage.objects.prefetch_related('package_images').filter(is_archived=False, is_active=True)
     return render(request, "packages.html", {'packages': travel_package})
 
 #detailed package view
@@ -444,6 +444,7 @@ def add_package(request):
 
 #to update package by the travel agency
 @login_required(login_url='login')
+@never_cache
 def update_package(request, package_id):
     if 'travel' in request.session:
         package = get_object_or_404(TravelPackage, pk=package_id)
@@ -704,12 +705,17 @@ def book_package_view(request, package_id):
         if request.method == 'POST':
             number_of_people = int(request.POST.get('number_of_people', 1))
             date_of_travel = request.POST.get('date_of_travel')
+            contact = request.POST.get('phone_number')
             discount_price = package.discounted_price()
             total_amount = float(discount_price) * number_of_people
             cancellation = package.cancellation
             print(cancellation)
             print(timezone.localtime())
             print(datetime.now())
+            id = request.session['normal']
+            user = CustomUser.objects.get(id = id)
+            user.phone_number = contact
+            user.save()
             
             # Create a new booking entry
             booking = Booking.objects.create(
@@ -837,7 +843,7 @@ def generate_pdf(booking, buffer):
         ["Package:", booking.package.title],
         ["Date of Travel:", booking.trip_date.strftime('%d-%m-%Y')],
         ["Amount Paid:", f"₹{booking.total_amount:.2f}"], 
-        ["Discounted Price:", f"₹{discounted_price:.2f}"], 
+        ["Discounted Price(per person):", f"₹{discounted_price:.2f}"], 
         ["Payment Date:", booking.payment_date.strftime('%d-%m-%Y')],
         ["Transaction ID:", booking.transaction_id]
     ]

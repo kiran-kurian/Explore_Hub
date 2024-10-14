@@ -74,7 +74,7 @@
                 currency: "INR",
                 name: "Explore Hub",
                 description: "Booking Payment",
-                image: "", // Optional: add your logo URL
+                image: "{% static 'images/logo.png' %}", // Optional: add your logo URL
                 order_id: "{{ razorpay_order_id }}", // Generate order_id using Orders API
                 handler: function(response) {
                     document.getElementById('razorpay_payment_id').value = response.razorpay_payment_id;

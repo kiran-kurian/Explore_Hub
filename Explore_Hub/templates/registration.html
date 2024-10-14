@@ -294,9 +294,11 @@
             isValid &= validateField('username', 'usernameError', document.getElementById('username').value.trim() === "", "Username is required.");
             isValid &= validateField('name', 'nameError', document.getElementById('name').value.trim() === "", "Name is required.");
 
+            
+            const isValidTLD = validTLDs.includes(domainPart);
             const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
             const emailValue = document.getElementById('email').value;
-            isValid &= validateField('email', 'emailError', !emailPattern.test(emailValue) || !emailValue.endsWith(".com"), "Please enter a valid email address ending with '.com'.");
+            isValid &= validateField('email', 'emailError', !emailPattern.test(emailValue) || !isValidTLD, "Please enter a valid email address.");
 
             isValid &= validateField('password', 'passwordError', document.getElementById('password').value.trim() === "", "Password is required.");
             isValid &= validateField('confirmpassword', 'confirmPasswordError', document.getElementById('confirmpassword').value !== document.getElementById('password').value, "Passwords do not match.");

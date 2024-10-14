@@ -32,7 +32,7 @@
                     {% if package.discount_percentage %}
                         <p class="original-price">Price: <span class="strikethrough">{{ package.price }}</span></p>
                         <p class="discounted-price">Discounted Price: {{ package.discounted_price|floatformat:2 }}</p>
-                        <span class="discount-badge">Save {{ package.discount_percentage }}%</span><br>
+                        <span class="discount-badge">You Save: {{ package.you_save|floatformat:2 }}</span><br>
                     {% else %}
                         <p class="price">Price: {{ package.price }}</p>
                     {% endif %}
