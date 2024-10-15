@@ -8,6 +8,9 @@
                 <p><strong>Destination:</strong> {{ group.destination }}</p>
                 <p><strong>Members:</strong> {{ group.current_members.count }}/{{ group.max_members }}</p>
                 <p class="group-description">{{ group.description }}</p>
+                <p><strong>Date of Trip: </strong> {{ group.trip_date }}</p>
+                <p><strong>Trip status: </strong> {{ group.trip_status }}</p>
+                <p><strong>Gender Preference: </strong> {{ group.gender }}</p>
                 <a href="{% url 'group_details' group.group_id %}" class="join-btn">View Group</a>
             </div>
         {% empty %}

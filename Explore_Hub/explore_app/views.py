@@ -606,7 +606,7 @@ def available_groups(request):
 @never_cache
 def user_group(request):
     if 'normal' in request.session:
-        user_group = TravelGroup.objects.filter(current_members=request.user.id)
+        user_group = TravelGroup.objects.filter(current_members=request.user.id, is_active=True)
         return render(request, 'user_group.html',{'user_groups': user_group})
     else:
         return redirect('login')
@@ -619,6 +619,9 @@ def create_group(request):
             destination = request.POST.get('destination')
             max_members = request.POST.get('max_members')
             description = request.POST.get('description')
+            trip_date = request.POST.get('date')
+            gender = request.POST.get('gender_preference')
+            print(gender)
 
             username = request.user.username
             creator = CustomUser.objects.get(username=username)
@@ -628,16 +631,18 @@ def create_group(request):
                 destination=destination,
                 max_members=max_members,
                 creator=creator,  
-                description=description
+                description=description,
+                trip_date=trip_date,
+                gender=gender
             )
             new_group.save()
 
             # Add the creator as the first member of the group
             new_group.current_members.add(creator)
-
-            
             return redirect('user_group')
-        return render(request, 'create_group.html')
+        today = timezone.now().date().strftime('%Y-%m-%d')
+        print(today)
+        return render(request, 'create_group.html', {'today': today})
     else:
         return redirect('login')
     
@@ -670,11 +675,36 @@ def join_group(request, group_id):
     else:
         return redirect('login')
     
+#view for the creator of the group to delete the group
+def delete_group(request, group_id):
+    if 'normal' in request.session:
+        group = get_object_or_404(TravelGroup, group_id=group_id)
+        if request.method == 'POST':
+            group.is_active = False
+            group.save()  
+            return JsonResponse({'message': 'Group deleted successfully.'})
+        return redirect('user_group')
+    else:
+        return redirect('login')
+    
 #view for detailed group view
 def group_detail_view(request, group_id):
     if 'normal' in request.session:
         group = get_object_or_404(TravelGroup, group_id=group_id)
         return render(request, 'group_detail.html', {'group': group})
+    else:
+        return redirect('login')
+    
+#view for the group creator to remove the current members
+def remove_member(request, group_id, member_id):
+    if 'normal' in request.session:
+        group = get_object_or_404(TravelGroup, group_id=group_id)
+        member = get_object_or_404(CustomUser, id=member_id)
+
+        if request.method == 'POST' and request.user.id == group.creator_id:
+            group.current_members.remove(member)
+            return JsonResponse({'message': 'Member removed successfully.'})
+        return JsonResponse({'message': 'Failed to remove member.'}, status=400)
     else:
         return redirect('login')
 

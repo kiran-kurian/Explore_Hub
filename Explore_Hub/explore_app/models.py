@@ -65,7 +65,18 @@ class TravelGroup(models.Model):
     max_members = models.IntegerField(default=10)
     creator = models.ForeignKey(CustomUser, on_delete=models.CASCADE) 
     current_members = models.ManyToManyField(CustomUser, related_name='group_members')
-    description = models.TextField()  # Optional, for group details
+    description = models.TextField()
+    trip_date = models.DateField(null=True)
+    trip_status = models.CharField(max_length=20, choices=[
+        ('not started', 'Not Started'),
+        ('started', 'Started'),
+        ('completed', 'Completed')
+        ], default='Not Started')  
+    gender = models.CharField(max_length=20, choices=[
+        ('male', 'Male'),
+        ('female', 'female'),
+        ('no preference', 'No preference')
+    ], default='No Preference')
     created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
 

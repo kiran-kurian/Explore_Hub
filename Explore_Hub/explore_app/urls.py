@@ -62,6 +62,8 @@ urlpatterns = [
     path('user_group/', user_group,name='user_group'),
     path('join_group/<int:group_id>/', join_group, name='join_group'),
     path('groups/<int:group_id>/',group_detail_view,name='group_details'),
+    path('group/delete/<int:group_id>/', delete_group, name='delete_group'),
+    path('group/remove_member/<int:group_id>/<int:member_id>/', remove_member, name='remove_member'),
     path('leave_group/<int:group_id>/', leave_group_view, name='leave_group'),
 ]
 if settings.DEBUG:

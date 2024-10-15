@@ -1,18 +1,25 @@
-{% extends 'layout_main.html' %} 
+{% extends 'layout_main.html' %}
 
 {% block content %}
-<div class="container mt-5" style="padding-top: 100px;"> 
+<div class="container mt-5" style="padding-top: 100px;">
     <div class="card">
         <div class="card-header">
             <h2>{{ group.name }}</h2>
         </div>
         <div class="card-body">
             <p class="lead"><strong>Description:</strong> {{ group.description }}</p>
-
+            <p><strong>Date of Trip:</strong> {{ group.trip_date }}</p>
+            <p><strong>Trip Status:</strong> {{ group.trip_status }}</p>
+            <p><strong>Gender Preference:</strong> {{ group.gender }}</p>
             <h5>Current Members:</h5>
             <ul class="list-group mb-4">
                 {% for member in group.current_members.all %}
-                    <li class="list-group-item small">{{ member.first_name }}</li> 
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        {{ member.first_name }} {% if member.id == group.creator.id %} (Admin) {% endif %}
+                        {% if request.user.id == group.creator.id and member.id != group.creator.id %} 
+                            <button class="btn btn-danger btn-sm remove-member" data-member-id="{{ member.id }}" data-group-id="{{ group.group_id }}">Remove</button>
+                        {% endif %}
+                    </li>
                 {% empty %}
                     <li class="list-group-item">No members yet.</li>
                 {% endfor %}
@@ -20,9 +27,16 @@
 
             <p><strong>Maximum Members Allowed:</strong> {{ group.max_members }}</p>
             
+            {% if request.user.id == group.creator.id %}
+                <form action="{% url 'delete_group' group.group_id %}" method="post" id="delete-group-form">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Delete Group</button>
+                </form>
+            {% endif %}
+
             <form action="{% url 'leave_group' group.group_id %}" method="post" id="leave-group-form">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-danger">Leave Group</button>
+                <button type="submit" class="btn btn-danger mt-2">Leave Group</button>
             </form>
             
             <div id="message" class="mt-3" style="display:none;"></div> 
@@ -31,35 +45,102 @@
 </div>
 
 <script>
-document.getElementById('leave-group-form').onsubmit = function(event) {
-    event.preventDefault(); 
-    fetch(this.action, {
-        method: 'POST',
-        body: new URLSearchParams(new FormData(this)),
-        headers: {
-            'X-CSRFToken': '{{ csrf_token }}',
-            'Content-Type': 'application/x-www-form-urlencoded',
-        },
-    })
-    .then(response => {
-        if (response.ok) {
-            return response.json(); 
-        }
-        throw new Error('Network response was not ok.');
-    })
-    .then(data => {
-        document.getElementById('message').innerText = data.message; 
-        document.getElementById('message').style.display = 'block';
-        setTimeout(() => {
-            window.location.href = "{% url 'user_group' %}"; 
-        }, 2000); // 2 seconds delay before redirect
-    })
-    .catch(error => {
-        console.error('There was a problem with the fetch operation:', error);
-        document.getElementById('message').innerText = 'An error occurred. Please try again.'; 
-        document.getElementById('message').style.display = 'block';
+    document.getElementById('leave-group-form').onsubmit = function(event) {
+        event.preventDefault(); 
+        fetch(this.action, {
+            method: 'POST',
+            body: new URLSearchParams(new FormData(this)),
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+        })
+        .then(response => {
+            if (response.ok) {
+                return response.json(); 
+            }
+            throw new Error('Network response was not ok.');
+        })
+        .then(data => {
+            document.getElementById('message').innerText = data.message; 
+            document.getElementById('message').style.display = 'block';
+            setTimeout(() => {
+                window.location.href = "{% url 'user_group' %}"; 
+            }, 2000); // 2 seconds delay before redirect
+        })
+        .catch(error => {
+            console.error('There was a problem with the fetch operation:', error);
+            document.getElementById('message').innerText = 'An error occurred. Please try again.'; 
+            document.getElementById('message').style.display = 'block';
+        });
+    };
+    
+    document.getElementById('delete-group-form').onsubmit = function(event) {
+        event.preventDefault(); 
+        fetch(this.action, {
+            method: 'POST',
+            body: new URLSearchParams(new FormData(this)),
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+        })
+        .then(response => {
+            return response.json().then(data => {
+                if (response.ok) {
+                    alert(data.message); // Show success message
+                    // Redirect after a short delay
+                    setTimeout(() => {
+                        window.location.href = "{% url 'user_group' %}"; // Redirect to the user group page
+                    }, 2000); // Adjust the delay time as needed
+                } else {
+                    alert(data.error || 'An error occurred. Please try again.');
+                }
+            });
+        })
+        .catch(error => {
+            console.error('There was a problem with the fetch operation:', error);
+            alert('An error occurred. Please try again.');
+        });
+    };
+
+    document.querySelectorAll('.remove-member').forEach(button => {
+        button.onclick = function() {
+            const memberId = this.getAttribute('data-member-id'); // Ensure this is correctly set
+            const groupId = "{{ group.id }}"; // Get the group ID from the context
+    
+            if (confirm("Are you sure you want to remove this member?")) {
+                if (memberId) {
+                    const urlTemplate = "{% url 'remove_member' group.group_id 0 %}"; // '0' is a placeholder
+                    const url = urlTemplate.replace('0', memberId);
+                    fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}',
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                    })
+                    .then(response => {
+                        return response.json().then(data => {
+                            if (response.ok) {
+                                alert(data.message); // Show success message
+                                // Remove the member from the list if successful
+                                this.closest('li').remove();
+                            } else {
+                                alert(data.error || 'Failed to remove member. Please try again.');
+                            }
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred. Please try again.');
+                    });
+                } else {
+                    alert("Member ID is missing.");
+                }
+            }
+        };
     });
-};
 </script>
 
 {% endblock %}
