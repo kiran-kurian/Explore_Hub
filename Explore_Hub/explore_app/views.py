@@ -691,6 +691,9 @@ def delete_group(request, group_id):
 def group_detail_view(request, group_id):
     if 'normal' in request.session:
         group = get_object_or_404(TravelGroup, group_id=group_id)
+        if 'trip_status' in request.POST:
+            group.trip_status = request.POST['trip_status']
+            group.save()
         return render(request, 'group_detail.html', {'group': group})
     else:
         return redirect('login')
@@ -723,6 +726,26 @@ def leave_group_view(request, group_id):
             return JsonResponse({'message': 'User not found.'}, status=404)
 
         return JsonResponse({'message': 'Invalid request.'}, status=400)
+    else:
+        return redirect('login')
+    
+#view for editing group details
+def edit_group(request, group_id):
+    if 'normal' in request.session:
+        group = get_object_or_404(TravelGroup, group_id=group_id)
+
+        if request.method == 'POST':
+            # Update group details from the request
+            group.name = request.POST.get('group_name', group.name)
+            group.destination = request.POST.get('destination', group.destination)
+            group.description = request.POST.get('description', group.description)
+            group.max_members = request.POST.get('max_members', group.max_members) 
+            group.trip_date = request.POST.get('date', group.trip_date)
+            group.gender = request.POST.get('gender_preference', group.gender)
+            group.save()
+            return redirect('group_details', group_id=group.group_id)  # Redirect to the group detail page after update
+        today = timezone.now().date().strftime('%Y-%m-%d')
+        return render(request, 'edit_group.html', {'group': group, 'today': today})
     else:
         return redirect('login')
 

@@ -3,20 +3,46 @@
 {% block content %}
 <div class="container mt-5" style="padding-top: 100px;">
     <div class="card">
-        <div class="card-header">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <!-- Group Name -->
             <h2>{{ group.name }}</h2>
+
+            <!-- Update Button and Trip Status -->
+            {% if request.user.id == group.creator.id %}
+            <a href="{% url 'edit_group' group.group_id %}" class="btn btn-warning btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Update group details">
+                <i class="fas fa-edit"></i> Update Group
+            </a>
+            {% endif %}
         </div>
+
         <div class="card-body">
+            {% if request.user.id == group.creator.id %}
+                <div class="mb-3 d-flex align-items-center">
+                    <form action="#" method="POST" class="d-inline-block">
+                        {% csrf_token %}
+                        <label for="trip-status" class="form-label me-2"><strong>Trip Status:</strong></label>
+                        <select id="trip-status" class="form-select form-select-sm me-2" name="trip_status" aria-label="Trip Status" style="width: 150px;">
+                            <option value="not started" {% if group.trip_status == "not started" %}selected{% endif %}>Planning</option>
+                            <option value="started" {% if group.trip_status == "started" %}selected{% endif %}>Trip Started</option>
+                            <option value="completed" {% if group.trip_status == "completed" %}selected{% endif %}>Trip Ended</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary btn-sm">Update Status</button>
+                    </form>
+                </div>
+            {% endif %}
+            <p class="lead"><strong>Destination:</strong> {{ group.destination }}</p>
             <p class="lead"><strong>Description:</strong> {{ group.description }}</p>
-            <p><strong>Date of Trip:</strong> {{ group.trip_date }}</p>
-            <p><strong>Trip Status:</strong> {{ group.trip_status }}</p>
-            <p><strong>Gender Preference:</strong> {{ group.gender }}</p>
+            <p class="lead"><strong>Date of Trip:</strong> {{ group.trip_date }}</p>
+            <p class="lead"><strong>Trip Status:</strong> {{ group.trip_status }}</p>
+            <p class="lead"><strong>Gender Preference:</strong> {{ group.gender }}</p>
+            <p class="lead"><strong>Maximum Members Allowed:</strong> {{ group.max_members }}</p>
+
             <h5>Current Members:</h5>
             <ul class="list-group mb-4">
                 {% for member in group.current_members.all %}
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         {{ member.first_name }} {% if member.id == group.creator.id %} (Admin) {% endif %}
-                        {% if request.user.id == group.creator.id and member.id != group.creator.id %} 
+                        {% if request.user.id == group.creator.id and member.id != group.creator.id %}
                             <button class="btn btn-danger btn-sm remove-member" data-member-id="{{ member.id }}" data-group-id="{{ group.group_id }}">Remove</button>
                         {% endif %}
                     </li>
@@ -25,25 +51,25 @@
                 {% endfor %}
             </ul>
 
-            <p><strong>Maximum Members Allowed:</strong> {{ group.max_members }}</p>
-            
-            {% if request.user.id == group.creator.id %}
-                <form action="{% url 'delete_group' group.group_id %}" method="post" id="delete-group-form">
+            <div class="d-flex align-items-center">
+                {% if request.user.id == group.creator.id %}
+                    <form action="{% url 'delete_group' group.group_id %}" method="post" id="delete-group-form" class="me-6">  <!-- Add margin between the forms -->
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger" style="margin-right: 10px;">Delete Group</button>
+                    </form>
+                {% else %}
+                
+                <form action="{% url 'leave_group' group.group_id %}" method="post" id="leave-group-form">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-danger">Delete Group</button>
+                    <button type="submit" class="btn btn-danger">Leave Group</button>
                 </form>
-            {% endif %}
-
-            <form action="{% url 'leave_group' group.group_id %}" method="post" id="leave-group-form">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-danger mt-2">Leave Group</button>
-            </form>
+                {% endif %}
+            </div>
             
             <div id="message" class="mt-3" style="display:none;"></div> 
         </div>
     </div>
 </div>
-
 <script>
     document.getElementById('leave-group-form').onsubmit = function(event) {
         event.preventDefault(); 

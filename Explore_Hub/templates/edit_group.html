@@ -1,0 +1,89 @@
+{% extends 'layout_main.html' %}
+{% block content %}
+<style>
+    .body {
+        padding: 110px;
+    }
+    .form-group {
+        margin-bottom: 15px;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        transition: border-color 0.3s;
+    }
+    
+    .form-control:focus {
+        border-color: #ff6666;
+        outline: none;
+    }
+    
+    .btn_create {
+        display: inline-block;
+        margin: 20px auto;
+        padding: 10px 20px;
+        background-color: #ff6666;
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        transition: background-color 0.3s;
+    }
+    
+    .btn_create:hover {
+        background-color: #e65c5c;
+        color: white;
+    }
+    .btn-secondary {
+        text-decoration: none;
+        border-radius: 5px;
+        margin: 20px auto;
+        padding: 10px 20px;
+    }
+</style>
+<div class="body">
+    <h3>Create a Group</h3>
+    <form method="POST" enctype="multipart/form-data">  
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="group_name">Group Name:</label>
+            <input type="text" id="group_name" name="group_name" value="{{ group.name }}" required class="form-control">
+        </div>
+
+        <div class="form-group">
+            <label for="destination">Destination:</label>
+            <input type="text" id="destination" name="destination" value="{{ group.destination }}" required class="form-control">
+        </div>
+
+        <div class="form-group">
+            <label for="max_members">Maximum number of People (Max: 10):</label>
+            <input type="number" id="max_members" name="max_members" value="{{ group.max_members }}" min="1" max="10" required class="form-control">
+        </div>
+
+        <div class="form-group">
+            <label for="date">Date of trip:</label>
+            <input type="date" id="date" name="date" min="{{ today }}" value="{{ group.trip_date|date:'Y-m-d' }}" required class="form-control">
+        </div>
+
+        <div class="form-group">
+            <label for="gender">Gender Preference:</label>
+            <select id="gender" name="gender_preference">
+                <option>Select your preference</option>
+                <option value="male" {% if group.gender == 'male' %} selected {% endif %} >Male</option>
+                <option value="female" {% if group.gender == 'female' %} selected {% endif %} >Female</option>
+                <option value="no_preference" {% if group.gender == 'no_preference' %} selected {% endif %}>No Preference</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Description:</label>
+            <textarea id="description" name="description" rows="4" required class="form-control">{{ group.description }}</textarea>
+        </div>
+
+        <button type="submit" class="btn btn_create">Edit Group</button>
+        <a href="{% url 'group_details' group.group_id %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}
