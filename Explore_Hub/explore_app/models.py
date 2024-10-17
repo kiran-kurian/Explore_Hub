@@ -109,3 +109,10 @@ class Booking(models.Model):
     payment_date = models.DateTimeField(null=True, blank=True)
     refunded_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     razorpay_payment_id = models.CharField(max_length=255, blank=True, null=True)
+
+#model for messages
+class Message(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    group = models.ForeignKey(TravelGroup, on_delete=models.CASCADE)
+    content = models.TextField()
+    send_at = models.DateTimeField(auto_now_add=True)

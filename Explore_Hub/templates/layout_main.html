@@ -64,7 +64,7 @@
                     {% if user.is_authenticated %}
                     <li class="nav-item ml-5">
                         <li class="dropdown">
-                            <a class="dropbtn" href="{% url 'update_profile' %}">&#128100;{{ user.first_name }}<span style="font-size: 10px;">&#9660;</span></a>
+                            <a class="dropbtn" href="{% url 'update_profile' %}"><i class="fa-solid fa-user"></i> {{ user.first_name }}<span style="font-size: 10px;">&#9660;</span></a>
                             <div class="dropdown-content">
                                 <a href="{% url 'user_group' %}">My groups</a>
                                 <a href="{% url 'my_bookings' %}">My Bookings</a>

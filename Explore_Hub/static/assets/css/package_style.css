@@ -169,3 +169,42 @@ h4 {
 p {
     text-align: justify;
 }
+
+.search-container {
+    margin-bottom: 20px; /* Adjusts spacing below the search bar */
+    text-align: left; /* Aligns search bar to the left */
+    padding-top: 80px;
+}
+
+.search-form {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; /* Aligns to the left */
+    margin: 10px; /* Removes default margin */
+    column-gap: 5px;
+}
+
+#search-bar {
+    width: 250px; /* Adjust the width as needed */
+    padding: 10px;
+    border: 1px solid #f06161; /* Border color matches button color */
+    border-radius: 4px 0 0 4px; /* Rounded corners */
+    outline: none; /* Removes outline on focus */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Adds a subtle shadow */
+    font-size: 16px; /* Font size */
+}
+
+.search-button {
+    padding: 10px 15px;
+    border: none;
+    background-color: #f06161; /* Button color */
+    color: white;
+    border-radius: 4px 4px 4px 4px; /* Rounded corners */
+    cursor: pointer;
+    transition: background-color 0.3s; /* Smooth transition */
+    font-size: 16px; /* Font size */
+}
+
+.search-button:hover {
+    background-color: #e91b1b; /* Darker color on hover */
+}

@@ -1,11 +1,24 @@
 {% extends 'layout_main.html' %}
+{% load static %}
 {% block content %}
+<head>
+    <script src="{% static "assets/vendors/jquery/jquery-3.4.1.js" %}"></script>
+</head>
 <div class="container1">
-    <div class="header1">
-        <a href="{% url 'create_group' %}" class="create-group-btn">Create Group</a>
+    <div class="top">
+        <div class="header1">
+            <a href="{% url 'create_group' %}" class="create-group-btn">Create Group</a>
+        </div>
+
+        <div class="search-container">
+            <form class="search-form">
+                <input type="text" id="search-bar" placeholder="Search" aria-label="Search Groups">
+                <button type="submit" class="search-button">Search</button>
+            </form>
+        </div>
     </div>
     <div class="group-list">
-        {% for group in available_groups %}
+        {% for group in groups %}
             <div class="group-box">
                 <h3 class="group-name">{{ group.name }}</h3>
                 <p><strong>Destination:</strong> {{ group.destination }}</p>
@@ -22,25 +35,52 @@
     </div>
 </div>
 
+<script>
+    $(document).ready(function(){
+        $('#search-bar').on('keyup', function() {
+            const query = $(this).val();
+
+            $.ajax({
+                url: "{% url 'available_group_search' %}", 
+                data: { 'query': query },
+                success: function(data) {
+                    $('.group-list').html(data); 
+                },
+                error: function(xhr, status, error) {
+                    console.error("AJAX Error:", error);
+                }
+            });
+        });
+    });
+</script>
+
 <style>
     .container1 {
         width: 100%;
-        padding: 120px;
-        padding-top: 150px;
+        padding: 100px;
+        padding-top: 30px;
         box-sizing: border-box;
         font-family: Arial, sans-serif;
         color: #333;
         background-color: #f0f4f8;
     }
+
+    .top {
+        display: flex; /* Use flexbox to align elements */
+        justify-content: space-between; /* Push items to the sides */
+        align-items: center;
+        margin-bottom: 20px; 
+        padding-top: 100px; 
+        gap: 10px;
+    }
+    
+    .search-container {
+        text-align: left;
+    }
     
     .header1 {
         display: flex;
-        justify-content: end;
-        align-items: center;
-        margin-bottom: 20px; 
-        padding-top: 20px; 
-        padding-bottom: 20px; 
-        gap: 10px;
+        justify-content: flex-end;
     }
     
     .title {
@@ -113,6 +153,38 @@
     .join-btn:hover {
         background-color: #e65c5c;
         color: white;
+    }
+
+    .search-form {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start; 
+        column-gap: 5px;
+    }
+    
+    #search-bar {
+        width: 250px; /* Adjust the width as needed */
+        padding: 10px;
+        border: 1px solid #f06161; /* Border color matches button color */
+        border-radius: 4px 0 0 4px; /* Rounded corners */
+        outline: none; /* Removes outline on focus */
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Adds a subtle shadow */
+        font-size: 16px; /* Font size */
+    }
+    
+    .search-button {
+        padding: 10px 15px;
+        border: none;
+        background-color: #f06161; /* Button color */
+        color: white;
+        border-radius: 4px 4px 4px 4px; /* Rounded corners */
+        cursor: pointer;
+        transition: background-color 0.3s; /* Smooth transition */
+        font-size: 16px; /* Font size */
+    }
+    
+    .search-button:hover {
+        background-color: #e91b1b; /* Darker color on hover */
     }
     
 </style>

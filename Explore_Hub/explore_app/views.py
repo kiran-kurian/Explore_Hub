@@ -20,7 +20,7 @@ from django.contrib.auth import views as auth_views
 from django.core.cache import cache
 from django.core.files.uploadedfile import UploadedFile
 from django.core.files.storage import default_storage
-from django.db.models import F, Count
+from django.db.models import F, Count, Q
 import uuid
 import razorpay
 from django.views.decorators.csrf import csrf_exempt
@@ -589,7 +589,7 @@ def check_username(request):
     is_taken = CustomUser.objects.filter(username=username).exists()
     return JsonResponse({'is_taken': is_taken})
 
-#view for listing available groups
+#view for listing groups
 def group_view(request):
     groups = TravelGroup.objects.filter(is_active=True).annotate(current_count=Count('current_members')).filter(current_count__lt=F('max_members'))
     return render(request, 'travel_group.html',{'groups':groups})
@@ -597,8 +597,8 @@ def group_view(request):
 #view for available groups
 def available_groups(request):
     if 'normal' in request.session:
-        available_groups = TravelGroup.objects.filter(is_active=True).exclude(current_members=request.user).annotate(current_count=Count('current_members')).filter(current_count__lt=F('max_members'))
-        return render(request, 'available_group.html',{'available_groups': available_groups})
+        groups = TravelGroup.objects.filter(is_active=True).exclude(current_members=request.user).annotate(current_count=Count('current_members')).filter(current_count__lt=F('max_members'))
+        return render(request, 'available_group.html',{'groups': groups})
     else:
         return redirect('login')
 
@@ -978,5 +978,78 @@ def ta_bookings(request):
         travel_agency = TravelAgency.objects.get(username=request.user.username)
         bookings = Booking.objects.filter(package__agency_id = travel_agency)
         return render(request, 'ta_bookings.html', {'bookings': bookings})
+    else:
+        return redirect('login')
+    
+#view for group messaging
+def get_new_messages(request, group_id, last_message_id):
+    if 'normal' in request.session:
+        group = TravelGroup.objects.get(group_id=group_id)
+        new_messages = Message.objects.filter(group=group, id__gt=last_message_id).order_by('send_at')
+        messages_data = [
+            {'id': message.id, 'user': message.user.username, 'content': message.content, 'send_at': message.send_at}
+            for message in new_messages
+        ]
+        return JsonResponse({'messages': messages_data})
+    else:
+        return redirect('login')
+    
+def group_chat_view(request, group_id):
+    if 'normal' in request.session:
+        group = get_object_or_404(TravelGroup, group_id=group_id)
+        messages = Message.objects.filter(group=group).order_by('send_at')
+        if messages.exists():
+            last_message = messages.last()  # Get the first message since it's ordered by -send_at
+            last_message_id = last_message.id
+        else:
+            last_message_id = 0
+        return render(request, 'chat.html', {'group': group, 'messages': messages, 'last_message_id': last_message_id,})
+    else:
+        return redirect('login')
+    
+def send_message(request, group_id):
+    if 'normal' in request.session:
+        if request.method == 'POST':
+            group = get_object_or_404(TravelGroup, group_id=group_id)
+            content = request.POST.get('content', '')
+            if content:
+                # Create the message and get the time it was sent
+                message = Message.objects.create(user=request.user, group=group, content=content)
+                # Return the response with the username and the time
+                return JsonResponse({
+                    'success': True,
+                    'username': message.user.username,
+                    'send_at': message.send_at.strftime("%Y-%m-%d %H:%M:%S")  # Format the timestamp
+                })
+        return JsonResponse({'success': False})
+    else:
+        return redirect('login')
+    
+#view for searching for packages
+def package_search(request):
+    query = request.GET.get('query', '')
+    packages = TravelPackage.objects.filter(Q(destination__icontains=query) | Q(title__icontains=query))  # Adjust as necessary
+
+    # Render the filtered packages as HTML
+    return render(request, 'package_partial.html', {'packages': packages})
+
+#view for searching for group
+def group_search(request):
+    query = request.GET.get('query', '')
+    groups = TravelGroup.objects.filter(Q(destination__icontains=query) | Q(name__icontains=query)) 
+
+    # Render the filtered packages as HTML
+    return render(request, 'group_partial.html', {'groups': groups})
+
+#view for searching the available groups
+def available_group_search(request):
+    if 'normal' in request.session:
+        query = request.GET.get('query', '')
+        groups = TravelGroup.objects.filter(is_active=True).exclude(current_members=request.user).annotate(current_count=Count('current_members')).filter(current_count__lt=F('max_members'))
+
+        # If a search query is present, apply additional filters
+        if query:
+            groups = groups.filter(Q(destination__icontains=query) | Q(name__icontains=query))
+            return render(request, 'group_partial.html', {'groups': groups})
     else:
         return redirect('login')

@@ -1,0 +1,179 @@
+{% extends 'layout_main.html' %}  
+
+{% block content %}
+<style>
+.chat-container {
+    width: 100%;
+    {% comment %} max-width: 600px;  {% endcomment %}
+    margin: 0 auto; 
+    border: 1px solid #ddd; 
+    border-radius: 10px; 
+    background-color: #ffffff; 
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); 
+    display: flex;
+    flex-direction: column;
+    padding: 0 20px 20px;
+    margin-top: 120px;
+}
+
+.chat-header {
+    background-color: #ff6666;
+    color: white;
+    padding: 10px;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    margin-top: 10px;
+    text-align: center;
+    font-size: 1.8rem;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    position: relative;
+}
+
+.back-arrow {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: white; /* Ensure the arrow color contrasts with the header */
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.back-arrow:hover {
+    color: #f0f0f0; /* Slight hover effect to enhance interactivity */
+}
+
+.chat-log {
+    flex: 1; 
+    padding: 15px; 
+    overflow-y: auto; 
+    max-height: 400px; 
+}
+
+.chat-message {
+    margin-bottom: 15px; 
+    padding: 12px; 
+    border-radius: 10px; 
+    background-color: #f0f4f8; 
+    border: 1px solid #ddd; 
+}
+
+.message-time {
+    display: block; 
+    font-size: 0.85em; 
+    color: #999; 
+}
+
+.chat-input-container {
+    display: flex; 
+    padding: 10px; 
+    background-color: #ffffff; 
+    border-top: 1px solid #ddd; 
+}
+
+.chat-input {
+    flex: 1; 
+    border: 1px solid #ddd; 
+    border-radius: 10px; 
+    padding: 12px; 
+    margin-right: 10px; 
+    font-size: 1rem; 
+}
+
+.chat-send-btn {
+    background-color: #ff6666; 
+    color: white; 
+    border: none; 
+    border-radius: 10px; 
+    padding: 10px 15px; 
+    cursor: pointer; 
+    transition: background-color 0.3s; 
+    font-size: 1rem; 
+}
+
+.chat-send-btn:hover {
+    background-color: #e65c5c; 
+}
+</style>
+
+<div class="chat-container">
+    <h2 class="chat-header"><a href="{% url 'group_details' group.group_id %}" class="back-arrow"><i class="fas fa-arrow-left"></i></a>{{ group.name }}</h2>
+    <div id="chat-log" class="chat-log">
+        {% for message in messages %}
+            <div class="chat-message">
+                <strong>{{ message.user.username }}:</strong>
+                <span>{{ message.content }}</span>
+                <small class="message-time">{{ message.send_at }}</small>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="chat-input-container">
+        <textarea id="message-input" name="content" placeholder="Type your message here..." class="chat-input"></textarea>
+        <button id="send-message-btn" class="chat-send-btn"><span class="sf-main sf-icon-send"></span>Send</button>
+    </div>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script type="text/javascript">
+    const groupId = "{{ group.group_id }}";
+    let lastMessageId = "{{ last_message_id|default:0 }}";
+
+    if (lastMessageId === "undefined" || lastMessageId === "") {
+        lastMessageId = 0; 
+    }
+    
+    // Function to fetch new messages
+    function fetchNewMessages() {
+        $.ajax({
+            url: `/get_new_messages/${groupId}/${lastMessageId}/`,
+            method: "GET",
+            success: function(data) {
+                const chatLog = document.getElementById("chat-log");
+                data.messages.forEach(function(message) {
+                    const messageElement = `<div class="chat-message"><strong>${message.user}:</strong> ${message.content} <small class="message-time">${message.send_at}</small></div>`;
+                    chatLog.innerHTML += messageElement;
+                });
+                if (data.messages.length > 0) {
+                    lastMessageId = data.messages[data.messages.length - 1].id;
+                    console.log(lastMessageId)
+                }
+            },
+            error: function() {
+                console.error('Error fetching new messages');
+            }
+        });
+    }
+
+    setInterval(fetchNewMessages, 100);
+
+    $('#send-message-btn').on('click', function() {
+        const messageInput = $('#message-input').val();
+        if (messageInput.trim() !== "") {
+            $.ajax({
+                url: `/send_message/${groupId}/`,
+                method: "POST",
+                data: {
+                    'csrfmiddlewaretoken': "{{ csrf_token }}",
+                    'content': messageInput,
+                },
+                success: function(response) {
+                    if (response.success) {
+                        const messageElement = `<div class="chat-message"><strong>${response.username}:</strong> ${response.content} <small class="message-time">${response.send_at}</small></div>`;
+                        const chatLog = document.getElementById("chat-log");
+                        chatLog.innerHTML += messageElement; 
+                        $('#message-input').val(''); 
+                    }
+                },
+                error: function() {
+                    console.error('Error sending message');
+                }
+            });
+        }
+    });
+    
+</script>
+{% endblock %}

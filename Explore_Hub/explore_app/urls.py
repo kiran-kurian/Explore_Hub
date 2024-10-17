@@ -66,6 +66,12 @@ urlpatterns = [
     path('group/remove_member/<int:group_id>/<int:member_id>/', remove_member, name='remove_member'),
     path('group/edit/<int:group_id>', edit_group, name='edit_group'),
     path('leave_group/<int:group_id>/', leave_group_view, name='leave_group'),
+    path('chat/<int:group_id>/', group_chat_view, name='group_chat'),
+    path('get_new_messages/<int:group_id>/<int:last_message_id>/', get_new_messages, name='get_new_messages'),
+    path('send_message/<int:group_id>/', send_message, name='send_message'),
+    path('package/search/', package_search, name='package_search'),
+    path('group/search/', group_search, name='group_search'),
+    path('available_group/search/', available_group_search, name='available_group_search'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -50,6 +50,11 @@
                     <li class="list-group-item">No members yet.</li>
                 {% endfor %}
             </ul>
+            <div class="mb-4">
+                <a href="{% url 'group_chat' group.group_id %}" class="btn btn-info btn-lg">
+                    <i class="fas fa-comments"></i> Open Group Chat
+                </a>
+            </div>
 
             <div class="d-flex align-items-center">
                 {% if request.user.id == group.creator.id %}

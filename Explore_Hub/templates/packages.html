@@ -11,8 +11,15 @@
 </head>
 
 <div class="body">
-    <h3>Available Packages</h3>
-    <div class="package-list">
+    <div class="search-container">
+        <form class="search-form">
+            <input type="text" id="search-bar" placeholder="Search" aria-label="Search Packages">
+            <button type="submit" class="search-button">Search</button>
+        </form>
+    </div>
+    
+    {% comment %} <h3>Available Packages</h3> {% endcomment %}
+    <div class="package-list" id="package-list">
         {% for package in packages %}
             <div class="package-box">
                 <div class="slider-container">
@@ -61,6 +68,23 @@
             autoplaySpeed: 2000,
             arrows: true,
         });
+
+        $('#search-bar').on('keyup', function() {
+            const query = $(this).val();
+
+            $.ajax({
+                url: "{% url 'package_search' %}", 
+                data: { 'query': query },
+                success: function(data) {
+                    $('#package-list').html(data);
+                }
+            });
+        });
     });
 </script>
+
+<style>
+    
+</style>
+
 {% endblock %}
