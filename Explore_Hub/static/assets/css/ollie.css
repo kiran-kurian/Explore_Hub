@@ -11867,3 +11867,62 @@ pre .code {
   background: #2C3E50;
   color: #fff;
 }
+@media (max-width: 991px) {
+  .navbar-top {
+    width: 100%;
+  }
+  
+  .navbar .container {
+    padding: 0 15px;
+  }
+
+  .login-navbar {
+    margin-top: 10px;
+  }
+
+  .nav-link-md {
+    padding: 8px 15px;
+  }
+
+  .navbar-nav {
+    text-align: center;
+  }
+
+  .dropdown-content {
+    position: static;
+    width: 100%;
+    box-shadow: none;
+    text-align: center;
+  }
+}
+
+@media (max-width: 767px) {
+  .brand-img {
+    max-width: 120px;
+  }
+
+  .navbar-nav .nav-item {
+    padding: 5px 0;
+  }
+  
+  .login-navbar {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .nav-link-lg {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0 10px;
+  }
+  
+  .dropdown-content a {
+    padding: 8px 10px;
+  }
+}
