@@ -7,7 +7,9 @@
     <title>Explore Hub</title>
     <link rel="shortcut icon" type="image/png" href="{% static 'images/logo.png' %}" >
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
     <!-- Font icons -->
     <link rel="stylesheet" href="{% static 'assets/vendors/themify-icons/css/themify-icons.css' %}">
     
@@ -27,11 +29,16 @@
 
     <nav id="scrollspy" class="navbar navbar-light bg-light navbar-expand-lg fixed-top" data-spy="affix" data-offset-top="20">
         <div class="container">
-            <a class="navbar-brand" href="#"><img src="{% static 'assets/imgs/logo.png' %}" alt="" class="brand-img"></a>
-            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <a class="navbar-brand" href="{% url 'regularuser' %}">
+            <div class="logo"> 
+           <img src="{% static 'assets/imgs/logo.png' %}" alt="" class="brand-img">
+            {% comment %} <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
-            </button>
-
+            </button> {% endcomment %}
+       
+        </div>
+    </a>
+          <div class="navbar-top">
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav ml-auto">
                     <li class="nav-item">
@@ -61,15 +68,17 @@
                     <li class="nav-item">
                         <a class="nav-link-md" href="#events">Events</a>
                     </li>
+                </div>
+                <div class="login-navbar"
                     {% if user.is_authenticated %}
                     <li class="nav-item ml-5">
                         <li class="dropdown">
-                            <a class="dropbtn" href="{% url 'update_profile' %}"><i class="fa-solid fa-user"></i> {{ user.first_name }}<span style="font-size: 10px;">&#9660;</span></a>
+                            <a class="dropbtn" href="#" onclick="toggleDropdown(event)"><i class="fa-solid fa-user"></i> {{ user.first_name }}<span style="font-size: 10px;">&#9660;</span></a>
                             <div class="dropdown-content">
                                 <a href="{% url 'user_group' %}">My groups</a>
                                 <a href="{% url 'my_bookings' %}">My Bookings</a>
                                 <a href="{% url 'update_profile' %}">Update Profile</a>
-                                <a href="{% url 'logout' %}">Logout</a>
+                                <a id="logout" href="{% url 'logout' %}">Logout</a>
                             </div>
                         </li>
                     </li>
@@ -80,12 +89,11 @@
                     <li class="nav-item ml-0 ml-lg-4">
                         <a class="nav-link-lg btn btn-primary" href="{% url 'login' %}">Login</a>
                     </li>
-                    <li class="nav-item ml-0 ml-lg-4">
-                        <a class="nav-link-lg btn btn-primary" href="{% url 'register' %}">Register</a>
-                    </li>
+                   
                     {% endif %}
                 </ul>
             </div>
+        </div>
         </div>
     </nav>
     <main>
@@ -98,6 +106,29 @@
                 window.location.reload();
             }
         });
+        function toggleDropdown(event) {
+            // Prevent the link from redirecting
+            event.preventDefault();
+            
+            var dropdownContent = document.getElementById("myDropdown");
+            
+            // If dropdown content is currently visible, hide it
+            if (dropdownContent.style.display === "block") {
+                dropdownContent.style.display = "none";
+            } else {
+                // Prevent hover-triggered dropdown from immediately closing on click
+                dropdownContent.style.display = "block";
+            }
+        }
+        window.onclick = function(event) {
+            var dropdownContent = document.getElementById("myDropdown");
+            
+            if (!event.target.matches('.dropbtn')) {
+              if (dropdownContent.style.display === "block") {
+                dropdownContent.style.display = "none";
+              }
+            }
+          };
     </script>
 
     <!-- Core JS files -->

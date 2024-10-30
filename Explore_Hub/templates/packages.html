@@ -14,11 +14,10 @@
     <div class="search-container">
         <form class="search-form">
             <input type="text" id="search-bar" placeholder="Search" aria-label="Search Packages">
-            <button type="submit" class="search-button">Search</button>
+            
         </form>
     </div>
     
-    {% comment %} <h3>Available Packages</h3> {% endcomment %}
     <div class="package-list" id="package-list">
         {% for package in packages %}
             <div class="package-box">
@@ -34,7 +33,7 @@
                     {% endfor %}
                 </div>
                 <h4>{{ package.title }}</h4>
-                <p>{{ package.description }}</p>
+                <p>{{ package.description|truncatechars:100 }}</p>
                 <div class="price-info">
                     {% if package.discount_percentage %}
                         <p class="original-price">Price: <span class="strikethrough">{{ package.price }}</span></p>

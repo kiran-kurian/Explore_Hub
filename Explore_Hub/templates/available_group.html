@@ -27,7 +27,7 @@
                 <p><strong>Trip status: </strong> {{ group.trip_status }}</p>
                 <p><strong>Gender Preference: </strong> {{ group.gender }}</p>
                 <p class="group-description">{{ group.description }}</p>
-                <a href="{% url 'join_group' group.group_id %}" class="join-btn" data-group-id={{ group.group_id }}>Join Group</a>
+                <a href="{% url 'join_group' group.group_id %}" id="join_group" class="join-btn" data-group-id={{ group.group_id }}>Join Group</a>
             </div>
         {% empty %}
             <p>No active groups available at the moment.</p>
@@ -161,18 +161,22 @@
         justify-content: flex-start; 
         column-gap: 5px;
     }
-    
+
     #search-bar {
-        width: 250px; /* Adjust the width as needed */
+        width: 500px; 
         padding: 10px;
-        border: 1px solid #f06161; /* Border color matches button color */
-        border-radius: 4px 0 0 4px; /* Rounded corners */
-        outline: none; /* Removes outline on focus */
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Adds a subtle shadow */
-        font-size: 16px; /* Font size */
+        border: 1px solid #f06161; 
+        border-radius: 4px 0 0 4px; 
+        outline: none; 
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
+        font-size: 16px; 
+        position: relative;
+        left: -380px;
+        border-radius: 50px;
     }
     
     .search-button {
+        display: none;
         padding: 10px 15px;
         border: none;
         background-color: #f06161; /* Button color */

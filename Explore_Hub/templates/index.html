@@ -1,87 +1,125 @@
 {% extends 'layout_main.html' %}
 {% load static %}
 {% block content %}
-    <header id="home" class="header">
-        <div class="overlay"></div>
-
-        <div id="header-carousel" class="carousel slide carousel-fade" data-ride="carousel">  
-            <div class="container">
-                <div class="carousel-inner">
-                    <div class="carousel-item active">
-                        <div class="carousel-caption d-none d-md-block">
-                            <h1 class="carousel-title">Let your<br> Journey Begins</h1>
-                        </div>
-                    </div>
-                </div>
-            </div>        
-        </div>
-
-        <div class="infos container mb-4 mb-md-2">
-            <div class="title">
-                <h6 class="subtitle font-weight-normal">Explore Unique Destinations</h6>
-                <h5>Discover curated Travel Experience</h5>
-                <p class="font-small">Tailored to your Interest</p>
-            </div>
-            <div class="socials text-right">
-                <div class="row justify-content-between">
-                    <div class="col">
-                        <a class="d-block subtitle"><i class="ti-microphone pr-2"></i> (123) 456 789</a>
-                        <a class="d-block subtitle"><i class="ti-email pr-2"></i> explorehub123@gmail.com</a>
-                    </div>
-                    <div class="col">
-                        <h6 class="subtitle font-weight-normal mb-2">Social Media</h6>
-                        <div class="social-links">
-                            <a href="javascript:void(0)" class="link pr-1"><i class="ti-facebook"></i></a>
-                            <a href="javascript:void(0)" class="link pr-1"><i class="ti-twitter-alt"></i></a>
-                            <a href="javascript:void(0)" class="link pr-1"><i class="ti-google"></i></a>
-                            <a href="javascript:void(0)" class="link pr-1"><i class="ti-pinterest-alt"></i></a>
-                            <a href="javascript:void(0)" class="link pr-1"><i class="ti-instagram"></i></a>
-                            <a href="javascript:void(0)" class="link pr-1"><i class="ti-rss"></i></a>
-                        </div>
-                    </div>
+<header id="home" class="header">
+    <div class="overlay"></div>
+    <div id="header-carousel" class="carousel slide carousel-fade" data-ride="carousel">
+        <div class="carousel-inner">
+            <!-- First Slide -->
+            <div class="carousel-item active">
+                <div class="carousel-caption d-md-block">
+                    <h1 class="carousel-title typing-animation">Pack Your Bags – <br>Adventure is Just a Click Away!</h1>
+                    <button class="book-package">
+                        <a href="{% url 'package' %}" class="package-book">
+                            Book your package now 
+                        </a>
+                    </button>
                 </div>
             </div>
+
+                <!-- Second Slide for Group Feature -->
+                <div class="carousel-item">
+                    <div class="carousel-caption d-md-block">
+                        <h1 class="carousel-title typing-animation">Join or Create –<br> Your Own Travel Group</h1>
+                        <button class="book-package">
+                            <a href="{% url 'create_group' %}" class="package-book">
+                                Create a Group Now
+                            </a>
+                        </button>
+                        {% if 'normal' in request.session %}
+                        <button class="book-package">
+                            <a href="{% url 'available_group' %}" class="package-book">
+                                Join a Group
+                            </a>
+                        </button>
+                        {% else %}
+                        <button class="book-package">
+                            <a href="{% url 'groups' %}" class="package-book">
+                                Join a Group
+                            </a>
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+                
+            </div>
         </div>
-    </header>
 
-    <section class="section" id="about">
+        <!-- Add Carousel Controls -->
+        <a class="carousel-control-prev" href="#header-carousel" role="button" data-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="sr-only">Previous</span>
+        </a>
+        <a class="carousel-control-next" href="#header-carousel" role="button" data-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="sr-only">Next</span>
+        </a>
+    </div>
+</header>
 
-        <div class="container">
+    
+<section class="section" id="portfolio">
+    <div class="container">
+        <h3 class="section-title mb-4">What We Offer</h3>
+        <div class="card-body">
+            <p class="md-font"><strong>Curated Travel Packages:</strong> Expertly crafted by local specialists to provide authentic, immersive experiences tailored to your travel needs. Explore unique destinations and discover hidden gems beyond the ordinary.</p>
+            <p class="md-font"><strong>Community Travel Groups:</strong> Connect with like-minded travelers by joining or creating groups based on shared interests. Experience the world with fellow adventurers who share your passions.</p>
+            <p class="md-font"><strong>Seamless Booking Experience:</strong> Our user-friendly platform streamlines the booking process, offering everything you need in one place for hassle-free trip planning.</p>
+            <p class="md-font"><strong>Local Guides:</strong> Unlock the secrets of each destination with knowledgeable local guides. Discover off-the-beaten-path locations and gain a deeper understanding of local cultures.</p>
+            <p class="md-font"><strong>Exclusive Events:</strong> Participate in unique events organized by our partners and community members. From local festivals to tailored experiences, make every trip unforgettable with exclusive opportunities.</p>
+        </div>    
+    </div>
+</section>
 
-            <div class="row align-items-center mr-auto">
-                <div class="">
-                    <h6 class="md-font "></h6>
-                    <h3 class="section-title">About Us</h3>
-                    <p class='md-font'>Explore Hub is your ultimate travel companion, designed to connect adventurous spirits and curious travelers with unique, curated experiences around the world. Whether you’re seeking a tranquil getaway or an adrenaline-filled adventure, Explore Hub brings together a diverse range of travel packages and like-minded individuals to help you make the most of your journey.</p>
-                    <a href="javascript:void(0)"></a>
-                </div> 
-             </div>
-        </div>
-    </section>
+    
 
-    <section class="section">
-        <div class="container">
-            <h3 class="section-title mb-4">Our Vision</h3>
+<section class="section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <div class="our-vision">
+                    <h3 class="section-title mb-4">Our Vision</h3>
                     <a href="javascript:void(0)" class="card border-0 text-dark">
                         <span class="card-body">
-                            <p class="md-font">We believe in the power of travel to transform lives. Our mission is to make every journey memorable by offering personalized travel options and fostering a community where travelers can share experiences, tips, and recommendations. At Explore Hub, we are committed to helping you explore the world in a way that’s meaningful to you.</p>
+                            <p class="md-font">
+                                At Explore Hub, we believe that travel is more than just a journey — it’s an opportunity to broaden horizons, create meaningful connections, and inspire personal growth. Our vision is to curate exceptional travel experiences that cater to the unique interests and passions of every explorer. 
+                            </p>
+                            <p class="md-font">
+                                We are committed to transforming the way people travel by offering seamless, customized itineraries and building a vibrant community where travelers can share knowledge, stories, and recommendations. Explore Hub is dedicated to helping you discover the world, one memorable journey at a time.
+                            </p>
                         </span>
                     </a>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <img src="{% static 'assets/imgs/hiking.jpg' %}" alt="Our Vision" height="300px" width="100%" class="ourvision-img">
+            </div>
         </div>
-    </section>
+    </div>
+</section>
 
-    <section class="section" id="portfolio">
-        <div class="container">
-            <h3 class="section-title mb-4">What We Offer</h3>
-            <span class="card-body">
-                <p class="md-font">Curated Travel Packages: Handpicked by local experts, ensuring authentic and unforgettable experiences.</p>
-                <p class="md-font">Community Travel Groups: Join or create groups with fellow travelers who share your interests and passions.</p>
-                <p class="md-font">Seamless Booking Experience: Simplified booking processes, with everything you need in one place.</p>
-                <p class="md-font">Local Guides: Get insights from local guides who know the ins and outs of every destination. They’ll take you off the beaten path to discover hidden gems and immerse you in the local culture.</p>
-                <p class="md-font">Event Organizers: Join exclusive events organized by our partners and community members, making your trips more engaging and memorable.</p>
-            </span>    
+<section class="section" id="about">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <div class="about-us">
+                    <h3 class="section-title mb-4">About Us</h3>
+                    <p class="md-font">
+                        At Explore Hub, we are dedicated to creating exceptional travel experiences that resonate with every type of traveler. Whether you're in search of serene escapes or heart-pounding adventures, we provide a platform that connects you with handpicked travel packages, meticulously crafted to meet diverse interests and preferences.
+                    </p>
+                    <p class="md-font">
+                        Our mission is to not only offer unique journeys but to foster a global community of explorers. By bringing together like-minded individuals, we enable you to share experiences, forge new connections, and embark on unforgettable adventures. Explore Hub is here to make your travel dreams a reality, with ease and confidence.
+                    </p>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <img src="{% static "assets/imgs/img-9.jpg" %} " height="300px" width="500px" class="aboutus-img">
+            </div>
         </div>
-    </section>
+    </div>
+</section>
+
+    
     <section id="contact" class="section pb-0">
         <div class="container">
             <h3 class="section-title mb-5">Contact Us</h3>
@@ -134,6 +172,33 @@
             </footer>
         </div>
     </section>
+
+    <!-- Add this at the end of your body tag -->
+    <script>
+        $(document).ready(function() {
+            var images = [
+                '{% static "assets/imgs/package.jpg" %}',
+                '{% static "assets/imgs/hiking.jpg" %}'
+            ];
+            var currentIndex = 0;
+    
+            function changeBackgroundImage() {
+                $('.header').css({
+                    'background-image': 'url(' + images[currentIndex] + ')',
+                    'transition': 'background-image 1s ease-in-out'
+                });
+                $('.carousel-item').removeClass('active');
+            $('.carousel-item').eq(currentIndex).addClass('active');
+                currentIndex = (currentIndex + 1) % images.length;
+            }
+    
+            // Change image every 5 seconds
+            setInterval(changeBackgroundImage, 5000);
+    
+            // Set initial background image
+            changeBackgroundImage();
+        });
+    </script>
 	
 
 {% endblock %}

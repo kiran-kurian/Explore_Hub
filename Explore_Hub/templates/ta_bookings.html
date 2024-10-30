@@ -1,15 +1,29 @@
 {% extends 'ta_layout.html' %}
 
 {% block body %}
+<head>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+</head>
 <div class="dashboard">
     <h2 class="text-center mb-4">Your Bookings</h2>
+
+    <!-- Month Filter Dropdown -->
+    <div class="filter mb-4">
+        <label for="monthFilter">Filter by Month:</label>
+        <select id="monthFilter" class="form-control w-25 d-inline-block" onchange="filterBookings()">
+            <option value="all">All</option>
+            {% for month in months %}
+            <option value="{{ month|date:"Y-m" }}">{{ month|date:"F Y" }}</option>
+            {% endfor %}
+        </select>
+    </div>
     
     {% if bookings %}
         <div class="table-responsive">
             <table class="table table-bordered table-hover">
                 <thead class="thead-light">
                     <tr>
-                        <th>Booking ID</th>
                         <th>User</th>
                         <th>Package</th>
                         <th>User Contact</th>
@@ -17,21 +31,21 @@
                         <th>Trip Date</th>
                         <th>Total Amount</th>
                         <th>Payment Status</th>
+                        <th>Passengers</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for booking in bookings %}
-                    <tr>
-                        <td>{{ booking.booking_id }}</td>
+                    <tr data-month="{{ booking.trip_date|date:"Y-m" }}">
                         <td>{{ booking.user.first_name }}</td>
                         <td>{{ booking.package.title }}</td>
-                        <td>{{ booking.user.customuser.phone_number }}  / {{ booking.user.email }}</td>
+                        <td>{{ booking.user.customuser.phone_number }} / {{ booking.user.email }}</td>
                         <td>{{ booking.number_of_people }}</td>
                         <td>{{ booking.trip_date|date:"d-m-Y" }}</td>
                         <td>₹ {{ booking.total_amount }}</td>
                         <td>
                             {% if booking.is_cancelled %}
-                            <span class="badge badge-danger">Cancelled</span>
+                                <span class="badge badge-danger">Cancelled</span>
                             {% elif booking.payment_status == "pending" %}
                                 <span class="badge badge-warning">Pending</span>
                             {% elif booking.payment_status == "completed" %}
@@ -39,6 +53,24 @@
                             {% else %}
                                 <span class="badge badge-danger">Failed</span>
                             {% endif %}
+                        </td>
+                        <!-- Button to show Passenger Details -->
+                        <td>
+                            <button class="btn btn-info btn-sm" data-toggle="collapse" data-target="#passengerDetails{{ booking.id }}" aria-expanded="false" aria-controls="passengerDetails{{ booking.id }}">
+                                View Passengers
+                            </button>
+                        </td>
+                    </tr>
+                    <!-- Collapsible Passenger Details -->
+                    <tr id="passengerDetails{{ booking.id }}" class="collapse">
+                        <td colspan="8">
+                            <ul class="list-group">
+                                {% for passenger in booking.passengers.all %}
+                                    <li class="list-group-item">
+                                        Name: {{ passenger.full_name }} | Age: {{ passenger.age }} | Gender: {{ passenger.gender }} | ID Proof: {{ passenger.id_proof }}
+                                    </li>
+                                {% endfor %}
+                            </ul>
                         </td>
                     </tr>
                     {% endfor %}
@@ -51,4 +83,15 @@
         </div>
     {% endif %}
 </div>
+
+<script>
+    // Filter bookings based on month selection
+    function filterBookings() {
+        const selectedMonth = document.getElementById('monthFilter').value;
+        const rows = document.querySelectorAll('tbody tr[data-month]');
+        rows.forEach(row => {
+            row.style.display = (selectedMonth === "all" || row.getAttribute('data-month') === selectedMonth) ? '' : 'none';
+        });
+    }
+</script>
 {% endblock %}

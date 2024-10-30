@@ -109,6 +109,16 @@ class Booking(models.Model):
     payment_date = models.DateTimeField(null=True, blank=True)
     refunded_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     razorpay_payment_id = models.CharField(max_length=255, blank=True, null=True)
+    id_type = models.CharField(max_length=50)
+    id_number = models.CharField(max_length=100)
+    id_upload = models.FileField(upload_to='id_proofs/')
+
+#model for storing details of passengers
+class Passenger(models.Model):
+    booking = models.ForeignKey('Booking', on_delete=models.CASCADE, related_name='passengers')
+    full_name = models.CharField(max_length=100)
+    age = models.PositiveIntegerField()
+    gender = models.CharField(max_length=10)
 
 #model for messages
 class Message(models.Model):

@@ -754,6 +754,8 @@ def book_package_view(request, package_id):
     if 'normal' in request.session:
         package = get_object_or_404(TravelPackage, pk=package_id)
         user = request.user.customuser
+        number_of_people = int(request.GET.get('number_of_people', 1))
+        people_range = range(1, number_of_people + 1)
         razorpay_client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
         if request.method == 'POST':
             number_of_people = int(request.POST.get('number_of_people', 1))
@@ -769,6 +771,9 @@ def book_package_view(request, package_id):
             user = CustomUser.objects.get(id = id)
             user.phone_number = contact
             user.save()
+            id_type = request.POST.get('id_type')
+            id_number = request.POST.get('id_number')
+            id_upload = request.FILES.get('id_upload')
             
             # Create a new booking entry
             booking = Booking.objects.create(
@@ -780,7 +785,21 @@ def book_package_view(request, package_id):
                 trip_date=date_of_travel,
                 payment_status='pending', 
                 cancellation = cancellation, 
+                id_type=id_type,
+                id_number=id_number,
+                id_upload=id_upload,
             )
+
+            for i in range(1, number_of_people + 1):
+                full_name = request.POST.get(f'passenger_name_{i}')
+                age = request.POST.get(f'passenger_age_{i}')
+                gender = request.POST.get(f'passenger_gender_{i}')
+                Passenger.objects.create(
+                    booking=booking,
+                    full_name=full_name,
+                    age=int(age),
+                    gender=gender
+                )
             
             # Create Razorpay order
             razorpay_order = razorpay_client.order.create({
@@ -801,7 +820,7 @@ def book_package_view(request, package_id):
             }
             return render(request, 'payment_page.html', context) 
         
-        return render(request, 'book_package.html', {'package': package, 'user': user})
+        return render(request, 'book_package.html', {'package': package, 'user': user, 'number_of_people': number_of_people, 'people_range': people_range})
     else:
         return redirect('login')
 
@@ -975,9 +994,12 @@ def cancel_booking(request, booking_id):
 #view for listing the booking for a travel agency
 def ta_bookings(request):
     if 'travel' in request.session:
+        current_month = timezone.now().month
+        current_year = timezone.now().year
+        months = Booking.objects.dates('trip_date', 'month')
         travel_agency = TravelAgency.objects.get(username=request.user.username)
-        bookings = Booking.objects.filter(package__agency_id = travel_agency)
-        return render(request, 'ta_bookings.html', {'bookings': bookings})
+        bookings = Booking.objects.filter(package__agency_id = travel_agency).order_by('trip_date')
+        return render(request, 'ta_bookings.html', {'bookings': bookings, 'months': months})
     else:
         return redirect('login')
     

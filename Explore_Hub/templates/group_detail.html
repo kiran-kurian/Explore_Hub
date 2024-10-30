@@ -58,7 +58,7 @@
 
             <div class="d-flex align-items-center">
                 {% if request.user.id == group.creator.id %}
-                    <form action="{% url 'delete_group' group.group_id %}" method="post" id="delete-group-form" class="me-6">  <!-- Add margin between the forms -->
+                    <form action="{% url 'delete_group' group.group_id %}" method="post" id="delete-group-form" class="me-6"> 
                         {% csrf_token %}
                         <button type="submit" class="btn btn-danger" style="margin-right: 10px;">Delete Group</button>
                     </form>
@@ -119,11 +119,10 @@
         .then(response => {
             return response.json().then(data => {
                 if (response.ok) {
-                    alert(data.message); // Show success message
-                    // Redirect after a short delay
+                    alert(data.message); 
                     setTimeout(() => {
-                        window.location.href = "{% url 'user_group' %}"; // Redirect to the user group page
-                    }, 2000); // Adjust the delay time as needed
+                        window.location.href = "{% url 'user_group' %}"; 
+                    }, 1000); 
                 } else {
                     alert(data.error || 'An error occurred. Please try again.');
                 }
@@ -137,12 +136,12 @@
 
     document.querySelectorAll('.remove-member').forEach(button => {
         button.onclick = function() {
-            const memberId = this.getAttribute('data-member-id'); // Ensure this is correctly set
-            const groupId = "{{ group.id }}"; // Get the group ID from the context
+            const memberId = this.getAttribute('data-member-id'); 
+            const groupId = "{{ group.id }}"; 
     
             if (confirm("Are you sure you want to remove this member?")) {
                 if (memberId) {
-                    const urlTemplate = "{% url 'remove_member' group.group_id 0 %}"; // '0' is a placeholder
+                    const urlTemplate = "{% url 'remove_member' group.group_id 0 %}"; 
                     const url = urlTemplate.replace('0', memberId);
                     fetch(url, {
                         method: 'POST',
@@ -154,8 +153,7 @@
                     .then(response => {
                         return response.json().then(data => {
                             if (response.ok) {
-                                alert(data.message); // Show success message
-                                // Remove the member from the list if successful
+                                alert(data.message); 
                                 this.closest('li').remove();
                             } else {
                                 alert(data.error || 'Failed to remove member. Please try again.');

@@ -3,46 +3,94 @@
 {% block content %}
 <style>
     .body {
-        padding-top:120px;
+        padding-top: 120px;
+        padding-bottom: 30px;
+    }
+    .form-group {
+        margin-bottom: 15px;
     }
 </style>
 <div class="container">
     <div class="body">
-    <h2>Book Package</h2>
+        <h2>Book Package</h2>
 
-    <h3>Package Details</h3>
-    <p><strong>Package Name:</strong> {{ package.title }}</p>
-    <p><strong>Description:</strong> {{ package.description }}</p>
-    <p><strong>Price:</strong> ₹{{ package.discounted_price|floatformat:2 }}</p>
-    <p><strong>Note: Cancellation is only possible if the agency has agreed and the cancellation should be made 7 days prior to the trip date</strong></p>
-    
-    <h3>Your Details</h3>
-    <form method="POST" action="{% url 'book_package' package.package_id %}">
-        {% csrf_token %}
-        <div class="form-group">
-            <label for="name">Name:</label>
-            <input type="text" id="name" name="name" value="{{ user.first_name }}" readonly class="form-control" />
-        </div>
-        <div class="form-group">
-            <label for="email">Email:</label>
-            <input type="email" id="email" name="email" value="{{ user.email }}" readonly class="form-control" />
-        </div>
-        <div class="form-group">
-            <label for="number_of_people">Number of People:</label>
-            <input type="number" id="number_of_people" name="number_of_people" value="{{ request.GET.number_of_people }}" min="1" class="form-control" />
-        </div>
-        <div class="form-group">
-            <label for="date_of_travel">Date of Travel:</label>
-            <input type="date" id="date_of_travel" name="date_of_travel" value="{{ request.GET.date_of_travel }}" required class="form-control" />
-        </div>
-        <div class="form-group">
-            <label for="phone_number">Phone Number:</label>
-            <input type="number" id="phone_number" name="phone_number" class="form-control" value="{{ user.phone_number }}" required />
-        </div>
-        <button type="submit" class="btn btn-primary">Confirm Booking</button>
-    </form>
+        <h3>Package Details</h3>
+        <p><strong>Package Name:</strong> {{ package.title }}</p>
+        <p><strong>Description:</strong> {{ package.description }}</p>
+        <p><strong>Price:</strong> ₹{{ package.discounted_price|floatformat:2 }}</p>
+        <p><strong>Note:</strong> Cancellation is only possible if the agency has agreed, and it must be made 7 days prior to the trip date.
+        <br> Children above 4 years of age should be counted</p>
+
+        <h3>Your Details</h3>
+        <form method="POST" action="{% url 'book_package' package.package_id %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="name">Name:</label>
+                <input type="text" id="name" name="name" value="{{ user.first_name }}" readonly class="form-control" />
+            </div>
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" value="{{ user.email }}" readonly class="form-control" />
+            </div>
+            <div class="form-group">
+                <label for="number_of_people">Number of People:</label>
+                <input type="number" id="number_of_people" name="number_of_people" value="{{ request.GET.number_of_people }}" min="1" class="form-control" readonly />
+            </div>
+            <div class="form-group">
+                <label for="date_of_travel">Date of Travel:</label>
+                <input type="date" id="date_of_travel" name="date_of_travel" value="{{ request.GET.date_of_travel }}" required class="form-control" />
+            </div>
+            <div class="form-group">
+                <label for="phone_number">Phone Number:</label>
+                <input type="number" id="phone_number" name="phone_number" class="form-control" value="{{ user.phone_number }}" required />
+            </div>
+
+            <h3>Passenger Details</h3>
+            {% for i in people_range %}
+            <div class="passenger-info">
+                <h4>Passenger {{ i }}</h4>
+                <div class="form-group">
+                    <label for="passenger_name_{{ i }}">Full Name:</label>
+                    <input type="text" id="passenger_name_{{ i }}" name="passenger_name_{{ i }}" required class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label for="passenger_age_{{ i }}">Age:</label>
+                    <input type="number" id="passenger_age_{{ i }}" name="passenger_age_{{ i }}" min="1" required class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label for="passenger_gender_{{ i }}">Gender:</label>
+                    <select id="passenger_gender_{{ i }}" name="passenger_gender_{{ i }}" class="form-control">
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                    </select>
+                </div>
+            </div>
+            {% endfor %}
+
+            <h3>ID Verification (Required for One Passenger)</h3>
+            <div class="form-group">
+                <label for="id_type">ID Type:</label>
+                <select id="id_type" name="id_type" class="form-control" required>
+                    <option value="Passport">Passport</option>
+                    <option value="Driver's License">Driver's License</option>
+                    <option value="Voter ID">Voter ID</option>
+                    <option value="Aadhar Card">Aadhar Card</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="id_number">ID Number:</label>
+                <input type="text" id="id_number" name="id_number" placeholder="Enter ID number" class="form-control" required />
+            </div>
+            <div class="form-group">
+                <label for="id_upload">Upload ID (PDF/JPG):</label>
+                <input type="file" id="id_upload" name="id_upload" accept=".pdf,.jpg,.jpeg,.png" class="form-control" required />
+            </div>
+
+            <button type="submit" class="btn btn-primary">Confirm Booking</button>
+        </form>
+    </div>
 </div>
-</div>
+
 <script>
     const today = new Date();
     const oneWeekLater = new Date(today);
