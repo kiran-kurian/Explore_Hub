@@ -40,7 +40,7 @@ SECRET_KEY = 'django-insecure-qvxg$gv-&l)$m$*rt(17mb7pr37t51i&_j+xwlu)$@wbx@%n)f
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['https://explore-hub-5yj7.onrender.com', 'localhost']
 
 # AUTH_USER_MODEL = 'explore_app.CustomUser'
 
@@ -131,17 +131,30 @@ WSGI_APPLICATION = 'Explore_Hub.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'explore_hub',
+#         'USER': 'root',
+#         'PASSWORD': '',
+#         'HOST': 'localhost',
+#         'PORT': '3306',
+#     }
+# }
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'explore_hub',
-        'USER': 'root',
-        'PASSWORD': '',
-        'HOST': 'localhost',
-        'PORT': '3306',
+        'NAME': 'explorehub_zipperedge',
+        'USER': 'explorehub_zipperedge',
+        'PASSWORD': '1af45f5f01cfab3c0d678624ced445de34af918d',
+        'HOST': 'iubr7.h.filess.io',
+        'PORT': '3307',
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        }
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
