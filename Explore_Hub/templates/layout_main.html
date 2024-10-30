@@ -5,143 +5,96 @@
 	<meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Explore Hub</title>
-    <link rel="shortcut icon" type="image/png" href="{% static 'images/logo.png' %}" >
+    <link rel="shortcut icon" type="image/png" href="{% static 'images/logo.png' %}">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
-    <!-- Font icons -->
-    <link rel="stylesheet" href="{% static 'assets/vendors/themify-icons/css/themify-icons.css' %}">
     
-    <!-- Owl Carousel (if needed) -->
+    <!-- Font icons and Bootstrap CSS -->
+    <link rel="stylesheet" href="{% static 'assets/vendors/themify-icons/css/themify-icons.css' %}">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    
+    <!-- Owl Carousel and Slick Carousel CSS -->
     <link rel="stylesheet" href="{% static 'assets/vendors/owl-carousel/css/owl.carousel.css' %}">
     <link rel="stylesheet" href="{% static 'assets/vendors/owl-carousel/css/owl.theme.default.css' %}">
-
-    <!-- Bootstrap + Ollie main styles -->
-	<link rel="stylesheet" href="{% static 'assets/css/ollie.css' %}">
-    
-    <!-- Slick Carousel CSS from CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick-theme.css" />
+    
+    <!-- Main styles -->
+    <link rel="stylesheet" href="{% static 'assets/css/ollie.css' %}">
     <link rel="stylesheet" href="{% static 'node_modules/bootstrap-icons/font/bootstrap-icons.css' %}">
 </head>
 <body data-spy="scroll" data-target=".navbar" data-offset="40" id="home">
 
-    <nav id="scrollspy" class="navbar navbar-light bg-light navbar-expand-lg fixed-top" data-spy="affix" data-offset-top="20">
+    <nav id="scrollspy" class="navbar navbar-light bg-light navbar-expand-lg fixed-top">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'regularuser' %}">
-            <div class="logo"> 
-           <img src="{% static 'assets/imgs/logo.png' %}" alt="" class="brand-img">
-            {% comment %} <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <a class="navbar-brand d-flex align-items-center" href="{% url 'regularuser' %}">
+                <img src="{% static 'assets/imgs/logo.png' %}" alt="Explore Hub Logo" class="brand-img" style="width: 40px;">
+                <span class="ml-2">Explore Hub</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
-            </button> {% endcomment %}
-       
-        </div>
-    </a>
-          <div class="navbar-top">
+            </button>
+            
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav ml-auto">
                     <li class="nav-item">
-                        <a class="nav-link-md" href="{% url 'regularuser' %}">Home</a>
+                        <a class="nav-link" href="{% url 'regularuser' %}">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link-md" href="{% url 'package' %}">Packages</a>
+                        <a class="nav-link" href="{% url 'package' %}">Packages</a>
                     </li>
                     {% if not 'normal' in request.session %}
                     <li class="nav-item">
-                        <a class="nav-link-md" href="{% url 'groups' %}">Travel Group</a>
+                        <a class="nav-link" href="{% url 'groups' %}">Travel Group</a>
                     </li>
                     {% else %}
                     <li class="nav-item">
-                        {% comment %} <li class="dropdown"> {% endcomment %}
-                            <a href="{% url 'available_group' %}" class="nav-link-md">Travel Group</a>
-                            {% comment %} <div class="dropdown-content">
-                                <a href="{% url 'user_group' %}">Your Groups</a>
-                                <a href="{% url 'available_group' %}">Available Groups</a>
-                            </div> {% endcomment %}
-                        {% comment %} </li> {% endcomment %}
+                        <a class="nav-link" href="{% url 'available_group' %}">Travel Group</a>
                     </li>
                     {% endif %}
                     <li class="nav-item">
-                        <a class="nav-link-md" href="#guide">Local Guide</a>
+                        <a class="nav-link" href="#guide">Local Guide</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link-md" href="#events">Events</a>
+                        <a class="nav-link" href="#events">Events</a>
                     </li>
-                </div>
-                <div class="login-navbar"
+
                     {% if user.is_authenticated %}
-                    <li class="nav-item ml-5">
-                        <li class="dropdown">
-                            <a class="dropbtn" href="#" onclick="toggleDropdown(event)"><i class="fa-solid fa-user"></i> {{ user.first_name }}<span style="font-size: 10px;">&#9660;</span></a>
-                            <div class="dropdown-content">
-                                <a href="{% url 'user_group' %}">My groups</a>
-                                <a href="{% url 'my_bookings' %}">My Bookings</a>
-                                <a href="{% url 'update_profile' %}">Update Profile</a>
-                                <a id="logout" href="{% url 'logout' %}">Logout</a>
-                            </div>
-                        </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fa-solid fa-user"></i> {{ user.first_name }}
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
+                            <a class="dropdown-item" href="{% url 'user_group' %}">My Groups</a>
+                            <a class="dropdown-item" href="{% url 'my_bookings' %}">My Bookings</a>
+                            <a class="dropdown-item" href="{% url 'update_profile' %}">Update Profile</a>
+                            <a class="dropdown-item" href="{% url 'logout' %}">Logout</a>
+                        </div>
                     </li>
-                    {% comment %} <li class="nav-item ml-0 ml-lg-4">
-                        <a class="nav-link-lg btn btn-primary" href="{% url 'logout' %}">Logout</a>
-                    </li> {% endcomment %}
                     {% else %}
-                    <li class="nav-item ml-0 ml-lg-4">
-                        <a class="nav-link-lg btn btn-primary" href="{% url 'login' %}">Login</a>
+                    <li class="nav-item ml-lg-4">
+                        <a class="nav-link btn btn-primary" href="{% url 'login' %}">Login</a>
                     </li>
-                   
                     {% endif %}
                 </ul>
             </div>
         </div>
-        </div>
     </nav>
-    <main>
+
+    <main class="container mt-5 pt-5">
         {% block content %}
         {% endblock %}
     </main>
-    <script>
-        window.addEventListener("pageshow", function(event) {
-            if (event.persisted || window.performance && window.performance.navigation.type === 2) {
-                window.location.reload();
-            }
-        });
-        function toggleDropdown(event) {
-            // Prevent the link from redirecting
-            event.preventDefault();
-            
-            var dropdownContent = document.getElementById("myDropdown");
-            
-            // If dropdown content is currently visible, hide it
-            if (dropdownContent.style.display === "block") {
-                dropdownContent.style.display = "none";
-            } else {
-                // Prevent hover-triggered dropdown from immediately closing on click
-                dropdownContent.style.display = "block";
-            }
-        }
-        window.onclick = function(event) {
-            var dropdownContent = document.getElementById("myDropdown");
-            
-            if (!event.target.matches('.dropbtn')) {
-              if (dropdownContent.style.display === "block") {
-                dropdownContent.style.display = "none";
-              }
-            }
-          };
-    </script>
 
     <!-- Core JS files -->
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
     <script src="{% static 'assets/vendors/bootstrap/bootstrap.bundle.js' %}"></script>
 
-    <!-- Owl Carousel (if needed) -->
+    <!-- Carousel and Slick JS -->
     <script src="{% static 'assets/vendors/owl-carousel/js/owl.carousel.js' %}"></script>
-
-    <!-- Slick Carousel JS from CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.js"></script>
 
-    <!-- Slick Carousel Initialization -->
     <script>
         $(document).ready(function(){
             $('.your-class').slick({
@@ -156,9 +109,7 @@
                         breakpoint: 1024,
                         settings: {
                             slidesToShow: 2,
-                            slidesToScroll: 1,
-                            infinite: true,
-                            dots: true
+                            slidesToScroll: 1
                         }
                     },
                     {
@@ -173,7 +124,12 @@
         });
     </script>
 
-    <!-- Ollie JS -->
-    <script src="{% static 'assets/js/Ollie.js' %}"></script>
+    <script>
+        window.addEventListener("pageshow", function(event) {
+            if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+                window.location.reload();
+            }
+        });
+    </script>
 </body>
 </html>
