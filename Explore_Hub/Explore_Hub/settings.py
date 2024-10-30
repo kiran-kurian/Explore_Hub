@@ -40,7 +40,7 @@ SECRET_KEY = 'django-insecure-qvxg$gv-&l)$m$*rt(17mb7pr37t51i&_j+xwlu)$@wbx@%n)f
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['https://explore-hub-5yj7.onrender.com', 'localhost']
+ALLOWED_HOSTS = ['*']
 
 # AUTH_USER_MODEL = 'explore_app.CustomUser'
 
@@ -68,6 +68,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'social_django.middleware.SocialAuthExceptionMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware'
 ]
 
 
