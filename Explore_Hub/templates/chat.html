@@ -3,8 +3,7 @@
 {% block content %}
 <style>
 .chat-container {
-    width: 100%;
-    {% comment %} max-width: 600px;  {% endcomment %}
+    width: 80%;
     margin: 0 auto; 
     border: 1px solid #ddd; 
     border-radius: 10px; 
@@ -47,10 +46,24 @@
 }
 
 .chat-log {
-    flex: 1; 
-    padding: 15px; 
-    overflow-y: auto; 
-    max-height: 400px; 
+    display: flex;
+    flex-direction: column;
+    padding: 15px;
+    overflow-y: auto;
+    max-height: 400px;
+    scroll-behavior: smooth;
+}
+
+.chat-log::after {
+    content: '';
+    clear: both;
+    display: table;
+}
+
+@media (max-width: 768px) {
+    .chat-log {
+        max-height: calc(100vh - 250px); 
+    }
 }
 
 .chat-message {
@@ -61,10 +74,31 @@
     border: 1px solid #ddd; 
 }
 
+.message-received {
+    float: left;
+    background-color: #f0f4f8;
+    border-radius: 15px 15px 15px 0;
+    padding: 12px;
+    margin-right: auto;
+}
+
+.message-sent {
+    float: right;
+    background-color: #ff6666;
+    color: white;
+    border-radius: 15px 15px 0 15px;
+    padding: 12px;
+    margin-left: auto;
+}
+
 .message-time {
     display: block; 
     font-size: 0.85em; 
     color: #999; 
+}
+
+.message-sent .message-time {
+    color: #f0f0f0;
 }
 
 .chat-input-container {
@@ -103,7 +137,7 @@
     <h2 class="chat-header"><a href="{% url 'group_details' group.group_id %}" class="back-arrow"><i class="fas fa-arrow-left"></i></a>{{ group.name }}</h2>
     <div id="chat-log" class="chat-log">
         {% for message in messages %}
-            <div class="chat-message">
+            <div class="chat-message {% if message.user.username == request.user.username %}message-sent{% else %}message-received{% endif %}">
                 <strong>{{ message.user.username }}:</strong>
                 <span>{{ message.content }}</span>
                 <small class="message-time">{{ message.send_at }}</small>
@@ -125,21 +159,34 @@
     if (lastMessageId === "undefined" || lastMessageId === "") {
         lastMessageId = 0; 
     }
+
+    function scrollToBottom() {
+        const chatLog = document.getElementById("chat-log");
+        chatLog.scrollTop = chatLog.scrollHeight;
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        scrollToBottom();
+    });
     
-    // Function to fetch new messages
     function fetchNewMessages() {
         $.ajax({
             url: `/get_new_messages/${groupId}/${lastMessageId}/`,
             method: "GET",
             success: function(data) {
                 const chatLog = document.getElementById("chat-log");
-                data.messages.forEach(function(message) {
-                    const messageElement = `<div class="chat-message"><strong>${message.user}:</strong> ${message.content} <small class="message-time">${message.send_at}</small></div>`;
-                    chatLog.innerHTML += messageElement;
-                });
+                const currentUsername = "{{ request.user.username }}";
                 if (data.messages.length > 0) {
+                    data.messages.forEach(function(message) {
+                        const isOwnMessage = message.user === currentUsername;
+                        const messageElement = `<div class="chat-message ${isOwnMessage ? 'message-sent' : 'message-received'}">
+                            <strong>${message.user}:</strong> 
+                            <span>${message.content}</span>
+                            <small class="message-time">${message.send_at}</small>
+                        </div>`;
+                        chatLog.innerHTML += messageElement;
+                    });
                     lastMessageId = data.messages[data.messages.length - 1].id;
-                    console.log(lastMessageId)
+                    scrollToBottom();
                 }
             },
             error: function() {
@@ -153,6 +200,9 @@
     $('#send-message-btn').on('click', function() {
         const messageInput = $('#message-input').val();
         if (messageInput.trim() !== "") {
+            const chatLog = document.getElementById("chat-log");
+            const currentUsername = "{{ request.user.username }}";
+            
             $.ajax({
                 url: `/send_message/${groupId}/`,
                 method: "POST",
@@ -162,10 +212,15 @@
                 },
                 success: function(response) {
                     if (response.success) {
-                        const messageElement = `<div class="chat-message"><strong>${response.username}:</strong> ${response.content} <small class="message-time">${response.send_at}</small></div>`;
-                        const chatLog = document.getElementById("chat-log");
-                        chatLog.innerHTML += messageElement; 
-                        $('#message-input').val(''); 
+                        const messageElement = `<div class="chat-message message-sent">
+                            <strong>${response.username}:</strong> 
+                            <span>${messageInput}</span>
+                            <small class="message-time">${response.send_at}</small>
+                        </div>`;
+                        chatLog.innerHTML += messageElement;
+                        $('#message-input').val('');
+                        scrollToBottom();
+                        lastMessageId = response.message_id;
                     }
                 },
                 error: function() {
@@ -174,6 +229,7 @@
             });
         }
     });
+    
     
 </script>
 {% endblock %}

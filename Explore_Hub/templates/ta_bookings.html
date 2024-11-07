@@ -67,9 +67,10 @@
                             <ul class="list-group">
                                 {% for passenger in booking.passengers.all %}
                                     <li class="list-group-item">
-                                        Name: {{ passenger.full_name }} | Age: {{ passenger.age }} | Gender: {{ passenger.gender }} | ID Proof: {{ passenger.id_proof }}
-                                    </li>
+                                        Name: {{ passenger.full_name }} | Age: {{ passenger.age }} | Gender: {{ passenger.gender }}
                                 {% endfor %}
+                                ID Proof: {{ booking.id_type }} | {{ booking.id_number }} <a href="{{ booking.id_upload.url }}" target="_blank">View ID Proof</a>
+                                    </li>
                             </ul>
                         </td>
                     </tr>

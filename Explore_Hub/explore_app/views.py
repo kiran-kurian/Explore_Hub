@@ -1041,7 +1041,9 @@ def send_message(request, group_id):
                 return JsonResponse({
                     'success': True,
                     'username': message.user.username,
-                    'send_at': message.send_at.strftime("%Y-%m-%d %H:%M:%S")  # Format the timestamp
+                    'content': message.content,
+                    'send_at': message.send_at.strftime("%Y-%m-%d %H:%M:%S"),
+                    'message_id': message.id
                 })
         return JsonResponse({'success': False})
     else:
