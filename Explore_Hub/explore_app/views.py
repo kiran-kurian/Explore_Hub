@@ -69,6 +69,8 @@ def login_view(request):
                 if role == 'ta':
                     request.session['travel'] = user.id
                     return HttpResponseRedirect(reverse('tahome'))
+                elif role == 'guide':
+                    request.session['guide'] = user.id
                 else:
                     request.session['normal'] = user.id
                     return HttpResponseRedirect(reverse("regularuser"))
@@ -134,10 +136,16 @@ def register_view(request):
                 request.session['password'] = password
                 # Redirect to document upload page
                 return redirect('ta_registration')
-            elif role in ['guide', 'eorg']:
-                return render(request, "registration.html", {
-                    "message": "Currently not available"
-                })
+            elif role == 'guide':
+                request.session['username'] = username
+                request.session['name'] = name
+                request.session['email'] = email
+                request.session['number'] = number
+                request.session['password'] = password
+                #redirect to other details entering page
+                return redirect('guide_registration')
+            elif role == 'eorg':
+                return redirect()   
             else:
                 # Create regular user record
                 user = CustomUser.objects.create_user(username=username, email=email, password=password, first_name=name, phone_number=number, role=role)
@@ -1077,3 +1085,63 @@ def available_group_search(request):
             return render(request, 'group_partial.html', {'groups': groups})
     else:
         return redirect('login')
+    
+#local guide registration view
+def guide_registration(request):
+    if request.method == "POST":
+        # Get uploaded file and form data
+        documents = request.FILES.get("guide_license")
+        agreement = request.POST.get("agreement") == 'on'
+        years_of_experience = request.POST.get("years_of_experience")
+        languages_known = request.POST.get("languages_known")
+        location = request.POST.get("location")
+        
+        # Fetch details from session
+        username = request.session.get("username")
+        name = request.session.get("name")
+        email = request.session.get("email")
+        number = request.session.get("number")
+        password = request.session.get("password")
+
+        if not all([username, name, email, number, password]):
+            return redirect('register')  # Redirect if session data is incomplete
+
+        if agreement:
+            try:
+                hashed_password = make_password(password)
+                # Save the local guide
+                local_guide = LocalGuide(
+                    username=username,
+                    name=name,
+                    email=email,
+                    contact=number,
+                    password=hashed_password,
+                    guide_license=documents,
+                    agreement=agreement,
+                    years_of_experience=years_of_experience,
+                    languages_known=languages_known,
+                    location=location,
+                    approved=False
+                )
+                local_guide.save()
+                
+                # Save in the CustomUser model
+                user = CustomUser(
+                    username=username,
+                    first_name=name,
+                    email=email,
+                    password=hashed_password,
+                    phone_number=number,
+                    role='guide',
+                    travel_guide=local_guide
+                )
+                user.save()
+
+                return HttpResponseRedirect(reverse("login"))
+            except IntegrityError:
+                print(IntegrityError)
+                return render(request, "guide_registration.html", {
+                    "message": "Username or email already exists"
+                })
+    else:
+        return render(request, "guide_registration.html")

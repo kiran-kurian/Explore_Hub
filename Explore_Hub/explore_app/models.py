@@ -16,11 +16,27 @@ class TravelAgency(models.Model):
     agreement = models.BooleanField(default=False)
     approved = models.BooleanField(default=False)
 
+#model for travel guide
+class LocalGuide(models.Model):
+    guide_id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=255)
+    username = models.CharField(max_length=255, unique=True)
+    password = models.CharField(max_length=255)
+    contact = models.CharField(max_length=10)
+    email = models.EmailField(unique=True)
+    location = models.CharField(max_length=255) 
+    years_of_experience = models.PositiveIntegerField()
+    languages_known = models.TextField()
+    guide_license = models.FileField(upload_to='guide_licenses/')
+    agreement = models.BooleanField(default=False)
+    approved = models.BooleanField(default=False)
+
 #to ammend the already known table with phone number and role
 class CustomUser(User):
     phone_number = models.CharField(max_length=15, unique=True)
     role = models.CharField(max_length=30,default='reguser')
     travel_agency = models.ForeignKey(TravelAgency, on_delete=models.CASCADE, null=True, blank=True)
+    travel_guide = models.ForeignKey(LocalGuide, on_delete=models.CASCADE, null=True, blank=True)
 
     class Meta:
         verbose_name = 'User'

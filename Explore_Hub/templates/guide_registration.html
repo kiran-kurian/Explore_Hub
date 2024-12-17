@@ -1,0 +1,149 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" type="image/png" href="{% static 'images/logo.png' %}">
+    <title>Guide Registration - Explore Hub</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            height: 100%;
+            width: 100%;
+            font-family: 'Inter', sans-serif;
+            background: #FFFFFF;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .background-image {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: url('{% static "images/nature2.png" %}') no-repeat center center/cover;
+        }
+
+        .registration-box {
+            width: 40%;
+            max-width: 800px;
+            padding: 40px;
+            background: rgba(170, 177, 187, 0.35);
+            box-shadow: inset -6px 4px 147.8px -3px #D9D9D9;
+            backdrop-filter: blur(11.25px);
+            border-radius: 20px;
+            text-align: center;
+            z-index: 10;
+        }
+
+        .registration-box h1 {
+            font-size: 40px;
+            color: #FFFFFF;
+            text-transform: uppercase;
+            letter-spacing: 0.22em;
+            margin-bottom: 30px;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 10px;
+            margin: 15px 0;
+            background: #D9D9D9;
+            border-radius: 10px;
+            font-size: 18px;
+            border: none;
+            outline: none;
+        }
+
+        .file-field {
+            padding: 10px;
+            margin: 15px 0;
+            background: #D9D9D9;
+            border-radius: 10px;
+            font-size: 16px;
+            border: none;
+            outline: none;
+        }
+
+        .button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 20px;
+            background-color: #2C2C2C;
+            color: white;
+            border: 1px solid #2C2C2C;
+            border-radius: 60px;
+            font-size: 20px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .button:hover {
+            background-color: #444444;
+        }
+
+        label {
+            font-size: 16px;
+            color: white;
+            display: block;
+            text-align: left;
+            margin-top: 10px;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            margin: 15px 0;
+        }
+
+        .checkbox-label input {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="background-image"></div>
+        <div class="registration-box">
+            <h1>Guide Registration</h1>
+            <form action="{% url 'guide_registration' %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <label for="years_of_experience">Years of Experience</label>
+                <input type="number" name="years_of_experience" class="input-field" min="0" placeholder="Enter your years of experience" required>
+
+                <label for="languages_known">Languages Known</label>
+                <input type="text" name="languages_known" class="input-field" placeholder="Enter languages you know, separated by commas" required>
+
+                <label for="location">Location</label>
+                <input type="text" name="location" class="input-field" placeholder="Enter your primary location" required>
+
+                <label for="guide_license">Guide License</label>
+                <input type="file" name="guide_license" class="file-field" accept=".pdf,.jpg,.jpeg,.png" required>
+
+                <div class="checkbox-label">
+                    <input type="checkbox" name="agreement" id="agreement" required>
+                    <label for="agreement">I agree to pay 1% of the payment that I get from Explore Hub platform.</label>
+                </div>
+
+                <button type="submit" class="button">Register</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
