@@ -71,6 +71,7 @@ def login_view(request):
                     return HttpResponseRedirect(reverse('tahome'))
                 elif role == 'guide':
                     request.session['guide'] = user.id
+                    return HttpResponseRedirect(reverse('guide_home'))
                 else:
                     request.session['normal'] = user.id
                     return HttpResponseRedirect(reverse("regularuser"))
@@ -246,8 +247,19 @@ def admin_dashboard(request):
 @login_required(login_url='login')
 def admin_approve_agencies(request):
     if 'master' in request.session: 
-        pending_agencies = TravelAgency.objects.filter(approved=False)
-        return render(request, 'approve_agencies.html', {'agencies': pending_agencies})
+        view = request.GET.get('view', 'agencies')  # Default to 'agencies'
+    if view == 'agencies':
+        agencies = TravelAgency.objects.filter(approved=False)
+        return render(request, 'approve_agencies.html', {
+            'agencies': agencies,
+            'active_section': 'agencies',
+        })
+    elif view == 'guides':
+        guides = LocalGuide.objects.filter(approved=False)
+        return render(request, 'approve_agencies.html', {
+            'guides': guides,
+            'active_section': 'guides',
+        })
     else:
         return redirect('login')
 
@@ -1145,3 +1157,37 @@ def guide_registration(request):
                 })
     else:
         return render(request, "guide_registration.html")
+    
+#view for the homepage of local guide
+def guide_home(request):
+    if 'guide' in request.session:
+        try:
+            guide =LocalGuide.objects.get(username=request.user.username)
+            if not guide.approved:
+                return render(request, "login.html", {
+                    "message": "Approval pending"
+                })
+        except TravelAgency.DoesNotExist:
+            return redirect('login')
+        return render(request, 'guide_home.html')
+    else:
+        return redirect('login')
+    
+#view for approving travel guide
+def approve_local_guide(request, guide_id):
+    if 'master' in request.session:
+        guide = get_object_or_404(LocalGuide, pk=guide_id)
+        guide.approved = True
+        guide.save()
+        send_mail(
+                'Account Approved Notification',
+                f'Dear {guide.name},\n\n'
+                f'This email is to inform you that your account with EXPLORE HUB has been approved.'
+                'You can start using our platform from now on.'
+                'If you have any questions, please contact support.',
+                'explorehub123@gmail.com',
+                [guide.email]
+            )
+        return redirect('admin_approve_agencies')
+    else:
+        return redirect('login')

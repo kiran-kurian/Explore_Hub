@@ -46,8 +46,8 @@ nav a:hover {
 .sidebar {
     width: 250px;
     background-color: #1f4e79; /* Dark blue */
-    position: fixed;
-    top: 80px;
+    position: relative;
+    top: 30px;
     left: 0;
     height: 100%;
     padding-top: 30px;
@@ -197,7 +197,7 @@ ul {
     margin: 0;
     display: flex; /* Align items horizontally */
     justify-content: space-around; /* Evenly space the items */
-    background-color: #1f4e79; /* Dark blue background */
+    /* background-color: #1f4e79; */
     padding: 10px 0;
 }
 

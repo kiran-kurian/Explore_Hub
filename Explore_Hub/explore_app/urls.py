@@ -73,6 +73,8 @@ urlpatterns = [
     path('group/search/', group_search, name='group_search'),
     path('available_group/search/', available_group_search, name='available_group_search'),
     path('registration/guide/', guide_registration, name="guide_registration"),
+    path('guide_home/', guide_home, name='guide_home'),
+    path('approve_guide/<int:guide_id>/', approve_local_guide, name='approve_guide'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
