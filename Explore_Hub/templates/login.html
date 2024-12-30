@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0", maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0", maximum-scale=1.0, user-scalable=no>
     <link rel="shortcut icon" type="image/png" href="{% static 'images/logo.png' %}" >
     <title>Login-Explore Hub</title>
     <style>
@@ -149,6 +149,48 @@
         /* For better contrast of text on background */
         .login-box h1, .forgot-password, .new-user, .button, .ta, p {
             color: #FFF;
+        }
+        @media screen and (max-width: 768px) {
+            .login-box {
+                width: 90%;
+                padding: 20px;
+            }
+
+            .login-box h1 {
+                font-size: 30px;
+            }
+
+            .login-box h2 {
+                font-size: 25px;
+            }
+
+            .input-field, .button, .google-button {
+                font-size: 16px;
+            }
+
+            .forgot-password, .new-user {
+                font-size: 12px;
+                margin: 10px;
+                display: block;
+            }
+
+            .new-user {
+                margin-left: 0;
+            }
+
+            .forgot-password {
+                margin-right: 0;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .login-box h1 {
+                font-size: 24px;
+            }
+
+            .login-box h2 {
+                font-size: 20px;
+            }
         }
     </style>
 </head>
