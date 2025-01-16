@@ -6,10 +6,15 @@
 </head>
 
 <div class="body">
-    <div class="search-container">
-        <form class="search-form">
-            <input type="text" id="search-bar" placeholder="Search" aria-label="Search Guides">
-        </form>
+    <div class="containers">
+        <div class="header1">
+            <a href="{% url 'advice_request_list' %}" class="service-request-btn">Service Requests</a>
+        </div>
+        <div class="search-container">
+            <form class="search-form">
+                <input type="text" id="search-bar" placeholder="Search" aria-label="Search Guides">
+            </form>
+        </div>
     </div>
 
     <div class="guide-list" id="guide-list">
@@ -60,16 +65,46 @@
         padding: 100px;
     }
 
+    .containers {
+        padding: 20px;
+    }
+
     .search-container {
         padding: 20px;
         text-align: center;
     }
 
+    .service-request-btn {
+        background-color: #ff6666;
+        color: white;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 1.0rem;
+        margin-top: 0; 
+        transition: background-color 0.3s ease;
+        position: relative;
+        left: 30px;
+    }
+
+    .service-request-btn:hover {
+        background-color: #e65c5c;
+        color: white;
+    }
+
     .search-form input {
-        width: 60%;
+        width: 500px; 
         padding: 10px;
-        border: 1px solid #f06161;
-        border-radius: 40px;
+        border: 1px solid #f06161; 
+        border-radius: 4px 0 0 4px; 
+        outline: none; 
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
+        font-size: 16px; 
+        position: relative;
+        border-radius: 50px;
+        position: relative;
+        top: -50px;
     }
 
     .guide-list {

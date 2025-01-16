@@ -1210,11 +1210,21 @@ def local_guide_detail(request, guide_id):
 
 #view for request guidance by the regular user
 def request_guidance(request, guide_id):
-    if request.method == 'POST':
-        location_request = request.POST.get('location_request')
-
-        return redirect('local_guide_detail', guide_id=guide_id)
-    return redirect('local_guide_list')
+    if 'normal' in request.session:
+        if request.method == 'POST':
+            guide = get_object_or_404(LocalGuide, pk=guide_id)
+            location_request = request.POST.get('location_request')
+            
+            advice_request = AdviceRequest(
+                guide_name = guide.name,
+                user_name = request.user.username,
+                location = location_request,
+            )
+            advice_request.save()
+            return redirect('local_guide_detail', guide_id=guide_id)
+        return redirect('local_guide_list')
+    else:
+        return redirect('login')
 
 #view for booking local guide by the regular user
 def book_guide(request, guide_id):
@@ -1224,3 +1234,19 @@ def book_guide(request, guide_id):
 
         return redirect('local_guide_detail', guide_id=guide_id)
     return redirect('local_guide_list')
+
+#view for listing the replies to the requests from the local guide
+def advice_request_list(request):
+    if 'normal' in request.session:
+        advice_requests = AdviceRequest.objects.filter(user_name=request.user.username).order_by('-created_at')
+        return render(request, 'advice_request_list.html', {'advice_requests': advice_requests})
+    else:
+        return redirect('login')
+    
+#view for viewing the reply for the requests from the local guide
+def advice_reply_detail(request, request_id):
+    if 'normal' in request.session:
+        advice_request = get_object_or_404(AdviceRequest, id=request_id, user_name=request.user.username)
+        return render(request, 'advice_reply_detail.html', {'advice_request': advice_request})
+    else:
+        return redirect('login')

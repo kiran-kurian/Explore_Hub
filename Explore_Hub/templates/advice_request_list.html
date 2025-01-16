@@ -1,0 +1,116 @@
+{% extends 'layout_main.html' %}
+{% block content %}
+<div class="advice-requests-container">
+    <h2>Your Advice Requests</h2>
+    <table class="advice-requests-table">
+        <thead>
+            <tr>
+                <th>Guide Name</th>
+                <th>Location</th>
+                <th>Request Date</th>
+                <th>Reply Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for request in advice_requests %}
+            <tr>
+                <td>{{ request.guide_name }}</td>
+                <td>{{ request.location }}</td>
+                <td>{{ request.created_at|date:"M d, Y" }}</td>
+                <td>
+                    {% if request.guide_response %}
+                    <span class="badge badge-replied">Replied</span>
+                    {% else %}
+                    <span class="badge badge-pending">Pending</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if request.guide_response %}
+                    <a href="{% url 'advice_reply_detail' request.id %}" class="btn btn-primary btn-sm">View Reply</a>
+                    {% else %}
+                    <span class="btn btn-disabled btn-sm">No Reply Yet</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="no-data">No advice requests found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<style>
+    .advice-requests-container, .advice-reply-container {
+        max-width: 800px;
+        margin: 8rem auto;
+        padding: 2rem;
+        background-color: #f9f9f9;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .advice-requests-table, .advice-details {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+        font-size: 1rem;
+    }
+    
+    .advice-requests-table th, .advice-requests-table td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+    
+    .advice-requests-table th {
+        background-color: #f3f3f3;
+        text-transform: uppercase;
+        font-weight: bold;
+    }
+    
+    .advice-requests-table tbody tr:hover {
+        background-color: #f7f7f7;
+    }
+    
+    .badge-replied {
+        background-color: #28a745;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 8px;
+        font-size: 0.9rem;
+    }
+    
+    .badge-pending {
+        background-color: #ffc107;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 8px;
+        font-size: 0.9rem;
+    }
+    
+    .btn {
+        padding: 8px 12px;
+        text-decoration: none;
+        border-radius: 4px;
+        color: white;
+        display: inline-block;
+        text-align: center;
+    }
+    
+    .btn-primary {
+        background-color: #007bff;
+    }
+    
+    .btn-secondary {
+        background-color: #6c757d;
+    }
+    
+    .btn-disabled {
+        background-color: #ccc;
+        pointer-events: none;
+    }
+</style>    
+{% endblock %}

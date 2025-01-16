@@ -143,9 +143,11 @@ class Message(models.Model):
     content = models.TextField()
     send_at = models.DateTimeField(auto_now_add=True)
 
-#model for chatting of the local guide
+#model for requesting advice from the local guide
 class AdviceRequest(models.Model):
     guide_name = models.CharField(max_length=100)
     user_name = models.CharField(max_length=100)
-    message = models.TextField()
+    location = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+    guide_response = models.TextField(null=True, blank=True)
+    response_date = models.DateTimeField(null=True, blank=True)

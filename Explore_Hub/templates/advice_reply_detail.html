@@ -1,0 +1,14 @@
+{% extends 'layout_main.html' %}
+{% block content %}
+<div class="advice-reply-container">
+    <h2>Advice Reply Details</h2>
+    <div class="advice-details">
+        <p><strong>Guide Name:</strong> {{ advice_request.guide_name }}</p>
+        <p><strong>Location:</strong> {{ advice_request.location }}</p>
+        <p><strong>Request Date:</strong> {{ advice_request.created_at|date:"M d, Y" }}</p>
+        <p><strong>Reply:</strong></p>
+        <p>{{ advice_request.guide_response }}</p>
+    </div>
+    <a href="{% url 'advice_request_list' %}" class="btn btn-secondary">Back to Advice Requests</a>
+</div>
+{% endblock %}

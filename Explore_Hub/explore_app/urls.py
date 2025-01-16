@@ -80,6 +80,9 @@ urlpatterns = [
     path('local-guide/<int:guide_id>/', local_guide_detail, name='local_guide_detail'),
     path('local-guide/<int:guide_id>/request-guidance/', request_guidance, name='request_guidance'),
     path('local-guide/<int:guide_id>/book/', book_guide, name='book_guide'),
+    path('advice-requests/', advice_request_list, name='advice_request_list'),
+    path('advice-requests/<int:request_id>/', advice_reply_detail, name='advice_reply_detail'),
+
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -147,7 +147,7 @@ h4 {
 /* Responsive Styles */
 @media (max-width: 768px) {
     .package-box {
-        width: 90%; /* Adjust to full width on smaller screens */
+        width: 90%;
     }
 }
 
