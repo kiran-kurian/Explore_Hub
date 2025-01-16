@@ -1,0 +1,205 @@
+{% extends 'guide.html' %}
+
+{% block content %}
+<div class="container advice-requests-page">
+    <h2 class="page-title">Your Advice Requests</h2>
+    {% if advice_requests %}
+    <div class="table-container">
+        <table class="advice-requests-table">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Description</th>
+                    <th>Created At</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for request in advice_requests %}
+                <tr>
+                    <td>{{ request.user_name }}</td>
+                    <td>{{ request.location }}</td>
+                    <td>{{ request.created_at|date:"Y-m-d H:i" }}</td>
+                    <td>
+                        <span class="status {{ request.guide_response|lower }}">
+                            {% if request.guide_response %}
+                            <span class="badge badge-replied">Replied</span>
+                            {% else %}
+                            <span class="badge badge-pending">Pending</span>
+                            {% endif %} 
+                        </span>
+                    </td>
+                    <td>
+                        {% if not request.guide_response %}
+                        <form method="POST" action="{% url 'reply_advice_request' request.id %}">
+                            {% csrf_token %}
+                            <textarea name="reply" class="reply-textarea" placeholder="Type your reply here..." required></textarea>
+                            <button type="submit" class="btn-reply">Reply</button>
+                        </form>
+                        {% else %}
+                        <p class="reply-text">{{ request.guide_response }}</p>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="no-requests">No advice requests found.</p>
+    {% endif %}
+</div>
+
+<style>
+
+    .reply-form {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .reply-textarea {
+        width: 90%;
+        min-height: 80px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 1rem;
+        font-family: Arial, sans-serif;
+        resize: vertical;
+        transition: border-color 0.3s ease;
+        resize: none;
+    }
+
+    .reply-textarea:focus {
+        border-color: #4CAF50;
+        outline: none;
+        box-shadow: 0 0 4px rgba(76, 175, 80, 0.2);
+    }
+
+    .btn-reply {
+        align-self: flex-start;
+        padding: 8px 16px;
+        background-color: #4CAF50;
+        color: white;
+        font-size: 1rem;
+        font-weight: bold;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+
+    .btn-reply:hover {
+        background-color: #45a049;
+        transform: translateY(-2px);
+    }
+
+    .btn-reply:active {
+        background-color: #3e8e41;
+        transform: translateY(0);
+    }
+
+    .reply-text {
+        font-size: 0.9rem;
+        color: #333;
+        background-color: #f9f9f9;
+        padding: 10px;
+        border-radius: 6px;
+        border: 1px solid #ddd;
+    }
+    
+    .advice-requests-page {
+        padding: 40px 20px;
+        background-color: #f9f9f9;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        margin-top: 20px;
+    }
+
+    .page-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #333;
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .table-container {
+        overflow-x: auto;
+    }
+
+    .advice-requests-table {
+        width: 100%;
+        border-collapse: collapse;
+        background-color: #fff;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .advice-requests-table thead {
+        background-color: #4CAF50;
+        color: #fff;
+        text-align: left;
+        font-size: 1rem;
+        font-weight: 500;
+    }
+
+    .advice-requests-table th,
+    .advice-requests-table td {
+        padding: 15px;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .advice-requests-table tbody tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+
+    .advice-requests-table tbody tr:hover {
+        background-color: #f1f1f1;
+    }
+
+    .status {
+        display: inline-block;
+        padding: 5px 10px;
+        border-radius: 12px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #fff;
+    }
+
+    .status.pending {
+        background-color: #f39c12;
+    }
+
+    .status.responded {
+        background-color: #2ecc71;
+    }
+
+    .no-requests {
+        font-size: 1.2rem;
+        color: #555;
+        text-align: center;
+        margin-top: 20px;
+        font-weight: 500;
+    }
+
+    .badge-replied {
+        background-color: #28a745;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 8px;
+        font-size: 0.9rem;
+    }
+    
+    .badge-pending {
+        background-color: #ffc107;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 8px;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}

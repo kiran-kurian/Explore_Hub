@@ -1250,3 +1250,26 @@ def advice_reply_detail(request, request_id):
         return render(request, 'advice_reply_detail.html', {'advice_request': advice_request})
     else:
         return redirect('login')
+    
+#view for listing all the requests made by the users to the guide
+def advice_requests_view(request):
+    if 'guide' in request.session:
+        advice_requests = AdviceRequest.objects.filter(guide_name=request.user.first_name).order_by('-created_at')
+        return render(request, 'advice_requests.html', {'advice_requests': advice_requests})
+    else:
+        return redirect('login')    
+    
+def reply_advice_request(request, request_id):
+    if 'guide' in request.session:
+        if request.method == 'POST':
+            advice_request = get_object_or_404(AdviceRequest, id=request_id)
+            reply = request.POST.get('reply')
+            if reply:
+                advice_request.guide_response = reply
+                advice_request.save()
+                messages.success(request, "Your reply has been submitted successfully.")
+            else:
+                messages.error(request, "Reply cannot be empty.")
+        return redirect('advice_requests')
+    else:
+        return redirect('login')

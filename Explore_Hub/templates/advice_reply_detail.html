@@ -1,14 +1,103 @@
 {% extends 'layout_main.html' %}
 {% block content %}
 <div class="advice-reply-container">
-    <h2>Advice Reply Details</h2>
-    <div class="advice-details">
-        <p><strong>Guide Name:</strong> {{ advice_request.guide_name }}</p>
-        <p><strong>Location:</strong> {{ advice_request.location }}</p>
-        <p><strong>Request Date:</strong> {{ advice_request.created_at|date:"M d, Y" }}</p>
-        <p><strong>Reply:</strong></p>
-        <p>{{ advice_request.guide_response }}</p>
+    <div class="header-section">
+        <h2 class="page-title">Advice Reply Details</h2>
     </div>
-    <a href="{% url 'advice_request_list' %}" class="btn btn-secondary">Back to Advice Requests</a>
+    <div class="advice-details">
+        <p><strong>Guide Name:</strong> <span>{{ advice_request.guide_name }}</span></p>
+        <p><strong>Location:</strong> <span>{{ advice_request.location }}</span></p>
+        <p><strong>Request Date:</strong> <span>{{ advice_request.created_at|date:"M d, Y" }}</span></p>
+        <p><strong>Reply:</strong></p>
+        <div class="reply-box">
+            {{ advice_request.guide_response }}
+        </div>
+    </div>
+    <div class="button-section">
+        <a href="{% url 'advice_request_list' %}" class="btn btn-secondary">Back to Advice Requests</a>
+    </div>
 </div>
+
+<style>
+    .advice-reply-container {
+        max-width: 800px;
+        margin: 120px auto;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        font-family: Arial, sans-serif;
+    }
+
+    .header-section {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .page-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #333;
+    }
+
+    .advice-details {
+        font-size: 1rem;
+        line-height: 1.6;
+        color: #555;
+        margin-bottom: 30px;
+    }
+
+    .advice-details p {
+        margin: 10px 0;
+    }
+
+    .advice-details p strong {
+        color: #333;
+    }
+
+    .advice-details span {
+        color: #555;
+    }
+
+    .reply-box {
+        margin-top: 10px;
+        padding: 15px;
+        background-color: #f9f9f9;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 1rem;
+        color: #333;
+        line-height: 1.6;
+    }
+
+    .button-section {
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    .btn {
+        display: inline-block;
+        padding: 10px 20px;
+        font-size: 1rem;
+        font-weight: 600;
+        text-decoration: none;
+        color: #fff;
+        background-color: #4CAF50;
+        border-radius: 6px;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+
+    .btn-secondary {
+        background-color: #6c757d;
+    }
+
+    .btn:hover {
+        background-color: #45a049;
+        transform: translateY(-2px);
+    }
+
+    .btn-secondary:hover {
+        background-color: #5a6268;
+    }
+</style>
 {% endblock %}
