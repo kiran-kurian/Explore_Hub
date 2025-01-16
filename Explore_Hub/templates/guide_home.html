@@ -1,136 +1,5 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Travel Guide Home</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <style>
-        /* General Reset */
-        body, html {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Roboto', sans-serif;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-
-        .header {
-            background: linear-gradient(90deg, #4CAF50, #3e8e41);
-            color: #fff;
-            padding: 20px 0;
-            text-align: center;
-        }
-
-        .header h1 {
-            margin: 0;
-            font-size: 2.5rem;
-        }
-
-        .header p {
-            margin: 10px 0 20px;
-            font-size: 1rem;
-        }
-
-        .navbar {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-        }
-
-        .nav-link {
-            text-decoration: none;
-            color: #fff;
-            padding: 10px 20px;
-            border: 2px solid transparent;
-            border-radius: 5px;
-            transition: all 0.3s ease;
-        }
-
-        .nav-link:hover {
-            background: #fff;
-            color: #4CAF50;
-            border: 2px solid #4CAF50;
-        }
-
-        .features {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            justify-content: center;
-            padding: 50px 0;
-            background-color: #f4f4f4;
-        }
-
-        .feature-card {
-            background: #fff;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 20px;
-            width: 100%;
-            max-width: 400px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            text-align: center;
-        }
-
-        .feature-card h2 {
-            font-size: 1.5rem;
-            color: #333;
-        }
-
-        .feature-card p {
-            font-size: 1rem;
-            margin: 15px 0;
-            color: #555;
-        }
-
-        .btn {
-            display: inline-block;
-            text-decoration: none;
-            background: #4CAF50;
-            color: #fff;
-            padding: 10px 15px;
-            border-radius: 5px;
-            font-size: 1rem;
-            transition: background 0.3s ease;
-        }
-
-        .btn:hover {
-            background: #3e8e41;
-        }
-
-        .footer {
-            background: #333;
-            color: #fff;
-            text-align: center;
-            padding: 15px 0;
-            font-size: 0.9rem;
-        }
-
-        .footer p {
-            margin: 0;
-        }
-    </style>
-</head>
-<body>
-    <header class="header">
-        <div class="container">
-            <h1>Welcome, Travel Guide!</h1>
-            <p>Your portal to offer advice and host travel experiences</p>
-            <nav class="navbar">
-                <a href="#" class="nav-link">Home</a>
-                <a href="#" class="nav-link">Travel Advice</a>
-                <a href="#" class="nav-link">Host Experience</a>
-                <a href="{% url 'logout' %}" class="nav-link">Logout</a>
-            </nav>
-        </div>
-    </header>
-
+{% extends 'guide.html' %}
+{% block content %}
     <main>
         <section class="features">
             <div class="container">
@@ -139,6 +8,7 @@
                     <p>Offer personalized travel advice and recommend the best spots in your locality.</p>
                     <a href="#" class="btn">Start Advising</a>
                 </div>
+                <br>
                 <div class="feature-card">
                     <h2>Host Travel Experience</h2>
                     <p>Organize local experiences for travelers and showcase the beauty of your location.</p>
@@ -147,5 +17,4 @@
             </div>
         </section>
     </main>
-</body>
-</html>
+{% endblock %}

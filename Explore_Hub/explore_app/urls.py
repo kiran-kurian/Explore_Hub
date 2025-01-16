@@ -75,6 +75,11 @@ urlpatterns = [
     path('registration/guide/', guide_registration, name="guide_registration"),
     path('guide_home/', guide_home, name='guide_home'),
     path('approve_guide/<int:guide_id>/', approve_local_guide, name='approve_guide'),
+    path('local-guides/', local_guide_list, name='local_guide_list'),
+    path('guide-search/', guide_search, name='guide_search'),
+    path('local-guide/<int:guide_id>/', local_guide_detail, name='local_guide_detail'),
+    path('local-guide/<int:guide_id>/request-guidance/', request_guidance, name='request_guidance'),
+    path('local-guide/<int:guide_id>/book/', book_guide, name='book_guide'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

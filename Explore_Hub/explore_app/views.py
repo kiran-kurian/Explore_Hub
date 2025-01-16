@@ -1191,3 +1191,36 @@ def approve_local_guide(request, guide_id):
         return redirect('admin_approve_agencies')
     else:
         return redirect('login')
+    
+#view for local guide listing
+def local_guide_list(request):
+    guides = LocalGuide.objects.filter(approved=True)
+    return render(request, 'localguide.html', {'guides': guides})
+
+#view for searching the local guide listing
+def guide_search(request):
+    query = request.GET.get('query', '').strip()
+    guides = LocalGuide.objects.filter(approved=True, name__icontains=query) if query else LocalGuide.objects.filter(approved=True)
+    return render(request, 'guide_list_partial.html', {'guides': guides})
+
+#view for detailed view of local guide
+def local_guide_detail(request, guide_id):
+    guide = get_object_or_404(LocalGuide, guide_id=guide_id, approved=True)
+    return render(request, 'local_guide_detail.html', {'guide': guide})
+
+#view for request guidance by the regular user
+def request_guidance(request, guide_id):
+    if request.method == 'POST':
+        location_request = request.POST.get('location_request')
+
+        return redirect('local_guide_detail', guide_id=guide_id)
+    return redirect('local_guide_list')
+
+#view for booking local guide by the regular user
+def book_guide(request, guide_id):
+    if request.method == 'POST':
+        start_date = request.POST.get('start_date')
+        end_date = request.POST.get('end_date')
+
+        return redirect('local_guide_detail', guide_id=guide_id)
+    return redirect('local_guide_list')

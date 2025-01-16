@@ -142,3 +142,10 @@ class Message(models.Model):
     group = models.ForeignKey(TravelGroup, on_delete=models.CASCADE)
     content = models.TextField()
     send_at = models.DateTimeField(auto_now_add=True)
+
+#model for chatting of the local guide
+class AdviceRequest(models.Model):
+    guide_name = models.CharField(max_length=100)
+    user_name = models.CharField(max_length=100)
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)

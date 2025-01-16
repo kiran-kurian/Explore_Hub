@@ -1,0 +1,24 @@
+{% for guide in guides %}
+    <div class="guide-box">
+        <div class="guide-header">
+            <h4>{{ guide.name }}</h4>
+            <p class="location">{{ guide.location }}</p>
+        </div>
+        <div class="guide-info">
+            <p><strong>Contact:</strong> {{ guide.contact }}</p>
+            <p><strong>Email:</strong> {{ guide.email }}</p>
+            <p><strong>Years of Experience:</strong> {{ guide.years_of_experience }}</p>
+            <p><strong>Languages Known:</strong> {{ guide.languages_known }}</p>
+        </div>
+        <div class="guide-actions">
+            <a href="{{ guide.guide_license.url }}" target="_blank" class="btn_view">View License</a>
+            {% if guide.approved %}
+                <span class="status-approved">Approved</span>
+            {% else %}
+                <span class="status-pending">Pending Approval</span>
+            {% endif %}
+        </div>
+    </div>
+{% empty %}
+    <p>No local guides match your search criteria.</p>
+{% endfor %}

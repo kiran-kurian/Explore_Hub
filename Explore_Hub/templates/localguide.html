@@ -1,0 +1,159 @@
+{% extends 'layout_main.html' %}
+{% load static %}
+{% block content %}
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<div class="body">
+    <div class="search-container">
+        <form class="search-form">
+            <input type="text" id="search-bar" placeholder="Search" aria-label="Search Guides">
+        </form>
+    </div>
+
+    <div class="guide-list" id="guide-list">
+        {% for guide in guides %}
+            <div class="guide-box">
+                <div class="guide-header">
+                    <h4>{{ guide.name }}</h4>
+                    <p class="location">{{ guide.location }}</p>
+                </div>
+                <div class="guide-info">
+                    <p><strong>Contact:</strong> {{ guide.contact }}</p>
+                    <p><strong>Email:</strong> {{ guide.email }}</p>
+                    <p><strong>Years of Experience:</strong> {{ guide.years_of_experience }}</p>
+                    <p><strong>Languages Known:</strong> {{ guide.languages_known }}</p>
+                </div>
+                <div class="guide-actions">
+                    <a href="{% url 'local_guide_detail' guide.guide_id %}" class="btn_view">View Details</a>
+                </div>
+            </div>
+        {% empty %}
+            <p>No local guides available at the moment.</p>
+        {% endfor %}
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#search-bar').on('keyup', function() {
+            const query = $(this).val();
+
+            $.ajax({
+                url: "{% url 'guide_search' %}", 
+                data: { 'query': query },
+                success: function(data) {
+                    $('#guide-list').html(data);
+                }
+            });
+        });
+    });
+</script>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #fff;
+        color: #333;
+        margin: 0;
+        padding: 100px;
+    }
+
+    .search-container {
+        padding: 20px;
+        text-align: center;
+    }
+
+    .search-form input {
+        width: 60%;
+        padding: 10px;
+        border: 1px solid #f06161;
+        border-radius: 40px;
+    }
+
+    .guide-list {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 20px;
+        padding: 20px;
+    }
+
+    .guide-box {
+        width: 300px;
+        background: #fff;
+        border: 1px solid #e6e6e6;
+        border-radius: 6px;
+        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        transition: transform 0.2s ease;
+    }
+
+    .guide-box:hover {
+        transform: scale(1.02);
+    }
+
+    .guide-header {
+        background-color: #f5f5f5;
+        padding: 15px;
+        text-align: center;
+        border-bottom: 1px solid #e6e6e6;
+    }
+
+    .guide-header h4 {
+        color: #f06161;
+        font-size: 18px;
+        margin: 0;
+    }
+
+    .location {
+        font-size: 14px;
+        color: #666;
+    }
+
+    .guide-info {
+        padding: 15px;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    .guide-actions {
+        padding: 15px;
+        text-align: center;
+        border-top: 1px solid #e6e6e6;
+    }
+
+    .btn_view {
+        display: inline-block;
+        padding: 10px 20px;
+        background-color: #f06161;
+        color: #fff;
+        text-decoration: none;
+        border-radius: 4px;
+        transition: background-color 0.3s;
+    }
+
+    .btn_view:hover {
+        background-color: #e65c5c;
+        color: white;
+    }
+
+    .status-approved {
+        display: block;
+        margin-top: 10px;
+        font-size: 14px;
+        color: green;
+        font-weight: bold;
+    }
+
+    .status-pending {
+        display: block;
+        margin-top: 10px;
+        font-size: 14px;
+        color: orange;
+        font-weight: bold;
+    }
+</style>
+
+{% endblock %}

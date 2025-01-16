@@ -1,0 +1,19 @@
+{% extends 'guide.html' %}
+{% block content %}
+    <main>
+        <section class="requests">
+            <div class="container">
+                <h2>Requests for Advice</h2>
+                <ul>
+                    {% for request in requests %}
+                        <li>
+                            <p><strong>User:</strong> {{ request.user.username }}</p>
+                            <p><strong>Message:</strong> {{ request.message }}</p>
+                            <a href="{% url 'chat_room' guide_name=request.guide.name user_name=request.user.username %}" class="btn">Chat with {{ request.user.username }}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </section>
+    </main>
+{% endblock %}
