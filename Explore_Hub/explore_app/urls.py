@@ -84,6 +84,8 @@ urlpatterns = [
     path('advice-requests/<int:request_id>/', advice_reply_detail, name='advice_reply_detail'),
     path('guide/advice-requests/', advice_requests_view, name='advice_requests'),
     path('guide/advice-requests/reply/<int:request_id>', reply_advice_request, name='reply_advice_request'),
+    path('local-guide/bookings/', local_guide_bookings, name='local_guide_bookings'),
+    path('local-guide/booking/<str:booking_id>/', booking_details, name='booking_details'),
 
 ]
 if settings.DEBUG:

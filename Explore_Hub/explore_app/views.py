@@ -1273,3 +1273,17 @@ def reply_advice_request(request, request_id):
         return redirect('advice_requests')
     else:
         return redirect('login')
+    
+#view for displaying the bookings of local guide
+@login_required
+def local_guide_bookings(request):
+    if 'guide' in request.session:
+        bookings = GuideBooking.objects.filter(user=request.user).order_by('-payment_date')
+        return render(request, 'guide_bookings.html', {'bookings': bookings})
+    else:
+        return redirect('login')
+    
+@login_required
+def booking_details(request, booking_id):
+    booking = get_object_or_404(GuideBooking, booking_id=booking_id, user=request.user)
+    return render(request, 'guide_booking_details.html', {'booking': booking})

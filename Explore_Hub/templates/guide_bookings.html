@@ -1,0 +1,160 @@
+{% extends 'guide.html' %}
+
+{% block content %}
+<div class="container guide-bookings-page">
+    <h2 class="page-title">Your Local Guide Bookings</h2>
+
+    {% if bookings %}
+    <div class="table-container">
+        <table class="bookings-table">
+            <thead>
+                <tr>
+                    <th>Booking ID</th>
+                    <th>Guide Name</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Booking Date</th>
+                    <th>Payment Status</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for booking in bookings %}
+                <tr>
+                    <td>{{ booking.booking_id }}</td>
+                    <td>{{ booking.guide_name }}</td>
+                    <td>{{ booking.start_date }}</td>
+                    <td>{{ booking.end_date }}</td>
+                    <td>{{ booking.payment_date|date:"M d, Y" }}</td>
+                    <td>
+                        <span class="badge {{ booking.payment_status|lower }}">
+                            {{ booking.payment_status|title }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if booking.is_cancelled %}
+                        <span class="badge badge-cancelled">Cancelled</span>
+                        {% else %}
+                        <span class="badge badge-confirmed">Confirmed</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'booking_details' booking.id %}" class="btn btn-primary">Details</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="no-bookings">No bookings found.</p>
+    {% endif %}
+</div>
+
+<style>
+    .guide-bookings-page {
+        padding: 40px 20px;
+        background-color: #f9f9f9;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        margin-top: 20px;
+    }
+
+    .page-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #333;
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .table-container {
+        overflow-x: auto;
+    }
+
+    .bookings-table {
+        width: 100%;
+        border-collapse: collapse;
+        background-color: #fff;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .bookings-table thead {
+        background-color: #4CAF50;
+        color: #fff;
+        text-align: left;
+        font-size: 1rem;
+        font-weight: 500;
+    }
+
+    .bookings-table th,
+    .bookings-table td {
+        padding: 15px;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .bookings-table tbody tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+
+    .bookings-table tbody tr:hover {
+        background-color: #f1f1f1;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 5px 10px;
+        border-radius: 12px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #fff;
+    }
+
+    .badge.pending {
+        background-color: #f39c12;
+    }
+
+    .badge.completed {
+        background-color: #28a745;
+    }
+
+    .badge.failed {
+        background-color: #e74c3c;
+    }
+
+    .badge-cancelled {
+        background-color: #e74c3c;
+    }
+
+    .badge-confirmed {
+        background-color: #3498db;
+    }
+
+    .btn {
+        text-decoration: none;
+        padding: 8px 12px;
+        border-radius: 4px;
+        color: white;
+        font-size: 0.9rem;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+    }
+
+    .btn-danger {
+        background-color: #dc3545;
+    }
+
+    .no-bookings {
+        font-size: 1.2rem;
+        color: #555;
+        text-align: center;
+        margin-top: 20px;
+        font-weight: 500;
+    }
+</style>
+{% endblock %}

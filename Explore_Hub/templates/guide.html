@@ -139,9 +139,9 @@
                 <h3>Welcome, {{ request.user.first_name }}</h3>
             </div>
             <nav class="navbar">
-                <a href="#" class="nav-link">Home</a>
+                <a href="{% url 'guide_home' %}" class="nav-link">Home</a>
                 <a href="{% url 'advice_requests' %}" class="nav-link">Travel Advice</a>
-                <a href="#" class="nav-link">Host Experience</a>
+                <a href="{% url 'local_guide_bookings' %}" class="nav-link">My Bookings</a>
                 <a href="{% url 'logout' %}" class="nav-link">Logout</a>
             </nav>
         </div>

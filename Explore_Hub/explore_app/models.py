@@ -151,3 +151,35 @@ class AdviceRequest(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     guide_response = models.TextField(null=True, blank=True)
     response_date = models.DateTimeField(null=True, blank=True)
+
+#model for local guide booking
+class GuideBooking(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    guide = models.ForeignKey('LocalGuide', on_delete=models.CASCADE)
+    start_date = models.DateField(help_text="Start date of the guide service.")
+    end_date = models.DateField(null=True, blank=True, help_text="End date of the guide service (if multi-day).")
+    duration_in_hours = models.PositiveIntegerField(help_text="Duration of the guide service in hours.")
+    number_of_people = models.PositiveIntegerField(default=1)
+    is_confirmed = models.BooleanField(default=False)
+    is_cancelled = models.BooleanField(default=False)
+    cancellation_reason = models.TextField(null=True, blank=True)
+    cancellation_date = models.DateTimeField(null=True, blank=True)
+
+    # Payment Details
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    payment_status = models.CharField(max_length=20, choices=[
+        ('pending', 'Pending'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
+    ], default='pending')
+    payment_method = models.CharField(max_length=50, choices=[
+        ('credit_card', 'Credit Card'),
+        ('debit_card', 'Debit Card'),
+        ('paypal', 'PayPal'),
+        ('net_banking', 'Net Banking'),
+        ('upi', 'UPI'),
+    ], null=True, blank=True)
+    transaction_id = models.CharField(max_length=100, unique=True, null=True, blank=True)
+    razorpay_payment_id = models.CharField(max_length=255, blank=True, null=True)
+    payment_date = models.DateTimeField(null=True, blank=True)
+    refunded_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
