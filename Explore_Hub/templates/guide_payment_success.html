@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Successful</title>
+    <script>
+        setTimeout(function() {
+            window.location.href = "{% url 'local_guide_list' %}";
+        }, 3000);
+        function downloadPDF() {
+            const pdfData = "{{ pdf_data }}";
+            const link = document.createElement('a');
+            link.href = 'data:application/pdf;base64,' + pdfData;
+            link.download = 'Guide_Booking_{{ booking.booking_id }}.pdf';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        window.onload = downloadPDF;
+    </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            color: #27ae60;
+        }
+        p {
+            font-size: 18px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>Payment Successful!</h1>
+    <p>Your booking with guide "{{ booking.guide.name }}" has been confirmed. Booking ID: {{ booking.booking_id }}</p>
+    <p>You will be redirected to the guide listing page shortly.</p>
+    <p><a href="data:application/pdf;base64,{{ pdf_data }}" download="Guide_Booking_{{ booking.booking_id }}.pdf">Download your booking details</a></p>
+    <p><a href="{% url 'local_guide_list' %}">Back to page</a></p>
+</body>
+</html>

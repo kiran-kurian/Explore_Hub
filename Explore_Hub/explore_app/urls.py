@@ -31,7 +31,7 @@ urlpatterns = [
     path('packages/', package_view, name="package"),    
     path('package_details/<int:package_id>/', package_details, name="package_detail"),
     path('book/<int:package_id>/', book_package_view, name='book_package'),
-    path('payment/success/', payment_success, name='payment_success'),
+    path('package/payment/success/', payment_success, name='package_payment_success'),
     path('update_profile/', update_profile, name='update_profile'),
     path('my_bookings/', my_bookings, name='my_bookings'),
     path('cancel_booking/<int:booking_id>/', cancel_booking, name='cancel_booking'),
@@ -80,12 +80,14 @@ urlpatterns = [
     path('local-guide/<int:guide_id>/', local_guide_detail, name='local_guide_detail'),
     path('local-guide/<int:guide_id>/request-guidance/', request_guidance, name='request_guidance'),
     path('local-guide/<int:guide_id>/book/', book_guide, name='book_guide'),
+    path('guide/payment/success/', guide_payment_success, name='guide_payment_success'),
     path('advice-requests/', advice_request_list, name='advice_request_list'),
     path('advice-requests/<int:request_id>/', advice_reply_detail, name='advice_reply_detail'),
     path('guide/advice-requests/', advice_requests_view, name='advice_requests'),
     path('guide/advice-requests/reply/<int:request_id>', reply_advice_request, name='reply_advice_request'),
     path('local-guide/bookings/', local_guide_bookings, name='local_guide_bookings'),
-    path('local-guide/booking/<str:booking_id>/', booking_details, name='booking_details'),
+    path('local-guide/booking/details/<str:booking_id>/', booking_details, name='booking_details'),
+    path('guide/bookings/<int:booking_id>/update-trip-plan/', guide_update_trip_plan, name='guide_update_trip_plan'),
 
 ]
 if settings.DEBUG:

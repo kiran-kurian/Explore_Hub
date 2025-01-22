@@ -1,0 +1,213 @@
+{% extends 'guide.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="text-center mb-4">
+                <h1 class="text-primary">Booking Details for Guide</h1>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4>Booking Information</h4>
+                </div>
+                <div class="card-body">
+                    <table class="table table-bordered">
+                        <tr>
+                            <th>Booking ID</th>
+                            <td>{{ booking.booking_id }}</td>
+                        </tr>
+                        <tr>
+                            <th>Customer Name</th>
+                            <td>{{ booking.user.first_name }} {{ booking.user.last_name }}</td>
+                        </tr>
+                        <tr>
+                            <th>Guide Name</th>
+                            <td>{{ booking.guide.name }}</td>
+                        </tr>
+                        <tr>
+                            <th>Start Date</th>
+                            <td>{{ booking.start_date|date:"d M Y" }}</td>
+                        </tr>
+                        <tr>
+                            <th>End Date</th>
+                            <td>{{ booking.end_date|date:"d M Y" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Number of People</th>
+                            <td>{{ booking.number_of_people }}</td>
+                        </tr>
+                        <tr>
+                            <th>Total Amount</th>
+                            <td>₹{{ booking.total_amount }}</td>
+                        </tr>
+                        <tr>
+                            <th>Payment Status</th>
+                            <td>
+                                {% if booking.payment_status == 'completed' %}
+                                    <span class="badge bg-success">Completed</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">Pending</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Transaction ID</th>
+                            <td>{{ booking.transaction_id }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="section-header mt-4">
+                <h4>Customer Suggestions</h4>
+            </div>
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h5>Suggestions from the Customer</h5>
+                    <div class="message-box">
+                        {% for suggestion in booking.suggestions.all %}
+                            <div class="message">
+                                <strong>{{ suggestion.user.first_name }}:</strong>
+                                <p>{{ suggestion.text }}</p>
+                                <p class="text-muted">{{ suggestion.created_at|date:"d M Y, H:i" }}</p>
+                            </div>
+                        {% empty %}
+                            <p>No suggestions yet.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-header mt-4">
+                <h4>Guide's Trip Plan</h4>
+            </div>
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h5>Create Trip Plan</h5>
+                    <p>Use the section below to plan the trip based on the suggestions from the customer.</p>
+
+                    <form method="POST" action="{% url 'guide_update_trip_plan' booking.id %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="trip_itinerary" class="form-label">Trip Itinerary</label>
+                            <textarea class="form-control" id="trip_itinerary" rows="5" name="trip_itinerary" placeholder="Enter the itinerary details here...">{{ booking.trip_itinerary }}</textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Update Trip Plan</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="mt-3">
+                <a href="{% url 'local_guide_bookings' %}" class="btn btn-back">Back to Booking List</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+
+    .card {
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 30px;
+    }
+
+    .card-header {
+        background-color: #2980b9;
+        color: white;
+        padding: 15px 20px;
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+
+    .card-body {
+        padding: 20px;
+    }
+
+    .card-body table th,
+    .card-body table td {
+        padding: 10px;
+        text-align: left;
+    }
+
+    .card-body table th {
+        background-color: #ecf0f1;
+        font-weight: 500;
+    }
+
+    .btn {
+        display: inline-block;
+        padding: 12px 20px;
+        background-color: #2980b9;
+        color: white;
+        border-radius: 5px;
+        font-size: 1.1rem;
+        text-decoration: none;
+        text-align: center;
+        transition: background-color 0.3s ease;
+    }
+
+    .btn:hover {
+        background-color: #1abc9c;
+    }
+
+    .form-label {
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 1rem;
+        margin-bottom: 15px;
+        box-sizing: border-box;
+    }
+
+    .badge {
+        padding: 6px 12px;
+        font-size: 0.9rem;
+        border-radius: 12px;
+        font-weight: 500;
+        display: inline-block;
+        color: white;
+    }
+
+    .badge.bg-success {
+        background-color: #2ecc71;
+    }
+
+    .badge.bg-warning {
+        background-color: #f39c12;
+    }
+
+    .section-header {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin-top: 40px;
+        color: #2c3e50;
+    }
+
+    .btn-back {
+        background-color: #7f8c8d;
+        color: white;
+        text-decoration: none;
+        padding: 12px 20px;
+        border-radius: 5px;
+        font-size: 1rem;
+        display: inline-block;
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+
+    .btn-back:hover {
+        background-color: #95a5a6;
+    }
+{% endblock %}

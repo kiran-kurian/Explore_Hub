@@ -832,10 +832,13 @@ def book_package_view(request, package_id):
             request.session['razorpay_order_id'] = booking.booking_id
             
             context = {
+                'booking_type': 'Package',
+                'title': package.title,
                 'package': package,
                 'booking': booking,
                 'razorpay_key': settings.RAZORPAY_KEY_ID,
                 'razorpay_order_id': razorpay_order['id'],
+                'payment_success_url': 'package_payment_success',
                 'total_amount': total_amount,
             }
             return render(request, 'payment_page.html', context) 
@@ -844,7 +847,7 @@ def book_package_view(request, package_id):
     else:
         return redirect('login')
 
-#payment confirmation view
+#package payment confirmation view
 @csrf_exempt
 def payment_success(request):
     if 'normal' in request.session:
@@ -1206,7 +1209,15 @@ def guide_search(request):
 #view for detailed view of local guide
 def local_guide_detail(request, guide_id):
     guide = get_object_or_404(LocalGuide, guide_id=guide_id, approved=True)
-    return render(request, 'local_guide_detail.html', {'guide': guide})
+    bookings = GuideBooking.objects.filter(guide_id=guide_id, payment_status='Completed', is_cancelled=False)
+    booked_dates = []
+    for booking in bookings:
+        current_date = booking.start_date
+        while current_date <= booking.end_date:
+            booked_dates.append(current_date.strftime('%Y-%m-%d'))
+            current_date += timedelta(days=1)
+    print(booked_dates)
+    return render(request, 'local_guide_detail.html', {'guide': guide, 'booked_dates': booked_dates})
 
 #view for request guidance by the regular user
 def request_guidance(request, guide_id):
@@ -1228,12 +1239,171 @@ def request_guidance(request, guide_id):
 
 #view for booking local guide by the regular user
 def book_guide(request, guide_id):
-    if request.method == 'POST':
-        start_date = request.POST.get('start_date')
-        end_date = request.POST.get('end_date')
+    if 'normal' in request.session:
+        guide = get_object_or_404(LocalGuide, pk=guide_id)
+        if request.method == 'POST':
+            start_date = request.POST.get('start_date')
+            end_date = request.POST.get('end_date')
+            number_of_people = request.POST.get('number_of_people')
+            try:
+                days = (datetime.strptime(end_date, "%Y-%m-%d") - datetime.strptime(start_date, "%Y-%m-%d")).days + 1
+                total_amount = days * guide.cost_per_day 
+            except ValueError:
+                return redirect('local_guide_detail', guide_id=guide_id)
+            booking = GuideBooking.objects.create(
+            user=request.user,
+            guide=guide,
+            start_date=start_date,
+            end_date=end_date,
+            number_of_people=number_of_people,
+            total_amount=total_amount,
+            payment_status='Pending',
+            booking_id=str(uuid.uuid4()),
+            cancellation=guide.cancellation,
+            )
 
-        return redirect('local_guide_detail', guide_id=guide_id)
-    return redirect('local_guide_list')
+            client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+            razorpay_order = client.order.create({
+                'amount': int(total_amount * 100),  
+                'currency': 'INR',
+                'payment_capture': '1'
+            })
+            request.session['razorpay_order_id'] = booking.booking_id
+
+            # booking.razorpay_order_id = razorpay_order['id']
+            booking.save()
+
+            context = {
+                'booking_type': 'Guide Service',
+                'title': guide.name,
+                'total_amount': total_amount,
+                'razorpay_key': settings.RAZORPAY_KEY_ID,
+                'razorpay_order_id': razorpay_order['id'],
+                'payment_success_url': 'guide_payment_success',
+            }
+            return render(request, 'payment_page.html', context)
+        return redirect('local_guide_list')
+    else:
+        return redirect('login')
+    
+#view for payment success for guide booking
+@csrf_exempt
+def guide_payment_success(request):
+    if 'normal' in request.session:
+        razorpay_client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+        if request.method == 'POST':
+            payment_id = request.POST.get('razorpay_payment_id', '')
+            razorpay_order_id = request.POST.get('razorpay_order_id', '')
+            signature = request.POST.get('razorpay_signature', '')
+
+            try:
+                params_dict = {
+                    'razorpay_order_id': razorpay_order_id,
+                    'razorpay_payment_id': payment_id,
+                    'razorpay_signature': signature
+                }
+
+                razorpay_client.utility.verify_payment_signature(params_dict)
+
+                booking = GuideBooking.objects.get(booking_id=request.session['razorpay_order_id'])
+                booking.payment_status = 'completed'
+                booking.transaction_id = payment_id
+                booking.is_confirmed = True
+                booking.payment_date = timezone.localtime()
+                booking.razorpay_payment_id = payment_id
+                booking.save()
+
+                user = request.user.customuser
+
+                pdf_buffer = BytesIO()
+                generate_guide_pdf(booking, pdf_buffer)
+                pdf_buffer.seek(0)
+
+                email = EmailMessage(
+                    subject='Guide Booking Confirmation',
+                    body=f'Your booking with guide {booking.guide.name} has been confirmed. Booking ID: {booking.booking_id}',
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    to=[booking.user.email],
+                )
+
+                email.attach('guide_booking_details.pdf', pdf_buffer.getvalue(), 'application/pdf')
+
+                email.send(fail_silently=False)
+                pdf_data = base64.b64encode(pdf_buffer.getvalue()).decode('utf-8')
+                pdf_buffer.close()
+
+                return render(request, 'guide_payment_success.html', {'booking': booking, 'pdf_data': pdf_data})
+
+            except razorpay.errors.SignatureVerificationError:
+                return HttpResponse("Payment failed. Signature verification failed.", status=400)
+
+        return HttpResponse("Invalid request.")
+    else:
+        return redirect('login')
+    
+#pdf receipt for guide booking
+def generate_guide_pdf(booking, buffer):
+    p = canvas.Canvas(buffer, pagesize=A4)
+
+    logo_path = "static/images/logo.png"  # Update with your actual logo path
+    p.drawImage(logo_path, 50, 770, width=40, height=50)
+
+    p.setTitle("Guide Booking Invoice")
+
+    p.setFont("Helvetica-Bold", 24)
+    p.drawCentredString(300, 740, "Guide Booking Invoice")
+
+    p.setFont("Helvetica", 12)
+    p.drawString(50, 725, "Explore Hub")
+    p.drawString(50, 710, "123 Travel Street")
+    p.drawString(50, 695, "Travel City, TC 12345")
+    p.drawString(50, 680, "Phone: +91 1234567890")
+    p.drawString(50, 665, "Email: explorehub123@gmail.com")
+
+    p.line(50, 655, 550, 655)
+
+    # Booking and guide details
+    total_days = (booking.end_date - booking.start_date).days + 1
+    total_cost = total_days * booking.guide.cost_per_day
+
+    booking_details = [
+        ["Customer Name:", booking.user.first_name],
+        ["Email:", booking.user.email],
+        ["Booking ID:", booking.booking_id],
+        ["Guide Name:", booking.guide.name],
+        ["Start Date:", booking.start_date.strftime('%d-%m-%Y')],
+        ["End Date:", booking.end_date.strftime('%d-%m-%Y')],
+        ["Total Days:", f"{total_days} days"],
+        ["Cost per Day:", f"₹{booking.guide.cost_per_day:.2f}"],
+        ["Total Amount:", f"₹{total_cost:.2f}"],
+        ["Payment Date:", booking.payment_date.strftime('%d-%m-%Y')],
+        ["Transaction ID:", booking.transaction_id]
+    ]
+
+    table = Table(booking_details, colWidths=[150, 350])
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),  
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),  
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),  
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),  
+        ('FONTSIZE', (0, 0), (-1, 0), 12),  
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),  
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige), 
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),  
+    ]))
+
+    table.wrapOn(p, 400, 600)
+    table.drawOn(p, 50, 400)
+
+    p.line(50, 380, 550, 380)
+
+    # Thank you message
+    p.setFont("Helvetica-Oblique", 10)
+    p.drawCentredString(300, 120, "Thank you for booking a guide with Explore Hub!")
+    p.drawCentredString(300, 105, "Please contact us if you have any questions regarding your booking.")
+
+    p.showPage()
+    p.save()
 
 #view for listing the replies to the requests from the local guide
 def advice_request_list(request):
@@ -1278,12 +1448,33 @@ def reply_advice_request(request, request_id):
 @login_required
 def local_guide_bookings(request):
     if 'guide' in request.session:
-        bookings = GuideBooking.objects.filter(user=request.user).order_by('-payment_date')
+        guide = LocalGuide.objects.get(username=request.user.username)
+        bookings = GuideBooking.objects.filter(guide=guide).order_by('-payment_date')
         return render(request, 'guide_bookings.html', {'bookings': bookings})
     else:
         return redirect('login')
     
 @login_required
 def booking_details(request, booking_id):
-    booking = get_object_or_404(GuideBooking, booking_id=booking_id, user=request.user)
-    return render(request, 'guide_booking_details.html', {'booking': booking})
+    if 'guide' in request.session:
+        booking = get_object_or_404(GuideBooking, pk=booking_id)
+        # plan = get_object_or_404(BookingPlan, booking=booking)
+        return render(request, 'guide_booking_detail.html', {'booking': booking})
+    else:
+        return redirect('login')
+    
+def guide_update_trip_plan(request, booking_id):
+    if 'guide' in request.session:
+        booking = get_object_or_404(GuideBooking, pk=booking_id)
+        plan = get_object_or_404(BookingPlan, booking=booking)
+        if request.method == 'POST':
+            itinerary = request.POST.get('trip_itinerary')
+
+            # Update the trip plan
+            plan.guide_plan = itinerary
+
+            plan.save()
+
+        return redirect('guide_booking_detail', booking_id=booking_id)
+    else:
+        return redirect('login')

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment for Package</title>
+    <title>Payment for {{ booking_type }}</title>
     <link rel="shortcut icon" type="image/png" href="{% static 'images/logo.png' %}" >
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
@@ -52,10 +52,10 @@
 </head>
 <body>
     <div class="container">
-        <h1>Payment for {{ package.title }}</h1>
+        <h1>Payment for {{ booking_type }}: {{ title }}</h1>
         <p>Amount: ₹{{ total_amount }}</p>
 
-        <form action="{% url 'payment_success' %}" method="POST" id="razorpay-form">
+        <form action="{% url payment_success_url %}" method="POST" id="razorpay-form">
             {% csrf_token %}
             <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
             <input type="hidden" name="razorpay_order_id" id="razorpay_order_id">
@@ -69,18 +69,18 @@
         document.getElementById('pay-button').onclick = function(e) {
             e.preventDefault();
             var options = {
-                key: "{{ razorpay_key }}", // Enter the Key ID generated from the Dashboard
-                amount: "{{ total_amount|floatformat:2 }}00", // Amount is in currency subunits. Default currency is INR. Hence, 100 refers to 100 INR
+                key: "{{ razorpay_key }}", 
+                amount: "{{ total_amount|floatformat:2 }}00", 
                 currency: "INR",
                 name: "Explore Hub",
-                description: "Booking Payment",
-                image: "{% static 'images/logo.png' %}", // Optional: add your logo URL
-                order_id: "{{ razorpay_order_id }}", // Generate order_id using Orders API
+                description: "{{ booking_type }} Payment",
+                image: "{% static 'images/logo.png' %}", 
+                order_id: "{{ razorpay_order_id }}", 
                 handler: function(response) {
                     document.getElementById('razorpay_payment_id').value = response.razorpay_payment_id;
                     document.getElementById('razorpay_order_id').value = response.razorpay_order_id;
                     document.getElementById('razorpay_signature').value = response.razorpay_signature;
-                    document.getElementById('razorpay-form').submit(); // Submit the form
+                    document.getElementById('razorpay-form').submit(); 
                 },
                 prefill: {
                     name: "{{ request.user.username }}",

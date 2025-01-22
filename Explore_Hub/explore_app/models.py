@@ -30,6 +30,8 @@ class LocalGuide(models.Model):
     guide_license = models.FileField(upload_to='guide_licenses/')
     agreement = models.BooleanField(default=False)
     approved = models.BooleanField(default=False)
+    cost_per_day = models.DecimalField(max_digits=8, decimal_places=2, default=False)
+    cancellation = models.BooleanField(default=False)
 
 #to ammend the already known table with phone number and role
 class CustomUser(User):
@@ -156,12 +158,13 @@ class AdviceRequest(models.Model):
 class GuideBooking(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     guide = models.ForeignKey('LocalGuide', on_delete=models.CASCADE)
-    start_date = models.DateField(help_text="Start date of the guide service.")
-    end_date = models.DateField(null=True, blank=True, help_text="End date of the guide service (if multi-day).")
-    duration_in_hours = models.PositiveIntegerField(help_text="Duration of the guide service in hours.")
+    start_date = models.DateField()
+    end_date = models.DateField(null=True, blank=True)
     number_of_people = models.PositiveIntegerField(default=1)
+    booking_id = models.CharField(max_length=100, unique=True)
     is_confirmed = models.BooleanField(default=False)
     is_cancelled = models.BooleanField(default=False)
+    cancellation = models.BooleanField(default=False)
     cancellation_reason = models.TextField(null=True, blank=True)
     cancellation_date = models.DateTimeField(null=True, blank=True)
 
@@ -183,3 +186,11 @@ class GuideBooking(models.Model):
     razorpay_payment_id = models.CharField(max_length=255, blank=True, null=True)
     payment_date = models.DateTimeField(null=True, blank=True)
     refunded_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+#model for planning the trip
+class BookingPlan(models.Model):
+    booking = models.ForeignKey('GuideBooking', on_delete=models.CASCADE, related_name='plans')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    user_preferences = models.TextField(blank=True, null=True)
+    guide_plan = models.TextField(blank=True, null=True)
