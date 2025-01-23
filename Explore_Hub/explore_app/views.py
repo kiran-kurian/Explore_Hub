@@ -971,8 +971,9 @@ def generate_pdf(booking, buffer):
 def my_bookings(request):
     if 'normal' in request.session:
         user = request.user
-        my_bookings = Booking.objects.filter(user = user)
-        return render(request, 'my_bookings.html', {'my_bookings': my_bookings})
+        current_date = timezone.now().date()
+        my_bookings = Booking.objects.filter(user = user, is_confirmed = True)
+        return render(request, 'my_bookings.html', {'my_bookings': my_bookings, 'current_date': current_date})
     else:
         return redirect('login')
     
@@ -987,17 +988,17 @@ def cancel_booking(request, booking_id):
                 if booking.trip_date > current_date + timedelta(weeks=1):
                     booking.is_cancelled = True
                     booking.is_confirmed = False  
-                    booking.refunded_amount = booking.total_amount  # Set the amount to be refunded
+                    booking.refunded_amount = booking.total_amount  
                     client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
 
                     try:
                         # Create a refund
                         refund_response = client.payment.refund(booking.razorpay_payment_id, {
-                            'amount': int(booking.total_amount * 100)  # Amount in paise
+                            'amount': int(booking.total_amount * 100) 
                         })
 
                         if refund_response.get('id'):
-                            booking.save()  # Save booking changes after successful refund
+                            booking.save()  
                             messages.success(request, 'Booking has been cancelled successfully. Amount refunded.')
                         else:
                             messages.error(request, 'Refund failed. Please contact support.')
@@ -1021,7 +1022,7 @@ def ta_bookings(request):
         current_year = timezone.now().year
         months = Booking.objects.dates('trip_date', 'month')
         travel_agency = TravelAgency.objects.get(username=request.user.username)
-        bookings = Booking.objects.filter(package__agency_id = travel_agency).order_by('trip_date')
+        bookings = Booking.objects.filter(package__agency_id = travel_agency, is_confirmed=True).order_by('trip_date')
         return render(request, 'ta_bookings.html', {'bookings': bookings, 'months': months})
     else:
         return redirect('login')
@@ -1136,6 +1137,7 @@ def guide_registration(request):
                     years_of_experience=years_of_experience,
                     languages_known=languages_known,
                     location=location,
+                    cancellation=True,
                     approved=False
                 )
                 local_guide.save()
@@ -1449,32 +1451,108 @@ def reply_advice_request(request, request_id):
 def local_guide_bookings(request):
     if 'guide' in request.session:
         guide = LocalGuide.objects.get(username=request.user.username)
-        bookings = GuideBooking.objects.filter(guide=guide).order_by('-payment_date')
-        return render(request, 'guide_bookings.html', {'bookings': bookings})
+        bookings = GuideBooking.objects.filter(guide=guide, payment_status='Completed', end_date__gt=timezone.now()).order_by('-payment_date')
+        return render(request, 'guide_bookings.html', {'bookings': bookings, 'guide':guide})
     else:
         return redirect('login')
     
 @login_required
 def booking_details(request, booking_id):
     if 'guide' in request.session:
+        guide = LocalGuide.objects.get(username=request.user.username)
         booking = get_object_or_404(GuideBooking, pk=booking_id)
-        # plan = get_object_or_404(BookingPlan, booking=booking)
-        return render(request, 'guide_booking_detail.html', {'booking': booking})
+        try:
+            plan = BookingPlan.objects.get(booking=booking)
+            return render(request, 'guide_booking_detail.html', {'booking': booking, 'guide': guide, 'plan' : plan})
+        except plan.DoesNotExist:
+            return render(request,'guide_booking_detail.html', {'booking': booking, 'guide': guide})
+        
     else:
         return redirect('login')
     
+#view for updating the trip plan by the guide
 def guide_update_trip_plan(request, booking_id):
     if 'guide' in request.session:
         booking = get_object_or_404(GuideBooking, pk=booking_id)
-        plan = get_object_or_404(BookingPlan, booking=booking)
-        if request.method == 'POST':
-            itinerary = request.POST.get('trip_itinerary')
+        try:
+            plan = BookingPlan.objects.get(booking=booking)
+        except BookingPlan.DoesNotExist:
+            if request.method == 'POST':
+                itinerary = request.POST.get('trip_itinerary')
+                plan = BookingPlan.objects.create(booking=booking)
+                plan.guide_plan = itinerary
 
-            # Update the trip plan
-            plan.guide_plan = itinerary
+                plan.save()
 
-            plan.save()
-
-        return redirect('guide_booking_detail', booking_id=booking_id)
+        return redirect('booking_details', booking_id=booking_id)
     else:
         return redirect('login')
+    
+#view for listing guide bookings by the user
+def my_guide_bookings(request):
+    my_bookings = GuideBooking.objects.filter(user=request.user, end_date__gt=timezone.now(), payment_status='Completed').order_by('start_date')
+    context = {
+        'my_bookings': my_bookings,
+        'is_guide_bookings': True,
+    }
+    return render(request, 'my_bookings.html', context)
+
+#view for cancelling guide booking
+def cancel_guide_booking(request, booking_id):
+    if 'normal' in request.session:
+        booking = get_object_or_404(GuideBooking, id=booking_id)
+        current_date = timezone.now().date()
+
+        if request.method == 'POST':
+            if booking.cancellation:
+                if booking.start_date > current_date + timedelta(weeks=1):
+                    booking.is_cancelled = True
+                    booking.is_confirmed = False
+                    booking.refunded_amount = booking.total_amount  
+                    client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+
+                    try:
+                        refund_response = client.payment.refund(booking.razorpay_payment_id, {
+                            'amount': int(booking.total_amount * 100) 
+                        })
+
+                        if refund_response.get('id'):
+                            booking.save() 
+                            messages.success(request, 'Guide booking has been cancelled successfully. Amount refunded.')
+                        else:
+                            messages.error(request, 'Refund failed. Please contact support.')
+                    except Exception as e:
+                        messages.error(request, f'Error processing refund: {str(e)}')
+                else:
+                    messages.error(request, 'Cancellation is only allowed if the trip date is more than a week away.')
+            else:
+                messages.error(request, 'Cancellation is not available for this guide booking.')
+        else:
+            messages.error(request, 'Failed to cancel the guide booking.')
+
+        return redirect('my_guide_bookings')  
+    else:
+        return redirect('login')
+    
+#view for viewing the details of the guide booked by the user
+def guide_booking_detail(request, booking_id):
+    booking = get_object_or_404(GuideBooking, pk=booking_id)
+    try:
+        plan = BookingPlan.objects.get(booking=booking)
+    except BookingPlan.DoesNotExist:
+        plan = None
+    if request.method == 'POST':
+        suggestion_text = request.POST.get('suggestion_text')
+        if suggestion_text:
+            suggestion = BookingPlan.objects.update(
+                booking=booking,
+                user_preferences=suggestion_text
+            )
+            messages.success(request, "Your suggestion has been submitted successfully!")
+            return redirect('guide_booking_detail', booking_id=booking_id)
+
+    context = {
+        'booking': booking,
+        'plan': plan
+    }
+    return render(request, 'my_guide_details.html', context)

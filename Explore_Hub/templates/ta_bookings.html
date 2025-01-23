@@ -41,7 +41,13 @@
                         <td>{{ booking.package.title }}</td>
                         <td>{{ booking.user.customuser.phone_number }} / {{ booking.user.email }}</td>
                         <td>{{ booking.number_of_people }}</td>
-                        <td>{{ booking.trip_date|date:"d-m-Y" }}</td>
+                        <td>
+                            {% if booking.trip_date|date > request.now|date %}
+                                <span class="text-success">Completed</span>
+                            {% else %}
+                                {{ booking.trip_date|date:"d-m-Y" }}
+                            {% endif %}
+                            </td>
                         <td>₹ {{ booking.total_amount }}</td>
                         <td>
                             {% if booking.is_cancelled %}

@@ -5,22 +5,92 @@
     .container h2 {
         padding-top: 120px;
     }
+    .btn-group {
+        margin-bottom: 20px;
+    }
+    .btn {
+        margin-right: 10px;
+    }
+    .btn-primary1 {
+        background-color: #ee5050;
+        color: white;
+        border: 1px solid #ee5050;
+        padding: 6px 20px;
+        font-size: 16px;
+        width:50px;
+        border-radius: 5px;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+    
+    .btn-primary1:hover {
+        background-color: #e91b1b;
+        transform: scale(1.05);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .btn-outline-primary1 {
+        background-color: transparent;
+        color: #ee5050;
+        border: 1px solid #ee5050;
+        padding: 8px 20px;
+        width: 10px;
+        font-size: 16px;
+        border-radius: 5px;
+        transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
+    }
+    
+    .btn-outline-primary1:hover {
+        background-color: #ed3e3e;
+        color: white;
+        transform: scale(1.05);
+        text-decoration: none;
+    }
+    
+    .btn-group {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 20px;
+        flex-wrap: wrap;
+    }
+
 </style>
 <div class="container mt-5">
-    
     <h2 class="text-center mb-4">My Bookings</h2>
+
+    <!-- Display flash messages if any -->
     {% if messages %}
         {% for message in messages %}
-            {{ message }}
+            <div class="alert alert-info">{{ message }}</div>
         {% endfor %}
     {% endif %}
+
+    <!-- Buttons to toggle between package bookings and guide bookings -->
+    <div class="btn-group">
+        <a href="{% url 'my_bookings' %}" 
+           class="btn {% if not is_guide_bookings %}btn-primary1{% else %}btn-outline-primary1{% endif %}">
+            Package Bookings
+        </a>
+        <a href="{% url 'my_guide_bookings' %}" 
+           class="btn {% if is_guide_bookings %}btn-primary1{% else %}btn-outline-primary1{% endif %}">
+            Guide Bookings
+        </a>
+    </div>
+
+    <!-- Booking table -->
     <div class="table-responsive">
         <table class="table table-bordered">
             <thead class="thead-light">
                 <tr>
-                    <th>Booking ID</th>
-                    <th>Package</th>
-                    <th>Trip Date</th>
+                    {% if is_guide_bookings %}
+                        <th>Guide Name</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                    {% else %}
+                        <th>Package</th>
+                        <th>Trip Date</th>
+                    {% endif %}
                     <th>Amount Paid</th>
                     <th>Status</th>
                     <th>Action</th>
@@ -29,27 +99,67 @@
             <tbody>
                 {% for booking in my_bookings %}
                 <tr>
-                    <td>{{ booking.booking_id }}</td>
-                    <td>{{ booking.package.title }}</td>
-                    <td>{{ booking.trip_date|date:"d-m-Y" }}</td>
-                    <td>₹{{ booking.total_amount|floatformat:2 }}</td>
-                    {% if booking.is_confirmed %}
-                    <td>Confirmed</td>
+                    {% if is_guide_bookings %}
+                        <td>{{ booking.guide.name }}</td>
+                        <td>{{ booking.start_date|date:"d-m-Y" }}</td>
+                        <td>{{ booking.end_date|date:"d-m-Y" }}</td>
+                    {% else %}
+                        <td>{{ booking.package.title }}</td>
+                        <td>{{ booking.trip_date|date:"d-m-Y" }}</td>
                     {% endif %}
+                    <td>₹{{ booking.total_amount|floatformat:2 }}</td>
                     <td>
                         {% if booking.is_confirmed %}
-                            {% if booking.cancellation %}
-                            <form action="{% url 'cancel_booking' booking.id %}" method="POST" style="display:inline;">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-danger btn-sm">Cancel</button>
-                            </form>
-                            {% else %}
-                            <span class="text-muted">Not available</span>
-                            {% endif %}
+                            Confirmed
                         {% elif booking.is_cancelled %}
-                            <span class="text-muted">Cancelled</span>    
+                            <span class="text-muted">Cancelled</span>
                         {% else %}
-                            <span class="text-muted">Booking not confirmed</span>
+                            <span class="text-muted">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if not booking.is_cancelled %}
+                            {% if booking.trip_date < request.now|date %}
+                                <span class="text-success">Completed</span>
+                            {% else %}
+                                {% if not is_guide_bookings %}
+                                    {% if booking.cancellation %} 
+                                        <form action="{% url 'cancel_booking' booking.id %}" method="POST" style="display:inline;">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-danger btn-sm"
+                                                {% if booking.trip_date|date <= request.now|date|add:"7" %}
+                                                    disabled
+                                                {% endif %}>
+                                                Cancel
+                                            </button>
+                                        </form>
+                                    {% else %}
+                                        <span class="text-muted">Cancellation not available</span>
+                                    {% endif %}
+                                {% else %}
+                                    {% comment %} {% if booking.cancellation %} 
+                                        <form action="{% url 'cancel_guide_booking' booking.id %}" method="POST" style="display:inline;">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-danger btn-sm"
+                                                {% if booking.start_date|date <= request.now|date|add:"7" %}
+                                                    disabled
+                                                {% endif %}>
+                                                Cancel
+                                            </button>
+                                        </form>
+                                    {% else %}
+                                        <span class="text-muted">Cancellation not available</span>
+                                    {% endif %} {% endcomment %}
+                                    <form action="{% url 'guide_booking_detail' booking.id %}" method="POST" style="display:inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-danger btn-sm">
+                                            Details
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            {% endif %}
+                        {% else %}
+                            <span class="text-muted">Cancelled</span>
                         {% endif %}
                     </td>
                 </tr>

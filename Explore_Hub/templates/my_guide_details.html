@@ -1,0 +1,27 @@
+{% extends 'layout_main.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Guide Booking Details</h2>
+
+    <p><strong>Guide Name:</strong> {{ booking.guide.name }}</p>
+    <p><strong>Trip Date:</strong> {{ booking.start_date|date:"d-m-Y" }}</p>
+    <p><strong>Status:</strong> {% if booking.is_confirmed %}Confirmed{% else %}Not Confirmed{% endif %}</p>
+
+    {% if plan %}
+        <h5>Guide's Plan:</h5>
+        <p>{{ plan.guide_plan }}</p>
+    {% else %}
+        <p>No plan available yet.</p>
+    {% endif %}
+
+    <h5>Submit Your Suggestions:</h5>
+    <form method="POST">
+        {% csrf_token %}
+        <textarea name="suggestion_text" class="form-control" rows="4" placeholder="Enter your suggestions for modifications">{{ plan.user_preferences }}</textarea>
+        <button type="submit" class="btn btn-primary mt-3">Submit Suggestion</button>
+    </form>
+
+    <hr>
+</div>
+{% endblock %}

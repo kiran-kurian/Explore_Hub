@@ -15,8 +15,8 @@
                 <div class="card-body">
                     <table class="table table-bordered">
                         <tr>
-                            <th>Booking ID</th>
-                            <td>{{ booking.booking_id }}</td>
+                            <th>Location</th>
+                            <td>{{ guide.location }}</td>
                         </tr>
                         <tr>
                             <th>Customer Name</th>
@@ -67,15 +67,13 @@
                 <div class="card-body">
                     <h5>Suggestions from the Customer</h5>
                     <div class="message-box">
-                        {% for suggestion in booking.suggestions.all %}
+                        {% if plan %}
                             <div class="message">
-                                <strong>{{ suggestion.user.first_name }}:</strong>
-                                <p>{{ suggestion.text }}</p>
-                                <p class="text-muted">{{ suggestion.created_at|date:"d M Y, H:i" }}</p>
+                                <p>{{ plan.user_preferences }}</p>
                             </div>
-                        {% empty %}
+                        {% else %}
                             <p>No suggestions yet.</p>
-                        {% endfor %}
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -92,7 +90,7 @@
                         {% csrf_token %}
                         <div class="mb-3">
                             <label for="trip_itinerary" class="form-label">Trip Itinerary</label>
-                            <textarea class="form-control" id="trip_itinerary" rows="5" name="trip_itinerary" placeholder="Enter the itinerary details here...">{{ booking.trip_itinerary }}</textarea>
+                            <textarea class="form-control" id="trip_itinerary" rows="5" name="trip_itinerary" placeholder="Enter the itinerary details here...">{{ plan.guide_plan }}</textarea>
                         </div>
 
                         <button type="submit" class="btn btn-primary">Update Trip Plan</button>

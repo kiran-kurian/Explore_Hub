@@ -88,7 +88,9 @@ urlpatterns = [
     path('local-guide/bookings/', local_guide_bookings, name='local_guide_bookings'),
     path('local-guide/booking/details/<str:booking_id>/', booking_details, name='booking_details'),
     path('guide/bookings/<int:booking_id>/update-trip-plan/', guide_update_trip_plan, name='guide_update_trip_plan'),
-
+    path('my-bookings/guide/', my_guide_bookings, name='my_guide_bookings'),
+    path('cancel_guide_booking/<int:booking_id>/', cancel_guide_booking, name='cancel_guide_booking'),
+    path('my_booking/guide/details/<int:booking_id>',guide_booking_detail, name='guide_booking_detail'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
