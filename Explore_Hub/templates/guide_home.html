@@ -1,5 +1,52 @@
 {% extends 'guide.html' %}
 {% block content %}
+<style>
+    .features {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        justify-content: center;
+        padding: 50px 20px;
+        background-color: #f4f4f4;
+    }
+
+    .feature-card {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 20px;
+        width: 100%;
+        max-width: 400px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        text-align: center;
+    }
+
+    .feature-card h2 {
+        font-size: 1.5rem;
+        color: #333;
+    }
+
+    .feature-card p {
+        font-size: 1rem;
+        margin: 15px 0;
+        color: #555;
+    }
+
+    .btn {
+        display: inline-block;
+        text-decoration: none;
+        background: #4CAF50;
+        color: #fff;
+        padding: 10px 15px;
+        border-radius: 5px;
+        font-size: 1rem;
+        transition: background 0.3s ease;
+    }
+
+    .btn:hover {
+        background: #3e8e41;
+    }
+</style>
     <main>
         <section class="features">
             <div class="container">

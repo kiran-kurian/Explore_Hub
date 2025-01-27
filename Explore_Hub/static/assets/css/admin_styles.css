@@ -1,14 +1,12 @@
-/* General Styles */
 body {
     font-family: 'Arial', sans-serif;
-    background-color: #f8f9fa; /* Light Gray Background */
+    background-color: #f8f9fa; 
     margin: 0;
     padding: 0;
 }
 
-/* Header Styles */
 header {
-    background-color: #1f4e79; /* Dark Blue */
+    background-color: #1f4e79; 
     padding: 20px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     color: white;
@@ -39,13 +37,12 @@ nav a {
 }
 
 nav a:hover {
-    background-color: #145276; /* Slightly lighter blue on hover */
+    background-color: #145276; 
 }
 
-/* Sidebar Styles */
 .sidebar {
     width: 250px;
-    background-color: #1f4e79; /* Dark blue */
+    background-color: #1f4e79; 
     position: relative;
     top: 30px;
     left: 0;
@@ -74,7 +71,6 @@ nav a:hover {
     border-bottom: 1px solid #145276;
 }
 
-/* Main Content */
 main {
     margin-left: 20px;
     margin-right: 20px;
@@ -90,11 +86,10 @@ main h2 {
     text-align: center;
     color: #145276;
     margin-bottom: 20px;
-    border-bottom: 2px solid #febf34; /* Goldish Underline */
+    border-bottom: 2px solid #febf34; 
     padding-bottom: 10px;
 }
 
-/* Admin Table */
 .table-container {
     margin-top: 20px;
     border-radius: 10px;
@@ -109,7 +104,7 @@ table {
 }
 
 table thead {
-    background-color: #febf34; /* Gold */
+    background-color: #febf34;
     color: white;
 }
 
@@ -131,7 +126,6 @@ table tbody tr:nth-child(even) {
     background-color: #f9f9f9;
 }
 
-/* Buttons */
 button, .btn {
     display: inline-block;
     padding: 10px 15px;
@@ -139,16 +133,15 @@ button, .btn {
     border: none;
     border-radius: 5px;
     color: #fff;
-    background-color: #28a745; /* Green */
+    background-color: #28a745; 
     transition: background-color 0.3s ease;
     cursor: pointer;
 }
 
 button:hover, .btn:hover {
-    background-color: #218838; /* Darker Green */
+    background-color: #218838; 
 }
 
-/* Add New Button */
 .add-new-btn {
     background-color: #28a745;
     padding: 10px 20px;
@@ -163,7 +156,6 @@ button:hover, .btn:hover {
     background-color: #218838;
 }
 
-/* Footer */
 footer {
     text-align: center;
     padding: 20px 0;
@@ -172,7 +164,6 @@ footer {
     margin-top: 40px;
 }
 
-/* Media Queries for Responsive Design */
 @media (max-width: 768px) {
     .sidebar {
         width: 100%;
@@ -190,32 +181,30 @@ footer {
     }
 }
 
-/* For horizontal navigation */
 ul {
-    list-style: none; /* Remove bullet points */
+    list-style: none; 
     padding: 0;
     margin: 0;
-    display: flex; /* Align items horizontally */
-    justify-content: space-around; /* Evenly space the items */
-    /* background-color: #1f4e79; */
+    display: flex; 
+    justify-content: space-around; 
     padding: 10px 0;
 }
 
 li {
-    margin: 0 15px; /* Space between list items */
+    margin: 0 15px; 
 }
 
 li a {
     text-decoration: none;
-    color: white; /* Text color */
-    padding: 10px 20px; /* Padding for clickable area */
+    color: white; 
+    padding: 10px 20px;
     font-size: 1.1rem;
     border-radius: 5px;
     transition: background-color 0.3s ease;
 }
 
 li a:hover {
-    background-color: #145276; /* Slightly lighter blue on hover */
+    background-color: #145276; 
 }
 
 .dropdown {
@@ -223,7 +212,6 @@ li a:hover {
     display: inline-block;
 }
 
-/* Dropdown button */
 .dropbtn {
     color: white;
     padding: 16px;
@@ -232,7 +220,6 @@ li a:hover {
     cursor: pointer;
 }
 
-/* Dropdown content (hidden by default) */
 .dropdown-content {
     display: none;
     position: absolute;
@@ -243,7 +230,6 @@ li a:hover {
     z-index: 1;
 }
 
-/* Dropdown content links */
 .dropdown-content a {
     color: white;
     padding: 12px 16px;
@@ -252,14 +238,12 @@ li a:hover {
     display: block;
 }
 
-/* Show the dropdown menu on hover */
 .dropdown:hover .dropdown-content {
     display: block;
     background-color: #1f4e79;
     font-size: 1.1rem;
 }
 
-/* Change the color of dropdown links on hover */
 .dropdown-content a:hover {
     background-color: #145276;
 }

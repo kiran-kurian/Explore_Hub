@@ -91,6 +91,7 @@ urlpatterns = [
     path('my-bookings/guide/', my_guide_bookings, name='my_guide_bookings'),
     path('cancel_guide_booking/<int:booking_id>/', cancel_guide_booking, name='cancel_guide_booking'),
     path('my_booking/guide/details/<int:booking_id>',guide_booking_detail, name='guide_booking_detail'),
+    path('guide/update_profile/', update_guide_profile, name='update_guide_profile'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

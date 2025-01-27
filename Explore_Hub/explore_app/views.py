@@ -1556,3 +1556,22 @@ def guide_booking_detail(request, booking_id):
         'plan': plan
     }
     return render(request, 'my_guide_details.html', context)
+
+#view for updating profile of guide
+def update_guide_profile(request):
+    if 'guide' in request.session:
+        guide = get_object_or_404(LocalGuide, username=request.user.username)
+
+        if request.method == "POST":
+            guide.name = request.POST.get('name')
+            guide.contact = request.POST.get('contact')
+            guide.email = request.POST.get('email')
+            guide.location = request.POST.get('location')
+            guide.years_of_experience = request.POST.get('years_of_experience')
+            guide.languages_known = request.POST.get('languages_known')        
+            guide.cost_per_day = request.POST.get('cost_per_day')
+            guide.save()
+            return redirect('guide_home')  
+
+        return render(request, 'guide_update_profile.html', {'guide': guide})
+    return redirect('login')
