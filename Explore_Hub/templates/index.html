@@ -17,32 +17,42 @@
                 </div>
             </div>
 
-                <!-- Second Slide for Group Feature -->
-                <div class="carousel-item">
-                    <div class="carousel-caption d-md-block">
-                        <h1 class="carousel-title typing-animation">Join or Create –<br> Your Own Travel Group</h1>
-                        <button class="book-package">
-                            <a href="{% url 'create_group' %}" class="package-book">
-                                Create a Group Now
-                            </a>
-                        </button>
-                        {% if 'normal' in request.session %}
-                        <button class="book-package">
-                            <a href="{% url 'available_group' %}" class="package-book">
-                                Join a Group
-                            </a>
-                        </button>
-                        {% else %}
-                        <button class="book-package">
-                            <a href="{% url 'groups' %}" class="package-book">
-                                Join a Group
-                            </a>
-                        </button>
-                        {% endif %}
-                    </div>
+            <!-- Second Slide for Group Feature -->
+            <div class="carousel-item">
+                <div class="carousel-caption d-md-block">
+                    <h1 class="carousel-title typing-animation">Join or Create –<br> Your Own Travel Group</h1>
+                    <button class="book-package">
+                        <a href="{% url 'create_group' %}" class="package-book">
+                            Create a Group Now
+                        </a>
+                    </button>
+                    {% if 'normal' in request.session %}
+                    <button class="book-package">
+                        <a href="{% url 'available_group' %}" class="package-book">
+                            Join a Group
+                        </a>
+                    </button>
+                    {% else %}
+                    <button class="book-package">
+                        <a href="{% url 'groups' %}" class="package-book">
+                            Join a Group
+                        </a>
+                    </button>
+                    {% endif %}
                 </div>
-                
             </div>
+
+            <div class="carousel-item">
+                <div class="carousel-caption d-md-block">
+                    <h1 class="carousel-title typing-animation">Discover Expert-Led Journeys –<br> Connect to Plan Your Perfect Adventure</h1>
+                    <button class="book-package">
+                        <a href="{% url 'local_guide_list' %}" class="package-book">
+                            Book your guide
+                        </a>
+                    </button>
+                </div>
+            </div>
+            
         </div>
 
         <!-- Add Carousel Controls -->
@@ -173,12 +183,12 @@
         </div>
     </section>
 
-    <!-- Add this at the end of your body tag -->
     <script>
         $(document).ready(function() {
             var images = [
                 '{% static "assets/imgs/package.jpg" %}',
-                '{% static "assets/imgs/hiking.jpg" %}'
+                '{% static "assets/imgs/hiking.jpg" %}',
+                '{% static "assets/imgs/guide_img.jpg" %}',
             ];
             var currentIndex = 0;
     

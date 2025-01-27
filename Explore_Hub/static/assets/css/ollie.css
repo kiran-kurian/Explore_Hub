@@ -2568,7 +2568,6 @@ textarea.form-control {
   background-color: rgba(253, 93, 147, 0.9);
   border-radius: 0.25rem;
 }
-
 .was-validated .form-control:invalid, .form-control.is-invalid {
   border-color: #FD5D93;
   padding-right: calc(1.5em + 0.75rem);
@@ -2831,8 +2830,9 @@ fieldset:disabled a.btn {
 }
 .ourvision-img{
   position:relative;
+  width: auto;
   bottom:-20px;
-  left:100px;
+  left:80px;
   border-radius: 20px;
 }
 .login-navbar{
@@ -2857,17 +2857,40 @@ fieldset:disabled a.btn {
 .our-vision{
   position:relative;
   top:20px;
+  left: 20px;
 }
 .aboutus-img{
   position:relative;
   bottom:-20px;
-  right:600px;
+  right:700px;
   border-radius: 20px;
+  max-width: 100vw; /* Ensure navbar doesn't exceed viewport width */
 }
+
 .btn-primary:hover {
   color: #fff;
   background-color: #ed3e3e;
   border-color: #ec3232;
+}
+
+/* Add these styles to contain navbar within screen */
+.navbar {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.navbar-collapse {
+  max-width: 100%;
+}
+
+.container {
+  width: 100%;
+  max-width: 100%;
+  padding-right: 15px;
+  padding-left: 15px;
+  margin-right: auto;
+  margin-left: auto;
 }
 
 .btn-primary:focus, .btn-primary.focus {
@@ -4623,6 +4646,12 @@ input[type="button"].btn-block {
       -ms-flex-pack: justify;
           justify-content: space-between;
   padding: 1.5rem 2rem;
+  padding: 1rem; /* Add padding for better spacing */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Add a subtle shadow for depth */
+  width: 100%; /* Ensure the navbar spans the full width of the screen */
+  max-width: 100%; /* Prevent the navbar from exceeding the screen width */
+  margin-left: auto; /* Center the navbar */
+  margin-right: auto; /* Center the navbar */
 }
 
 .navbar > .container,
@@ -4642,6 +4671,7 @@ input[type="button"].btn-block {
   -webkit-justify-content: space-between;
       -ms-flex-pack: justify;
           justify-content: space-between;
+  width: 100%; /* Ensure the container spans the full width of the navbar */
 }
 
 .navbar-brand {
@@ -4673,13 +4703,20 @@ input[type="button"].btn-block {
   white-space: nowrap;
   margin-bottom: 0;
   list-style: none;
-  gap: 20px;
   margin-left: 0;
+  justify-content: center; /* Center the navbar items */
 }
 
 .navbar-nav .nav-link {
   padding-right: 0;
   padding-left: 0; 
+  padding: 0.5rem 1rem; /* Add padding for better click area */
+  transition: color 0.3s; /* Smooth transition for hover effects */
+  margin: 0 10px; /* Add horizontal spacing between navbar items */
+}
+
+.navbar-nav .nav-link:hover {
+  color: #f06161; /* Change color on hover */
 }
 
 .navbar-nav .dropdown-menu {
@@ -4717,6 +4754,7 @@ input[type="button"].btn-block {
   background-color: transparent;
   border: 1px solid transparent;
   border-radius: 0;
+  border: none; /* Remove border */
 }
 
 .navbar-toggler:hover, .navbar-toggler:focus {
@@ -4731,6 +4769,7 @@ input[type="button"].btn-block {
   content: "";
   background: no-repeat center center;
   background-size: 100% 100%;
+  background-color: #f06161; /* Change color of the toggler icon */
 }
 
 @media (max-width: 575.98px) {
@@ -4846,6 +4885,12 @@ input[type="button"].btn-block {
   .navbar-expand-lg > .container-fluid {
     padding-right: 0;
     padding-left: 0;
+  }
+  .navbar-nav {
+    text-align: center; /* Center items on smaller screens */
+  }
+  .navbar-nav .nav-item {
+    margin: 0.5rem 0; /* Add margin for spacing */
   }
 }
 
@@ -11385,6 +11430,10 @@ p {
 .navbar {
   -webkit-transition: all, 0.4s;
   transition: all, 0.4s;
+  white-space: nowrap;
+  justify-content: space-between;
+  align-items: center;
+  inline-size: max-content;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -11439,8 +11488,8 @@ p {
 }
 
 .navbar-brand .brand-img {
-  width: 200px;
-  margin: -0.3125rem 0;
+  max-height: 50px; /* Adjust the height as needed */
+  width: auto; /* Maintain aspect ratio */
 }
 
 .navbar-toggler {
@@ -11527,6 +11576,9 @@ p {
 @media (max-width: 767.98px) {
   .navbar-expand-sm .navbar-collapse {
     padding: 2rem 0;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
   }
 }
 
