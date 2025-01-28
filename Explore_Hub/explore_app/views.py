@@ -1111,6 +1111,7 @@ def guide_registration(request):
         documents = request.FILES.get("guide_license")
         agreement = request.POST.get("agreement") == 'on'
         years_of_experience = request.POST.get("years_of_experience")
+        cost_per_day = request.POST.get('cost_per_day')
         languages_known = request.POST.get("languages_known")
         location = request.POST.get("location")
         
@@ -1140,7 +1141,8 @@ def guide_registration(request):
                     languages_known=languages_known,
                     location=location,
                     cancellation=True,
-                    approved=False
+                    approved=False,
+                    cost_per_day=cost_per_day
                 )
                 local_guide.save()
                 
