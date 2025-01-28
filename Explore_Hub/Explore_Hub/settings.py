@@ -26,6 +26,11 @@ RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET')
 SECURE_REFERRER_POLICY = 'no-referrer-when-downgrade'
 SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
 
+AMADEUS_CLIENT_ID = os.environ.get('AMADEUS_KEY_ID')
+AMADEUS_CLIENT_SECRET = os.environ.get('AMADEUS_SECRET_KEY')
+
+OPENCAGE_API_KEY = os.environ.get('OPENCAGE_API_KEY')
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent

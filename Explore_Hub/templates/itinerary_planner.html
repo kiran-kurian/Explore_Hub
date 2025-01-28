@@ -1,0 +1,124 @@
+{% extends 'layout_main.html' %}
+
+{% block content %}
+<div class="container1 mt-5">
+    <div class="text-center mb-4">
+        <h1 class="display5 fw-bold">Budget-Optimized Itinerary Planner</h1>
+        <p class="text-muted">Plan your trip within your budget and enjoy tailored recommendations.</p>
+    </div>
+
+    <div class="card shadow-sm p-4 mb-5">
+        <h4 class="card-title mb-3 text-primary">Plan Your Travel</h4>
+        <form method="post" action="{% url 'itinerary_planner' %}">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="budget" class="form-label fw-bold">Budget (in IND)</label>
+                    <input type="number" name="budget" id="budget" class="form-control" placeholder="Enter your budget" required>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label for="origin" class="form-label fw-bold">Origin</label>
+                    <input type="text" name="origin" id="origin" class="form-control" placeholder="e.g., Paris, Tokyo" required>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label for="destination" class="form-label fw-bold">Destination</label>
+                    <input type="text" name="destination" id="destination" class="form-control" placeholder="e.g., Paris, Tokyo" required>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label for="duration" class="form-label fw-bold">Travel Duration (Days)</label>
+                    <input type="number" name="duration" id="duration" class="form-control" placeholder="e.g., 5" required>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label for="no_of_people" class="form-label fw-bold">Number of Travellers</label>
+                    <input type="number" name="no_of_people" id="no_of_people" class="form-control" placeholder="" required>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-5 mb-3">
+                    <label for="preferences" class="form-label fw-bold">Travel Preferences</label>
+                    <select name="preferences" id="preferences" class="form-control" required>
+                        <option value="" selected disabled>-- Select Preferences --</option>
+                        <option value="beach">Beach</option>
+                        <option value="adventure">Adventure</option>
+                        <option value="cultural">Cultural</option>
+                        <option value="nature">Nature</option>
+                    </select>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label for="start_date" class="form-label fw-bold">Start Date</label>
+                    <input type="date" name="start_date" id="start_date" class="form-control" required>
+                </div>
+            </div>
+
+            <div class="text-center">
+                <button type="submit" class="btn btn-primary1 btn-lg px-5">Generate Itinerary</button>
+            </div>
+        </form>
+    </div>
+
+    <div id="itinerary-results" class="d-none card shadow-sm p-4">
+        <h4 class="card-title mb-3 text-success">Optimized Itinerary</h4>
+        <div id="itinerary-content">
+            <p class="text-muted">Your planned itinerary will appear here after submission.</p>
+        </div>
+    </div>
+</div>
+
+{% if itinerary %}
+    <div id="itinerary-results" class="card shadow-sm p-4">
+        <h4 class="card-title mb-3 text-success">Optimized Itinerary</h4>
+        <h5 class="mt-2 text-primary">Destination: {{ itinerary.destination }}</h5>
+        <p><strong>Travel Dates:</strong> {{ itinerary.start_date }} to {{ itinerary.end_date }}</p>
+        <p><strong>Total Budget:</strong> ₹{{ itinerary.budget }}</p>
+        <p><strong>Preferences:</strong> {{ itinerary.preferences|title }}</p>
+
+        <h5 class="mt-4 text-success">Daily Activities:</h5>
+        <ul class="list-group">
+            {% for day in itinerary.details %}
+            <li class="list-group-item">
+                <strong>Day {{ day.day }}:</strong> {{ day.activity }}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% else %}
+    <div id="itinerary-results" class="d-none"></div>
+    {% endif %}
+
+<style>
+    .container1 {
+        max-width: 800px;
+        margin-top: 180px;
+        padding-top: 80px;
+        margin-left: 350px;
+    }
+    
+    .card {
+        border-radius: 12px;
+        background-color: #f9f9f9;
+    }
+    
+    .card-title {
+        font-weight: 600;
+    }
+    
+    .btn-primary1 {
+        background-color: #f06161;
+        border: none;
+        width: 300px;
+        color: white;
+    }
+    
+    .btn-primary1:hover {
+        background-color: #e91b1b;
+        color: white;
+    }
+</style>
+
+{% endblock %}

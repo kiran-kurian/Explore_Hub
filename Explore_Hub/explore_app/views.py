@@ -31,6 +31,8 @@ from reportlab.pdfgen import canvas
 from io import BytesIO
 import base64
 from django.utils import timezone
+import requests
+from opencage.geocoder import OpenCageGeocode
 
 # Create your views here.
 
@@ -1575,3 +1577,163 @@ def update_guide_profile(request):
 
         return render(request, 'guide_update_profile.html', {'guide': guide})
     return redirect('login')
+
+def itinerary_planner(request):
+    if request.method == 'POST':
+        # Collect user inputs
+        budget = request.POST.get('budget')
+        origin = request.POST.get('origin')
+        destination = request.POST.get('destination')
+        duration = int(request.POST.get('duration'))
+        preferences = request.POST.get('preferences')
+        start_date = request.POST.get('start_date')
+        no_of_people = request.POST.get('no_of_people')
+
+        start_date_obj = datetime.strptime(start_date, "%Y-%m-%d").date()
+        end_date = start_date_obj + timedelta(days=duration)
+
+        flights = search_flights(origin, destination, start_date, end_date)
+        hotels = search_hotels(destination)
+        activities = search_activities(destination)
+
+        print(flights, hotels, activities)
+
+        # Mock itinerary data
+        planned_itinerary = {
+            "destination": destination,
+            "start_date": start_date,
+            "end_date": end_date.isoformat(),
+            "budget": budget,
+            "preferences": preferences,
+            "details": [
+                {"day": 1, "activity": "Arrival and local sightseeing."},
+                {"day": 2, "activity": f"Explore {preferences.capitalize()} spots in {destination}."},
+                {"day": duration, "activity": "Departure and farewell activities."},
+            ],
+        }
+
+        # Pass data to the same template
+        return render(request, 'itinerary_planner.html', {'itinerary': planned_itinerary})
+    return render(request, 'itinerary_planner.html')
+
+def get_amadeus_access_token():
+    url = "https://test.api.amadeus.com/v1/security/oauth2/token"
+    client_id = settings.AMADEUS_CLIENT_ID
+    client_secret = settings.AMADEUS_CLIENT_SECRET
+
+    payload = {
+        'grant_type': 'client_credentials',
+        'client_id': client_id,
+        'client_secret': client_secret
+    }
+
+    response = requests.post(url, data=payload)
+
+    if response.status_code == 200:
+        return response.json()['access_token']
+    else:
+        raise Exception('Failed to get Amadeus access token')
+    
+def get_city_code(city_name):
+    access_token = get_amadeus_access_token()  # Ensure your token generation function works
+    url = "https://test.api.amadeus.com/v1/reference-data/locations"
+
+    headers = {
+        "Authorization": f"Bearer {access_token}"
+    }
+
+    params = {
+        "keyword": city_name,  # The city name provided by the user
+        "subType": "CITY"  # We want city codes specifically
+    }
+
+    response = requests.get(url, headers=headers, params=params)
+
+    if response.status_code == 200:
+        data = response.json()
+        # Extract the city code from the response
+        if "data" in data and len(data["data"]) > 0:
+            return data["data"][0]["iataCode"]  # The first result's IATA code
+        else:
+            raise Exception("City not found. Please check the input.")
+    else:
+        raise Exception(f"Error fetching city code: {response.json()}")
+
+    
+def search_flights(origin, destination, departure_date, return_date=None):
+    access_token = get_amadeus_access_token()
+    url = f"https://test.api.amadeus.com/v2/shopping/flight-offers"
+
+    headers = {
+        "Authorization": f"Bearer {access_token}"
+    }
+
+    params = {
+        "originLocationCode": get_city_code(origin),  
+        "destinationLocationCode": get_city_code(destination), 
+        "departureDate": departure_date, 
+        "returnDate": return_date if return_date else None,
+        "adults": 1
+    }
+
+    response = requests.get(url, headers=headers, params=params)
+
+    if response.status_code == 200:
+        return response.json()
+    else:
+        raise Exception("Error fetching flight data")
+    
+def search_hotels(city_code):
+    access_token = get_amadeus_access_token()
+    url = f"https://test.api.amadeus.com/v1/reference-data/locations/hotels/by-city"
+
+    headers = {
+        "Authorization": f"Bearer {access_token}"
+    }
+
+    params = {
+        "cityCode": get_city_code(city_code),  
+    }
+
+    response = requests.get(url, headers=headers, params=params)
+
+    print("Response Status Code:", response.status_code)
+    print("Response Data:", response.json())
+
+    if response.status_code == 200:
+        return response.json()
+    else:
+        raise Exception("Error fetching hotel data")
+    
+def get_lat_long(location):
+    geocoder = OpenCageGeocode(settings.OPENCAGE_API_KEY)
+    result = geocoder.geocode(location)
+
+    if result and len(result):
+        latitude = result[0]['geometry']['lat']
+        longitude = result[0]['geometry']['lng']
+        return latitude, longitude
+    else:
+        raise Exception(f"Could not find location: {location}")
+    
+def search_activities(location):
+    access_token = get_amadeus_access_token()
+    url = f"https://test.api.amadeus.com/v1/shopping/activities"
+
+    headers = {
+        "Authorization": f"Bearer {access_token}"
+    }
+
+    latitude, longitude = get_lat_long(location)
+
+    params = {
+        "latitude": latitude,  
+        "longitude": longitude
+    }
+
+    response = requests.get(url, headers=headers, params=params)
+
+    if response.status_code == 200:
+        return response.json()
+    else:
+        raise Exception("Error fetching activities data")

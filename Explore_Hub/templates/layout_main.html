@@ -52,7 +52,7 @@
                         <a class="nav-link" href="#events">Events</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#itinerary">Itinerary Planner</a>
+                        <a class="nav-link" href="{% url 'itinerary_planner' %}">Itinerary Planner</a>
                     </li>
                     {% if user.is_authenticated %}
                     <li class="nav-item dropdown">
