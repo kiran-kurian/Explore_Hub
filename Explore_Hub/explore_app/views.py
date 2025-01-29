@@ -1637,7 +1637,7 @@ def get_amadeus_access_token():
         raise Exception('Failed to get Amadeus access token')
     
 def get_city_code(city_name):
-    access_token = get_amadeus_access_token()  # Ensure your token generation function works
+    access_token = get_amadeus_access_token()  
     url = "https://test.api.amadeus.com/v1/reference-data/locations"
 
     headers = {
@@ -1645,8 +1645,8 @@ def get_city_code(city_name):
     }
 
     params = {
-        "keyword": city_name,  # The city name provided by the user
-        "subType": "CITY"  # We want city codes specifically
+        "keyword": city_name,  
+        "subType": "CITY"  
     }
 
     response = requests.get(url, headers=headers, params=params)
@@ -1655,7 +1655,7 @@ def get_city_code(city_name):
         data = response.json()
         # Extract the city code from the response
         if "data" in data and len(data["data"]) > 0:
-            return data["data"][0]["iataCode"]  # The first result's IATA code
+            return data["data"][0]["iataCode"]  
         else:
             raise Exception("City not found. Please check the input.")
     else:
