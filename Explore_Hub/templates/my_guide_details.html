@@ -1,7 +1,7 @@
 {% extends 'layout_main.html' %}
 
 {% block content %}
-<div class="container mt-5">
+<div class="container1 mt-5">
     <h2 class="text-center mb-4">Guide Booking Details</h2>
 
     <p><strong>Guide Name:</strong> {{ booking.guide.name }}</p>
@@ -21,7 +21,12 @@
         <textarea name="suggestion_text" class="form-control" rows="4" placeholder="Enter your suggestions for modifications">{{ plan.user_preferences }}</textarea>
         <button type="submit" class="btn btn-primary mt-3">Submit Suggestion</button>
     </form>
-
-    <hr>
 </div>
+
+<style>
+    .container1 {
+        padding-top: 80px;
+        padding-left: 400px;
+        width: 80%;
+    }
 {% endblock %}

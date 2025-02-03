@@ -1463,12 +1463,14 @@ def local_guide_bookings(request):
 @login_required
 def booking_details(request, booking_id):
     if 'guide' in request.session:
+        print(booking_id)
         guide = LocalGuide.objects.get(username=request.user.username)
         booking = get_object_or_404(GuideBooking, pk=booking_id)
+        print(booking)
         try:
             plan = BookingPlan.objects.get(booking=booking)
             return render(request, 'guide_booking_detail.html', {'booking': booking, 'guide': guide, 'plan' : plan})
-        except plan.DoesNotExist:
+        except:
             return render(request,'guide_booking_detail.html', {'booking': booking, 'guide': guide})
         
     else:
@@ -1480,6 +1482,12 @@ def guide_update_trip_plan(request, booking_id):
         booking = get_object_or_404(GuideBooking, pk=booking_id)
         try:
             plan = BookingPlan.objects.get(booking=booking)
+            if request.method == 'POST':
+                itinerary = request.POST.get('trip_itinerary')
+                plan = BookingPlan.objects.get(booking=booking)
+                plan.guide_plan = itinerary
+
+                plan.save()
         except BookingPlan.DoesNotExist:
             if request.method == 'POST':
                 itinerary = request.POST.get('trip_itinerary')
