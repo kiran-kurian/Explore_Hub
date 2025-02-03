@@ -21,6 +21,12 @@
         <textarea name="suggestion_text" class="form-control" rows="4" placeholder="Enter your suggestions for modifications">{{ plan.user_preferences }}</textarea>
         <button type="submit" class="btn btn-primary mt-3">Submit Suggestion</button>
     </form>
+
+    <form method="POST" action="{% url 'cancel_guide_booking' booking.id %}" class="mt-3">
+        {% csrf_token %}
+        <input type="hidden" name="cancel_booking" value="{{ booking.id }}">
+        <button type="submit" class="btn btn-danger">Cancel Booking</button>
+    </form>
 </div>
 
 <style>

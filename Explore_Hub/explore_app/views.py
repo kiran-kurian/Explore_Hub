@@ -1455,7 +1455,7 @@ def reply_advice_request(request, request_id):
 def local_guide_bookings(request):
     if 'guide' in request.session:
         guide = LocalGuide.objects.get(username=request.user.username)
-        bookings = GuideBooking.objects.filter(guide=guide, payment_status='Completed', end_date__gt=timezone.now()).order_by('-payment_date')
+        bookings = GuideBooking.objects.filter(guide=guide, payment_status='Completed', end_date__gt=timezone.now()).order_by('start_date')
         return render(request, 'guide_bookings.html', {'bookings': bookings, 'guide':guide})
     else:
         return redirect('login')
@@ -1463,10 +1463,8 @@ def local_guide_bookings(request):
 @login_required
 def booking_details(request, booking_id):
     if 'guide' in request.session:
-        print(booking_id)
         guide = LocalGuide.objects.get(username=request.user.username)
         booking = get_object_or_404(GuideBooking, pk=booking_id)
-        print(booking)
         try:
             plan = BookingPlan.objects.get(booking=booking)
             return render(request, 'guide_booking_detail.html', {'booking': booking, 'guide': guide, 'plan' : plan})
@@ -1502,12 +1500,15 @@ def guide_update_trip_plan(request, booking_id):
     
 #view for listing guide bookings by the user
 def my_guide_bookings(request):
-    my_bookings = GuideBooking.objects.filter(user=request.user, end_date__gt=timezone.now(), payment_status='Completed').order_by('start_date')
-    context = {
-        'my_bookings': my_bookings,
-        'is_guide_bookings': True,
-    }
-    return render(request, 'my_bookings.html', context)
+    if 'user' in request.session:
+        my_bookings = GuideBooking.objects.filter(user=request.user, end_date__gt=timezone.now(), payment_status='Completed').order_by('start_date')
+        context = {
+            'my_bookings': my_bookings,
+            'is_guide_bookings': True,
+        }
+        return render(request, 'my_bookings.html', context)
+    else:
+        return redirect('login')
 
 #view for cancelling guide booking
 def cancel_guide_booking(request, booking_id):
