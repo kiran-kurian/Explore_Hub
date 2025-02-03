@@ -60,6 +60,8 @@ class TravelPackage(models.Model):
     is_archived = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     discount_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    views = models.PositiveIntegerField(default=0)
+    booking_count = models.PositiveIntegerField(default=0)
 
     def discounted_price(self):
         discount_amount = (self.discount_percentage / 100) * self.price

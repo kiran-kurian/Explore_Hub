@@ -168,12 +168,14 @@ def register_view(request):
 
 #Package listing view
 def package_view(request):
-    travel_package = TravelPackage.objects.prefetch_related('package_images').filter(is_archived=False, is_active=True)
+    travel_package = TravelPackage.objects.prefetch_related('package_images').filter(is_archived=False, is_active=True).annotate(total_bookings=Count('booking_count')).order_by('-total_bookings', '-views')
     return render(request, "packages.html", {'packages': travel_package})
 
 #detailed package view
 def package_details(request, package_id):
     package = get_object_or_404(TravelPackage, pk = package_id)
+    package.views += 1
+    package.save(update_fields=['views'])
     return render(request, 'package_detail.html', {'package': package, 'agency_name': package.agency_id.name})
 
 #view for profile updation
@@ -796,6 +798,8 @@ def book_package_view(request, package_id):
             id_type = request.POST.get('id_type')
             id_number = request.POST.get('id_number')
             id_upload = request.FILES.get('id_upload')
+            package.booking_count = +1
+            package.save(update_fields=['booking_count'])
             
             # Create a new booking entry
             booking = Booking.objects.create(

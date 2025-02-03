@@ -1,6 +1,32 @@
 {% extends 'layout_main.html' %}
 {% load static %}
 {% block content %}
+
+<style>
+    .badge-container {
+        display: flex;
+        justify-content: flex-end; /* Align badges to the right */
+        gap: 10px; /* Adds space between badges */
+        padding: 5px;
+    }
+    
+    .badge {
+        font-weight: bold;
+        padding: 5px 10px;
+        border-radius: 5px;
+        color: white;
+        display: inline-block;
+        font-size: 14px;
+    }
+    
+    .booked-badge {
+        background-color: gold;
+    }
+    
+    .viewed-badge {
+        background-color: #ff5733;
+    }
+</style>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{% static 'assets/css/package_style.css' %}">
@@ -21,6 +47,14 @@
     <div class="package-list" id="package-list">
         {% for package in packages %}
             <div class="package-box">
+                <div class="badge-container">
+                    {% if package.total_bookings > 10 %}
+                        <span class="badge booked-badge">Most Booked</span>
+                    {% endif %}
+                    {% if package.views > 10 %}
+                        <span class="badge viewed-badge">Most Viewed</span>
+                    {% endif %}
+                </div>
                 <div class="slider-container">
                     {% for image in package.package_images.all %}
                         <div class="slide">
