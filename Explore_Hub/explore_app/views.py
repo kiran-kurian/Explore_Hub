@@ -168,8 +168,29 @@ def register_view(request):
 
 #Package listing view
 def package_view(request):
-    travel_package = TravelPackage.objects.prefetch_related('package_images').filter(is_archived=False, is_active=True).annotate(total_bookings=Count('booking_count')).order_by('-total_bookings', '-views')
-    return render(request, "packages.html", {'packages': travel_package})
+    try:
+        print("first")
+        recommended_packgs = recommended_package(request, request.user)
+        print("recommended")
+        travel_package = TravelPackage.objects.prefetch_related('package_images').filter(is_archived=False, is_active=True).annotate(total_bookings=Count('booking_count')).order_by('-total_bookings', '-views')
+        return render(request, "packages.html", {'packages': travel_package, 'recommended' : recommended_packgs})
+    except:
+        print("second")
+        travel_package = TravelPackage.objects.prefetch_related('package_images').filter(is_archived=False, is_active=True).annotate(total_bookings=Count('booking_count')).order_by('-total_bookings', '-views')
+        return render(request, "packages.html", {'packages': travel_package})
+    
+
+#view for past booking based recommendation
+def recommended_package(request, user):
+    if 'normal' in request.session:
+        booked_packages = user.booking_set.values_list('package_id', flat=True)
+        users_with_same_bookings = Booking.objects.filter(package_id__in=booked_packages).values_list('user_id', flat=True)
+        recommended = (
+            TravelPackage.objects.filter(booking__user_id__in=users_with_same_bookings).exclude(package_id__in=booked_packages).exclude(is_archived=True).exclude(is_active=False).annotate(book_count=Count('booking')).order_by('-book_count')[:5] 
+        )
+    else:
+        recommended = TravelPackage.objects.none()
+    return recommended
 
 #detailed package view
 def package_details(request, package_id):
@@ -1504,7 +1525,7 @@ def guide_update_trip_plan(request, booking_id):
     
 #view for listing guide bookings by the user
 def my_guide_bookings(request):
-    if 'user' in request.session:
+    if 'normal' in request.session:
         my_bookings = GuideBooking.objects.filter(user=request.user, end_date__gt=timezone.now(), payment_status='Completed').order_by('start_date')
         context = {
             'my_bookings': my_bookings,

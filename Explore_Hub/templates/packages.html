@@ -43,7 +43,56 @@
             
         </form>
     </div>
+
+    {% if recommended %}
+    <h2>Recommended for You</h2>
+    <div class="package-list" id="package-list">
+        {% for package in recommended %}
+            <div class="package-box">
+                <div class="badge-container">
+                    {% if package.total_bookings > 10 %}
+                        <span class="badge booked-badge">Most Booked</span>
+                    {% endif %}
+                    {% if package.views > 10 %}
+                        <span class="badge viewed-badge">Most Viewed</span>
+                    {% endif %}
+                </div>
+                <div class="slider-container">
+                    {% for image in package.package_images.all %}
+                        <div class="slide">
+                            <img src="{{ image.image.url }}" alt="{{ package.title }}">
+                        </div>
+                    {% empty %}
+                        <div class="slide">
+                            <img src="{% static 'assets/images/default_image.jpg' %}" alt="Default Image">
+                        </div>
+                    {% endfor %}
+                </div>
+                <h4>{{ package.title }}</h4>
+                <p>{{ package.description|truncatechars:100 }}</p>
+                <div class="price-info">
+                    {% if package.discount_percentage %}
+                        <p class="original-price">Price: <span class="strikethrough">{{ package.price }}</span></p>
+                        <p class="discounted-price">Discounted Price: {{ package.discounted_price|floatformat:2 }}</p>
+                        <span class="discount-badge">You Save: {{ package.you_save|floatformat:2 }}</span><br>
+                    {% else %}
+                        <p class="price">Price: {{ package.price }}</p>
+                    {% endif %}
+                </div>
+                <p>No. of Days: {{ package.duration }}</p>
+                <p>Origin: {{ package.origin }}</p>
+                <p>Destination: {{ package.destination }}</p>
+                <p class="charges">Cancellation: {{ package.cancellation|yesno:"Yes,No" }}</p>
+                <a href="{% url 'package_detail' package.package_id %}" class='btn_book'>View Details</a>
+            </div>
+        {% empty %}
+            <p>No packages available at the moment.</p>
+        {% endfor %}
+    </div>
+    {% endif %}
     
+    <h2>Available Packages</h2>
+
     <div class="package-list" id="package-list">
         {% for package in packages %}
             <div class="package-box">
