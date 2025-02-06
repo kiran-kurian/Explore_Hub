@@ -3030,14 +3030,14 @@ fieldset:disabled a.btn {
 
 .btn-danger {
   color: #fff;
-  background-color: #FD5D93;
-  border-color: #FD5D93;
+  background-color: #fd0000;
+  border-color: #FD0000;
 }
 
 .btn-danger:hover {
   color: #fff;
-  background-color: #fd377a;
-  border-color: #fc2b71;
+  background-color: #ed0101;
+  border-color: #ed0101;
 }
 
 .btn-danger:focus, .btn-danger.focus {

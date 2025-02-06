@@ -16,17 +16,20 @@
     {% endif %}
 
     <h5>Submit Your Suggestions:</h5>
+    <div class="group">
     <form method="POST">
         {% csrf_token %}
         <textarea name="suggestion_text" class="form-control" rows="4" placeholder="Enter your suggestions for modifications">{{ plan.user_preferences }}</textarea>
-        <button type="submit" class="btn btn-primary mt-3">Submit Suggestion</button>
+        <button type="submit" class="submit_btn">Submit</button>
     </form>
-
-    <form method="POST" action="{% url 'cancel_guide_booking' booking.id %}" class="mt-3">
+    <form method="POST" action="{% url 'cancel_guide_booking' booking.id %}" class="form">
         {% csrf_token %}
         <input type="hidden" name="cancel_booking" value="{{ booking.id }}">
-        <button type="submit" class="btn btn-danger">Cancel Booking</button>
+        <button type="submit" class="btn-cancel">Cancel Booking</button>
     </form>
+    </div>
+
+    
 </div>
 
 <style>
@@ -35,4 +38,24 @@
         padding-left: 400px;
         width: 80%;
     }
+
+    .submit_btn, .btn-cancel {
+        display: inline-block;
+        color: #fff;
+        width: 150px;
+        background-color: #ec3232;
+        padding: 0.5rem;
+        border: none;
+        border-radius: 50px;
+        text-align: center;
+        cursor: pointer;
+        margin-top: 20px;
+    }
+    
+    .btn-cancel {
+        margin-left: 40rem;
+        position: absolute;
+        top: 32.5rem;
+    }
+    </style>
 {% endblock %}

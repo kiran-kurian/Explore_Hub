@@ -33,6 +33,12 @@ import base64
 from django.utils import timezone
 import requests
 from opencage.geocoder import OpenCageGeocode
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.common.by import By
+import time
 
 # Create your views here.
 
@@ -1616,7 +1622,6 @@ def update_guide_profile(request):
 
 def itinerary_planner(request):
     if request.method == 'POST':
-        # Collect user inputs
         budget = request.POST.get('budget')
         origin = request.POST.get('origin')
         destination = request.POST.get('destination')
@@ -1628,13 +1633,16 @@ def itinerary_planner(request):
         start_date_obj = datetime.strptime(start_date, "%Y-%m-%d").date()
         end_date = start_date_obj + timedelta(days=duration)
 
-        flights = search_flights(origin, destination, start_date, end_date)
+        origin_code = get_city_code(origin)
+        destination_code = get_city_code(destination)
+
+        flights = search_flights(origin_code, destination_code, start_date, end_date) if origin_code and destination_code else "No flights available"
         hotels = search_hotels(destination)
         activities = search_activities(destination)
 
         print(flights, hotels, activities)
+        print(search_trains(origin, destination, start_date))
 
-        # Mock itinerary data
         planned_itinerary = {
             "destination": destination,
             "start_date": start_date,
@@ -1647,8 +1655,6 @@ def itinerary_planner(request):
                 {"day": duration, "activity": "Departure and farewell activities."},
             ],
         }
-
-        # Pass data to the same template
         return render(request, 'itinerary_planner.html', {'itinerary': planned_itinerary})
     return render(request, 'itinerary_planner.html')
 
@@ -1674,28 +1680,63 @@ def get_city_code(city_name):
     access_token = get_amadeus_access_token()  
     url = "https://test.api.amadeus.com/v1/reference-data/locations"
 
-    headers = {
-        "Authorization": f"Bearer {access_token}"
-    }
-
-    params = {
-        "keyword": city_name,  
-        "subType": "CITY"  
-    }
+    headers = {"Authorization": f"Bearer {access_token}"}
+    params = {"keyword": city_name, "subType": "CITY"}  
 
     response = requests.get(url, headers=headers, params=params)
 
     if response.status_code == 200:
         data = response.json()
-        # Extract the city code from the response
         if "data" in data and len(data["data"]) > 0:
-            return data["data"][0]["iataCode"]  
+            return data["data"][0]["iataCode"]  # Return IATA code if available
         else:
-            raise Exception("City not found. Please check the input.")
+            return get_city_code_google(city_name)  # Fallback to Google Places API
     else:
-        raise Exception(f"Error fetching city code: {response.json()}")
+        return get_city_code_google(city_name)
 
+def get_city_code_google(city_name):
+    api_key = settings.GOOGLE_PLACES_API_KEY
+    url = "https://maps.googleapis.com/maps/api/place/findplacefromtext/json"
+
+    params = {
+        "input": city_name,
+        "inputtype": "textquery",
+        "fields": "name,geometry",
+        "key": api_key
+    }
+
+    response = requests.get(url, params=params)
+
+    if response.status_code == 200:
+        data = response.json()
+        if "candidates" in data and len(data["candidates"]) > 0:
+            return city_name.upper()  
+        else:
+            return None  
+    else:
+        return None  
+
+def search_trains(origin, destination, start_date):
+    api_url = f"https://www.ixigo.com/trains/v2/search/between/{origin}/{destination}?date={start_date}&languageCode=en"
     
+    headers = {
+        "accept": "*/*",
+        "content-type": "application/json",
+        "user-agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Mobile Safari/537.36",
+        "apikey": "iximweb!2$",  
+    }
+
+    try:
+        response = requests.get(api_url, headers=headers)
+        
+        if response.status_code == 200:
+            train_data = response.json()
+            return train_data
+        else:
+            return HttpResponse(f"Error: {response.status_code}", status=response.status_code)
+
+    except requests.exceptions.RequestException as e:
+        return HttpResponse(f"API Request Failed: {e}", status=500)
 def search_flights(origin, destination, departure_date, return_date=None):
     access_token = get_amadeus_access_token()
     url = f"https://test.api.amadeus.com/v2/shopping/flight-offers"
