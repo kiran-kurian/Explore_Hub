@@ -33,12 +33,26 @@ class LocalGuide(models.Model):
     cost_per_day = models.DecimalField(max_digits=8, decimal_places=2, default=False)
     cancellation = models.BooleanField(default=False)
 
+#model for event organizer
+class EventOrganizer(models.Model):
+    organizer_id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=255)
+    username = models.CharField(max_length=255, unique=True)
+    password = models.CharField(max_length=255)
+    contact = models.CharField(max_length=10)
+    email = models.EmailField(unique=True)
+    bio = models.TextField(blank=True, null=True)
+    organizer_license = models.FileField(upload_to='organizer_licenses/')
+    agreement = models.BooleanField(default=False)
+    approved = models.BooleanField(default=False)
+
 #to ammend the already known table with phone number and role
 class CustomUser(User):
     phone_number = models.CharField(max_length=15, unique=True)
     role = models.CharField(max_length=30,default='reguser')
     travel_agency = models.ForeignKey(TravelAgency, on_delete=models.CASCADE, null=True, blank=True)
     travel_guide = models.ForeignKey(LocalGuide, on_delete=models.CASCADE, null=True, blank=True)
+    event_organizer = models.ForeignKey(EventOrganizer, on_delete=models.CASCADE, null=True, blank=True)
 
     class Meta:
         verbose_name = 'User'

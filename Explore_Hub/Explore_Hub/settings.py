@@ -35,6 +35,10 @@ GOOGLE_PLACES_API_KEY = os.environ.get('GOOGLE_PLACES_API_KEY')
 
 RAPID_API_KEY = os.environ.get('RAPID_API_KEY')
 
+USERNAME = os.environ.get('USERNAME')
+PASSWORD = os.environ.get('PASSWORD')
+API_KEY = os.environ.get('API_KEY')
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 

@@ -76,20 +76,23 @@
         <h5 class="mt-2 text-primary">Destination: {{ itinerary.destination }}</h5>
         <p><strong>Travel Dates:</strong> {{ itinerary.start_date }} to {{ itinerary.end_date }}</p>
         <p><strong>Total Budget:</strong> ₹{{ itinerary.budget }}</p>
-        <p><strong>Preferences:</strong> {{ itinerary.preferences|title }}</p>
+        <p><strong>Used Budget:</strong> ₹{{ itinerary.used_budget }}</p>
 
-        <h5 class="mt-4 text-success">Daily Activities:</h5>
+        <h5 class="mt-4 text-success">Planned Itinerary:</h5>
         <ul class="list-group">
-            {% for day in itinerary.details %}
+            {% for item in itinerary.details %}
             <li class="list-group-item">
-                <strong>Day {{ day.day }}:</strong> {{ day.activity }}
+                <strong>{{ item.category|title }}:</strong> {{ item.name }} <br>
+                <strong>Cost:</strong> ₹{{ item.cost }} <br>
+                <strong>Rating:</strong> {{ item.value }}/5
             </li>
             {% endfor %}
         </ul>
     </div>
-    {% else %}
+{% else %}
     <div id="itinerary-results" class="d-none"></div>
-    {% endif %}
+{% endif %}
+
 
 <style>
     .container1 {

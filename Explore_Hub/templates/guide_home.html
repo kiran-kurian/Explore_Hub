@@ -1,67 +1,95 @@
 {% extends 'guide.html' %}
 {% block content %}
 <style>
-    .features {
+    .dashboard {
         display: flex;
         flex-wrap: wrap;
         gap: 20px;
         justify-content: center;
         padding: 50px 20px;
-        background-color: #f4f4f4;
+        background-color: #fff;
     }
 
-    .feature-card {
+    .card {
         background: #fff;
-        border: 1px solid #ddd;
         border-radius: 8px;
         padding: 20px;
         width: 100%;
-        max-width: 400px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        max-width: 300px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         text-align: center;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
 
-    .feature-card h2 {
-        font-size: 1.5rem;
-        color: #333;
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
     }
 
-    .feature-card p {
-        font-size: 1rem;
-        margin: 15px 0;
-        color: #555;
+    .card h2 {
+        font-size: 1.4rem;
+        color: #f06161;
+    }
+
+    .card p {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #c94e4e;
     }
 
     .btn {
         display: inline-block;
         text-decoration: none;
-        background: #4CAF50;
+        background: #f06161;
         color: #fff;
         padding: 10px 15px;
         border-radius: 5px;
         font-size: 1rem;
-        transition: background 0.3s ease;
+        transition: all 0.3s ease;
+        margin-top: 10px;
     }
 
     .btn:hover {
-        background: #3e8e41;
+        background: #c94e4e;
     }
 </style>
-    <main>
-        <section class="features">
-            <div class="container">
-                <div class="feature-card">
-                    <h2>Provide Travel Advice</h2>
-                    <p>Offer personalized travel advice and recommend the best spots in your locality.</p>
-                    <a href="{% url 'advice_requests' %}" class="btn">Start Advising</a>
-                </div>
-                <br>
-                <div class="feature-card">
-                    <h2>Guide Bookings</h2>
-                    <p>Allow travelers to book your services as a local guide and help them explore your area.</p>
-                    <a href="{% url 'local_guide_bookings' %}" class="btn">Manage Your Bookings</a>
-                </div>
-            </div>
-        </section>
-    </main>
+
+<main>
+    <section class="dashboard">
+        <div class="card">
+            <h2>Total Bookings</h2>
+            <p>{{ total_bookings }}</p>
+        </div>
+
+        <div class="card">
+            <h2>Upcoming Tours</h2>
+            <p>{{ upcoming_tours }}</p>
+        </div>
+
+        <div class="card">
+            <h2>Completed Tours</h2>
+            <p>{{ completed_tours }}</p>
+        </div>
+
+        <div class="card">
+            <h2>Total Earnings</h2>
+            <p>₹{{ total_earnings }}</p>
+        </div>
+    </section>
+
+    <section class="dashboard">
+        <div class="card">
+            <h2>Provide Travel Advice</h2>
+            <p>Offer personalized travel advice to travelers.</p>
+            <a href="{% url 'advice_requests' %}" class="btn">Start Advising</a>
+        </div>
+
+        <div class="card">
+            <h2>Manage Bookings</h2>
+            <p>View and manage your guide bookings.</p>
+            <a href="{% url 'local_guide_bookings' %}" class="btn">Manage Your Bookings</a>
+        </div>
+    </section>
+</main>
+
 {% endblock %}

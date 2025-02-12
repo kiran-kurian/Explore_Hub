@@ -108,6 +108,7 @@
             <ul>
                 <li><a href="?view=agencies" class="{% if active_section == 'agencies' %}active{% endif %}">Travel Agencies</a></li>
                 <li><a href="?view=guides" class="{% if active_section == 'guides' %}active{% endif %}">Travel Guides</a></li>
+                <li><a href="?view=organizer" class="{% if active_section == 'organizer' %}active{% endif %}">Event Organizer</a></li>
             </ul>
         </div>
         <div class="content">
@@ -165,6 +166,37 @@
                         <td><a href="{{ guide.guide_license.url }}" target="_blank">View Document</a></td>
                         <td>
                             <form action="{% url 'approve_guide' guide.guide_id %}" method="post">
+                                {% csrf_token %}
+                                <button type="submit">Approve</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% elif active_section == 'organizer' %}
+            <h1>Review Event Organizer</h1>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Organization Name</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Contact</th>
+                        <th>Document</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for organizers in organizer %}
+                    <tr>
+                        <td>{{ organizers.name }}</td>
+                        <td>{{ organizers.username }}</td>
+                        <td>{{ organizers.email }}</td>
+                        <td>{{ organizers.contact }}</td>
+                        <td><a href="{{ organizers.organizer_license.url }}" target="_blank">View Document</a></td>
+                        <td>
+                            <form action="{% url 'approve_organizer' organizers.organizer_id %}" method="post">
                                 {% csrf_token %}
                                 <button type="submit">Approve</button>
                             </form>

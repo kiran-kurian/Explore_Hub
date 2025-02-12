@@ -93,6 +93,8 @@ urlpatterns = [
     path('my_booking/guide/details/<int:booking_id>',guide_booking_detail, name='guide_booking_detail'),
     path('guide/update_profile/', update_guide_profile, name='update_guide_profile'),
     path('itinerary-planner/', itinerary_planner, name='itinerary_planner'),
+    path('registration/event-organizer/', event_organizer_registration, name='event_organizer_registration'),
+    path('approve_organizer/<int:organizer_id>/', approve_organizer, name='approve_organizer'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

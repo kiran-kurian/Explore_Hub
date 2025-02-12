@@ -33,12 +33,9 @@ import base64
 from django.utils import timezone
 import requests
 from opencage.geocoder import OpenCageGeocode
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.common.by import By
-import time
+from django.db.models import Sum
+import json
+
 
 # Create your views here.
 
@@ -80,6 +77,9 @@ def login_view(request):
                 elif role == 'guide':
                     request.session['guide'] = user.id
                     return HttpResponseRedirect(reverse('guide_home'))
+                elif role == 'organizer':
+                    request.session['organizer'] = user.id
+                    return HttpResponseRedirect(reverse('event_organizer_home'))
                 else:
                     request.session['normal'] = user.id
                     return HttpResponseRedirect(reverse("regularuser"))
@@ -153,14 +153,15 @@ def register_view(request):
                 request.session['password'] = password
                 #redirect to other details entering page
                 return redirect('guide_registration')
-            elif role == 'eorg':
-                return redirect()   
+            elif role == 'organizer':
+                request.session['username'] = username
+                request.session['name'] = name
+                request.session['email'] = email
+                request.session['number'] = number
+                request.session['password'] = password
+                return redirect('event_organizer_registration')   
             else:
-                # Create regular user record
                 user = CustomUser.objects.create_user(username=username, email=email, password=password, first_name=name, phone_number=number, role=role)
-                # user.first_name = name
-                # user.phone_number = number
-                # user.role = role
                 user.save()
 
             # login(request, user, backend='django.contrib.auth.backends.ModelBackend')
@@ -278,19 +279,25 @@ def admin_dashboard(request):
 @login_required(login_url='login')
 def admin_approve_agencies(request):
     if 'master' in request.session: 
-        view = request.GET.get('view', 'agencies')  # Default to 'agencies'
-    if view == 'agencies':
-        agencies = TravelAgency.objects.filter(approved=False)
-        return render(request, 'approve_agencies.html', {
-            'agencies': agencies,
-            'active_section': 'agencies',
-        })
-    elif view == 'guides':
-        guides = LocalGuide.objects.filter(approved=False)
-        return render(request, 'approve_agencies.html', {
-            'guides': guides,
-            'active_section': 'guides',
-        })
+        view = request.GET.get('view', 'agencies')  
+        if view == 'agencies':
+            agencies = TravelAgency.objects.filter(approved=False)
+            return render(request, 'approve_agencies.html', {
+                'agencies': agencies,
+                'active_section': 'agencies',
+            })
+        elif view == 'guides':
+            guides = LocalGuide.objects.filter(approved=False)
+            return render(request, 'approve_agencies.html', {
+                'guides': guides,
+                'active_section': 'guides',
+            })
+        elif view == 'organizer':
+            organizer = EventOrganizer.objects.filter(approved=False)
+            return render(request, 'approve_agencies.html', {
+                'organizer': organizer,
+                'active_section': 'organizer',
+            })
     else:
         return redirect('login')
 
@@ -1207,9 +1214,21 @@ def guide_home(request):
                 return render(request, "login.html", {
                     "message": "Approval pending"
                 })
-        except TravelAgency.DoesNotExist:
+        except LocalGuide.DoesNotExist:
             return redirect('login')
-        return render(request, 'guide_home.html')
+        
+        today = timezone.now().date()
+        total_bookings = GuideBooking.objects.filter(guide=guide).count()
+        upcoming_tours = GuideBooking.objects.filter(guide=guide, start_date__gte=today).count()
+        completed_tours = GuideBooking.objects.filter(guide=guide, end_date__lt=today).count()
+        total_earnings = GuideBooking.objects.filter(guide=guide, end_date__lt=today).aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+        context = {
+        'total_bookings': total_bookings,
+        'upcoming_tours': upcoming_tours,
+        'completed_tours': completed_tours,
+        'total_earnings': round(total_earnings, 2),
+        }
+        return render(request, 'guide_home.html', context)
     else:
         return redirect('login')
     
@@ -1634,29 +1653,105 @@ def itinerary_planner(request):
         end_date = start_date_obj + timedelta(days=duration)
 
         origin_code = get_city_code(origin)
+        # print(origin_code)
         destination_code = get_city_code(destination)
+        # print(destination_code)
 
         flights = search_flights(origin_code, destination_code, start_date, end_date) if origin_code and destination_code else "No flights available"
-        hotels = search_hotels(destination)
+        hotels = search_hotels(destination_code)
         activities = search_activities(destination)
+        trains = search_trains(origin, destination, start_date)
+        # print(search_buses(origin, destination, start_date))
 
-        print(flights, hotels, activities)
-        print(search_trains(origin, destination, start_date))
+        items=[]
+
+        if isinstance(flights, dict):  
+            carriers = flights.get("dictionaries", {}).get("carriers", {})
+            aircrafts = flights.get("dictionaries", {}).get("aircraft", {})
+
+            if "data" in flights and isinstance(flights["data"], list):
+                for flight in flights["data"]:
+                    airline_code = flight.get("airline", "")
+                    aircraft_code = flight.get("aircraft", "")
+
+                    airline_name = carriers.get(airline_code, airline_code)
+                    aircraft_name = aircrafts.get(aircraft_code, aircraft_code)
+
+                    items.append({
+                        "name": f"Flight: {airline_name} - {aircraft_name}",
+                        "cost": flight.get("cost", 0),
+                        "value": flight.get("rating", 0),
+                        "category": "transport"
+                    })
+
+
+        if isinstance(trains, list):
+            for train in trains:
+                items.append({
+                    "name": f"Train: {train.get('train', 'Unknown Train')}",
+                    "cost": train.get("cost", 0),
+                    "value": train.get("rating", 0),
+                    "category": "transport"
+                })
+
+        if isinstance(hotels, list):
+            for hotel in hotels:
+                items.append({
+                    "name": f"Hotel: {hotel.get('name', 'Unknown Hotel')}",
+                    "cost": hotel.get("cost_per_night", 0) * duration,  
+                    "value": hotel.get("rating", 0),
+                    "category": "hotel"
+                })
+
+        if isinstance(activities, list):
+            for activity in activities:
+                items.append({
+                    "name": f"Activity: {activity.get('name', 'Unknown Activity')}",
+                    "cost": activity.get("cost", 0),
+                    "value": activity.get("rating", 0),
+                    "category": "activity"
+                })
+        # print(items, budget)
+
+        selected_items, total_cost = knapsack(items, budget)
 
         planned_itinerary = {
             "destination": destination,
             "start_date": start_date,
             "end_date": end_date.isoformat(),
             "budget": budget,
-            "preferences": preferences,
-            "details": [
-                {"day": 1, "activity": "Arrival and local sightseeing."},
-                {"day": 2, "activity": f"Explore {preferences.capitalize()} spots in {destination}."},
-                {"day": duration, "activity": "Departure and farewell activities."},
-            ],
+            "used_budget": total_cost,
+            "details": selected_items
         }
         return render(request, 'itinerary_planner.html', {'itinerary': planned_itinerary})
     return render(request, 'itinerary_planner.html')
+
+
+def knapsack(items, max_budget):
+    n = len(items)
+    max_budget = int(max_budget)
+    dp = [[0 for _ in range(max_budget + 1)] for _ in range(n + 1)]
+    
+    for i in range(1, n + 1):
+        for w in range(max_budget + 1):
+            if items[i - 1]["cost"] <= w:
+                dp[i][w] = max(items[i - 1]["value"] + dp[i - 1][w - items[i - 1]["cost"]], dp[i - 1][w])
+            else:
+                dp[i][w] = dp[i - 1][w]
+
+    w = max_budget
+    selected_items = []
+    total_cost = 0
+    for i in range(n, 0, -1):
+        if dp[i][w] != dp[i - 1][w]:
+            selected_items.append(items[i - 1])
+            w -= items[i - 1]["cost"]
+            total_cost += items[i - 1]["cost"]
+
+    print(selected_items, total_cost)
+
+    return selected_items, total_cost
+
 
 def get_amadeus_access_token():
     url = "https://test.api.amadeus.com/v1/security/oauth2/token"
@@ -1716,6 +1811,74 @@ def get_city_code_google(city_name):
     else:
         return None  
 
+# def search_buses(origin, destination, date_of_journey):
+#     options = Options()
+#     options.add_argument("--disable-gpu")
+#     options.add_argument("--no-sandbox")
+#     options.add_argument("--ignore-certificate-errors")
+#     options.add_argument("--allow-running-insecure-content")
+#     options.add_argument("--incognito")
+
+#     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+
+#     driver.get("https://www.abhibus.com")
+
+#     time.sleep(3)
+
+#     wait = WebDriverWait(driver, 10)
+
+#     from_input = wait.until(EC.element_to_be_clickable((By.XPATH, "//input[@placeholder='From Station']")))
+#     from_input.send_keys(origin)
+#     time.sleep(2)
+#     from_input.send_keys(Keys.RETURN)
+
+#     to_input = wait.until(EC.element_to_be_clickable((By.XPATH, "//input[@placeholder='To Station']")))
+#     to_input.send_keys(destination)
+#     time.sleep(2)
+#     to_input.send_keys(Keys.RETURN)
+
+#     date_input = driver.find_element(By.XPATH, "//input[@placeholder='Onward Journey Date']")
+#     date_input.click()
+#     time.sleep(1)
+#     date_input.send_keys(Keys.RETURN)
+
+#     search_button = driver.find_element(By.XPATH, "//button[contains(text(), 'Search')]")
+#     search_button.click()
+
+#     time.sleep(5)
+
+#     buses = driver.find_elements(By.XPATH, "//div[contains(@id, 'service-operator-info')]")
+    
+#     bus_list = []
+    
+#     for bus in buses:
+#         try:
+#             operator_name = bus.find_element(By.XPATH, ".//h5[@class='title']").text
+#             bus_type = bus.find_element(By.XPATH, ".//p[@class='sub-title']").text
+#             departure_time = bus.find_element(By.XPATH, ".//span[@class='departure-time']").text
+#             travel_time = bus.find_element(By.XPATH, ".//div[@class='travel-time']").text
+#             arrival_time = bus.find_element(By.XPATH, ".//span[@class='arrival-time']").text
+#             destination = bus.find_element(By.XPATH, ".//div[@class='destination-name']").text
+#             fare = bus.find_element(By.XPATH, ".//strong[@class='h5 fare']/span").text
+
+#             bus_list.append({
+#                 "operator_name": operator_name,
+#                 "bus_type": bus_type,
+#                 "departure_time": departure_time,
+#                 # "source": source,
+#                 "travel_time": travel_time,
+#                 "arrival_time": arrival_time,
+#                 "destination": destination,
+#                 "fare": fare,
+#             })
+        
+#         except Exception as e:
+#             print("Error extracting bus details:", e)
+
+#     driver.quit()
+#     return bus_list
+
+
 def search_trains(origin, destination, start_date):
     api_url = f"https://www.ixigo.com/trains/v2/search/between/{origin}/{destination}?date={start_date}&languageCode=en"
     
@@ -1737,6 +1900,7 @@ def search_trains(origin, destination, start_date):
 
     except requests.exceptions.RequestException as e:
         return HttpResponse(f"API Request Failed: {e}", status=500)
+    
 def search_flights(origin, destination, departure_date, return_date=None):
     access_token = get_amadeus_access_token()
     url = f"https://test.api.amadeus.com/v2/shopping/flight-offers"
@@ -1773,9 +1937,6 @@ def search_hotels(city_code):
     }
 
     response = requests.get(url, headers=headers, params=params)
-
-    print("Response Status Code:", response.status_code)
-    print("Response Data:", response.json())
 
     if response.status_code == 200:
         return response.json()
@@ -1814,3 +1975,72 @@ def search_activities(location):
         return response.json()
     else:
         raise Exception("Error fetching activities data")
+    
+def event_organizer_registration(request):
+    if request.method == "POST":
+        bio = request.POST.get("bio")
+        document = request.FILES.get("document")
+        agreement = request.POST.get("agreement") == 'on'
+
+        username = request.session.get("username")
+        name = request.session.get("name")
+        email = request.session.get("email")
+        number = request.session.get("number")
+        password = request.session.get("password")
+
+        if not all([username, name, email, number, password]):
+            return redirect('register')
+        
+        if agreement:
+            try:
+                hashed_password = make_password(password)
+                organizer = EventOrganizer(
+                    username=username,
+                    name=name,
+                    email=email,
+                    contact=number,
+                    password=hashed_password,
+                    bio=bio,
+                    document=document,
+                    agreement=agreement,
+                    approved=False
+                )
+                organizer.save()
+
+                user = CustomUser(
+                    username=username,
+                    first_name=name,
+                    email=email,
+                    password=hashed_password,
+                    phone_number=number,
+                    role='organizer',
+                    event_organizer=organizer
+                )
+                user.save()
+                return HttpResponseRedirect(reverse("login"))
+            except IntegrityError:
+                print(IntegrityError)
+                return render(request, "registration.html", {
+                    "message": "Username or email already exists"
+                })
+    else:
+        return render(request, "event_organizer_registration.html")
+
+#view for approving event organizer
+def approve_organizer(request, organizer_id):
+    if 'master' in request.session:
+        organizer = get_object_or_404(EventOrganizer, pk=organizer_id)
+        organizer.approved = True
+        organizer.save()
+        send_mail(
+                'Account Approved Notification',
+                f'Dear {organizer.name},\n\n'
+                f'This email is to inform you that your account with EXPLORE HUB has been approved.'
+                'You can start using our platform from now on.'
+                'If you have any questions, please contact support.',
+                'explorehub123@gmail.com',
+                [organizer.email]
+            )
+        return redirect('admin_approve_agencies')
+    else:
+        return redirect('login')
