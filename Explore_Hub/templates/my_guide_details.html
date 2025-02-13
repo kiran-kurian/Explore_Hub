@@ -2,7 +2,19 @@
 
 {% block content %}
 <div class="container1 mt-5">
+    {% if messages %}
+        <div>
+            {% for message in messages %}
+                <div class="alert alert-info">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
     <h2 class="text-center mb-4">Guide Booking Details</h2>
+    <form method="POST" action="{% url 'cancel_guide_booking' booking.id %}" class="form">
+        {% csrf_token %}
+        <input type="hidden" name="cancel_booking" value="{{ booking.id }}">
+        <button type="submit" class="btn-cancel">Cancel Booking</button>
+    </form>
 
     <p><strong>Guide Name:</strong> {{ booking.guide.name }}</p>
     <p><strong>Trip Date:</strong> {{ booking.start_date|date:"d-m-Y" }}</p>
@@ -21,11 +33,6 @@
         {% csrf_token %}
         <textarea name="suggestion_text" class="form-control" rows="4" placeholder="Enter your suggestions for modifications">{{ plan.user_preferences }}</textarea>
         <button type="submit" class="submit_btn">Submit</button>
-    </form>
-    <form method="POST" action="{% url 'cancel_guide_booking' booking.id %}" class="form">
-        {% csrf_token %}
-        <input type="hidden" name="cancel_booking" value="{{ booking.id }}">
-        <button type="submit" class="btn-cancel">Cancel Booking</button>
     </form>
     <form method="POST" action="{% url 'my_guide_bookings' %}">
         {% csrf_token %}
@@ -62,6 +69,7 @@
     .btn-back {
         margin-left: 40rem;
         position: absolute;
+        display: inline-block;
         top: 32.5rem;
     }
 

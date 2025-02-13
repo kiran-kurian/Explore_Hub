@@ -95,6 +95,16 @@
             margin-top: 10px;
         }
 
+        .file-field {
+            padding: 10px;
+            margin: 15px 0;
+            background: #D9D9D9;
+            border-radius: 10px;
+            font-size: 16px;
+            border: none;
+            outline: none;
+        }
+
         .checkbox-label {
             display: flex;
             align-items: center;
@@ -112,14 +122,14 @@
         <div class="background-image"></div>
         <div class="registration-box">
             <h1>Event Organizer Registration</h1>
-            <form action="{% url 'event_organizer_registration' %}" method="post">
+            <form action="{% url 'event_organizer_registration' %}" method="post" enctype="multipart/form-data">
                 {% csrf_token %}
 
                 <label for="bio">About Your Organization</label>
                 <textarea name="bio" class="input-field" rows="4" placeholder="Provide a brief description of your organization" required></textarea>
 
-                <label for="Organizer_license">Organizer License</label>
-                <input type="file" name="Organizer_license" class="file-field" accept=".pdf,.jpg,.jpeg,.png" required>
+                <label for="organizer_license">Organizer License</label>
+                <input type="file" name="organizer_license" class="file-field" accept=".pdf,.jpg,.jpeg,.png" required>
 
                 <div class="checkbox-label">
                     <input type="checkbox" name="agreement" id="agreement" required>

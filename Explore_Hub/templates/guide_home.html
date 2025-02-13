@@ -37,6 +37,12 @@
         color: #c94e4e;
     }
 
+    .card-icon {
+        font-size: 2rem;
+        color: #f06161;
+        margin-bottom: 10px;
+    }
+
     .btn {
         display: inline-block;
         text-decoration: none;
@@ -57,21 +63,25 @@
 <main>
     <section class="dashboard">
         <div class="card">
+            <i class="fas fa-calendar-check card-icon"></i>
             <h2>Total Bookings</h2>
             <p>{{ total_bookings }}</p>
         </div>
 
         <div class="card">
+            <i class="fas fa-calendar-alt card-icon"></i>
             <h2>Upcoming Tours</h2>
             <p>{{ upcoming_tours }}</p>
         </div>
 
         <div class="card">
+            <i class="fas fa-flag-checkered card-icon"></i>
             <h2>Completed Tours</h2>
             <p>{{ completed_tours }}</p>
         </div>
 
         <div class="card">
+            <i class="fas fa-wallet card-icon"></i>
             <h2>Total Earnings</h2>
             <p>₹{{ total_earnings }}</p>
         </div>

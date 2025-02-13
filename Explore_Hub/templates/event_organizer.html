@@ -1,0 +1,146 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" type="image/png" href="{% static 'images/logo.png' %}">
+    <script src="https://kit.fontawesome.com/a33c111933.js" crossorigin="anonymous"></script>
+    <title>{% block title %}Event Organizer{% endblock %}</title>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: white;
+            margin: 0;
+            padding: 0;
+        }
+
+        .navbar {
+            background: #ececec;
+            color: #ed4a4a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+        }
+
+        .navbar .logo {
+            display: flex;
+            align-items: center;
+        }
+
+        .navbar .logo img {
+            height: 40px;
+            margin-right: 10px;
+        }
+
+        .navbar .logo span {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .nav-links {
+            list-style: none;
+            display: flex;
+            align-items: center;
+            padding: 0;
+        }
+
+        .nav-links li {
+            margin: 0 15px;
+            position: relative;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #f06161;
+            font-size: 18px;
+            padding: 10px 15px;
+            transition: 0.3s ease-in-out;
+        }
+
+        .nav-links a:hover {
+            color: white;
+            background: #ed4a4a;
+            border-radius: 5px;
+        }
+
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown:hover {
+            border-radius: 5px;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background: white;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            min-width: 150px;
+            right: 0;
+            z-index: 100;
+        }
+
+        .dropdown-content a {
+            color: #f06161;
+            padding: 10px;
+            display: block;
+            text-decoration: none;
+            transition: 0.3s ease-in-out;
+        }
+
+        .fa-regular fa-user {
+            color: #f06161;
+        } 
+
+        .dropdown-content a:hover {
+            background: #f06161;
+            color: white;
+            border-radius: 0;
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+            padding-top: 10px;
+            padding-bottom: 10px;
+        }
+
+        .container {
+            padding: 40px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">
+            <img src="{% static 'assets/imgs/logo.png' %}" alt="Explore Hub">
+        </div>
+        <ul class="nav-links">
+            <li><a href="{% url 'event_organizer_home' %}">Home</a></li>
+            <li><a href="#">Create Event</a></li>
+            <li><a href="#">Manage Events</a></li>
+            <li><a href="#">Bookings</a></li>
+
+            <li class="dropdown">
+                <a href="#" class="dropbtn">
+                    <i class="fa-regular fa-user"></i>
+                    {{ request.user.first_name }} &#9662;</a></i>
+                <div class="dropdown-content">
+                    <a href="#">Edit Profile</a>
+                    <a href="{% url 'logout' %}">Logout</a>
+                </div>
+            </li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>

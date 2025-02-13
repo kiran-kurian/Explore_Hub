@@ -95,6 +95,7 @@ urlpatterns = [
     path('itinerary-planner/', itinerary_planner, name='itinerary_planner'),
     path('registration/event-organizer/', event_organizer_registration, name='event_organizer_registration'),
     path('approve_organizer/<int:organizer_id>/', approve_organizer, name='approve_organizer'),
+    path('event_organizer/home/', event_organizer_home, name='event_organizer_home'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

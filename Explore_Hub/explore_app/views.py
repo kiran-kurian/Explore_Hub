@@ -1599,26 +1599,34 @@ def cancel_guide_booking(request, booking_id):
     
 #view for viewing the details of the guide booked by the user
 def guide_booking_detail(request, booking_id):
-    booking = get_object_or_404(GuideBooking, pk=booking_id)
-    try:
-        plan = BookingPlan.objects.get(booking=booking)
-    except BookingPlan.DoesNotExist:
-        plan = None
-    if request.method == 'POST':
-        suggestion_text = request.POST.get('suggestion_text')
-        if suggestion_text:
-            suggestion = BookingPlan.objects.update(
-                booking=booking,
-                user_preferences=suggestion_text
-            )
-            messages.success(request, "Your suggestion has been submitted successfully!")
-            return redirect('guide_booking_detail', booking_id=booking_id)
+    if 'normal' in request.session:
+        booking = get_object_or_404(GuideBooking, pk=booking_id)
+        try:
+            plan = BookingPlan.objects.get(booking=booking)
+        except BookingPlan.DoesNotExist:
+            plan = None
+        if request.method == 'POST':
+            suggestion_text = request.POST.get('suggestion_text')
+            
+            if suggestion_text:
+                if len([char for char in suggestion_text if char.isalpha()]) < 3:
+                    messages.error(request, "Your suggestion must contain at least three letters.")
+                    return redirect("guide_booking_detail", booking_id=booking_id)
+                else:
+                    suggestion = BookingPlan.objects.update(
+                        booking=booking,
+                        user_preferences=suggestion_text
+                    )
+                    messages.success(request, "Your suggestion has been submitted successfully!")
+                    return redirect('guide_booking_detail', booking_id=booking_id)
 
-    context = {
-        'booking': booking,
-        'plan': plan
-    }
-    return render(request, 'my_guide_details.html', context)
+        context = {
+            'booking': booking,
+            'plan': plan
+        }
+        return render(request, 'my_guide_details.html', context)
+    else:
+        return redirect('login')
 
 #view for updating profile of guide
 def update_guide_profile(request):
@@ -1979,8 +1987,9 @@ def search_activities(location):
 def event_organizer_registration(request):
     if request.method == "POST":
         bio = request.POST.get("bio")
-        document = request.FILES.get("document")
+        organizer_license = request.FILES.get("organizer_license")
         agreement = request.POST.get("agreement") == 'on'
+        print(organizer_license)
 
         username = request.session.get("username")
         name = request.session.get("name")
@@ -2001,7 +2010,7 @@ def event_organizer_registration(request):
                     contact=number,
                     password=hashed_password,
                     bio=bio,
-                    document=document,
+                    organizer_license=organizer_license,
                     agreement=agreement,
                     approved=False
                 )
@@ -2042,5 +2051,12 @@ def approve_organizer(request, organizer_id):
                 [organizer.email]
             )
         return redirect('admin_approve_agencies')
+    else:
+        return redirect('login')
+    
+#view for home page of event organizer
+def event_organizer_home(request):
+    if 'organizer' in request.session:
+        return render(request, 'event_organizer_home.html')
     else:
         return redirect('login')
