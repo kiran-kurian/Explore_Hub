@@ -1,52 +1,130 @@
-{% extends 'ta_layout.html' %}
-{% load static %}
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Travel Agency Dashboard</title>
-</head>
-<body>
-    {% block body %}
-    <div class="body">
-        <section class="dashboard">
-            <h2>Your Packages</h2>
-            <a href="{% url 'add_package' %}" class="btn_add">Add New Package</a>
-            <div class="dashboard-options">
-                {% for package in packages %}
-                    <div class="package-box">
-                        {% for image in package.package_images.all %}  
-                                <img src="{{ image.image.url }}" alt="{{ package.title }} Image" style="max-width: 240px; height: 180px; margin: 5px;">
-                            {% empty %}
-                                <p>No images available</p>
-                            {% endfor %}
-                        <h3>{{ package.title }}</h3>
-                        <p>{{ package.description }}</p>
-                        <p class="price">Price: {{ package.price }}</p>
-                        <p class="offer">Offer: {{ package.discount_percentage|floatformat:0 }}%</p>
-                        <p class="final_price">Final Price: {{ package.discounted_price|floatformat:2 }}</p>
-                        <p class="duration">Duration: {{ package.duration }}</p>
-                        <p class="origin">Origin: {{ package.origin }}</p>
-                        <p class="destination">Destination: {{ package.destination }}</p>
-                        <p class="charges">Cancellation: {{ package.cancellation|yesno:"Yes,No" }}</p>
-                        <div class="btn-group">
-                            <a href="{% url 'update_package' package.package_id %}" class="btn">Update</a>
-                            <a href="{% url 'delete_package' package.package_id %}" class="btn" onclick="return confirmDelete();">Delete</a>
-                        </div>
-                    </div>
-                {% empty %}
-                <br>
-                <div class="alert alert-info" role="alert">
-                    No packages available.
-                </div>
-                {% endfor %}
-                <script>
-                    function confirmDelete() {
-                        return confirm('Are you sure you want to delete this package?');
-                    }
-                </script>
-            </div>
-        </section>
+{% extends 'ta_layout.html' %}  
+
+{% block body %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+<style>
+    .dashboard {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        justify-content: center;
+        padding: 40px 20px;
+        background-color: #f9f9f9;
+    }
+
+    .card {
+        background: #ffffff;
+        border-radius: 10px;
+        padding: 20px;
+        width: 100%;
+        max-width: 300px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-icon {
+        font-size: 2rem;
+        color: #007bff;
+        margin-bottom: 10px;
+    }
+
+    .card h2 {
+        font-size: 1.4rem;
+        color: #333;
+        margin-bottom: 10px;
+    }
+
+    .card p {
+        font-size: 1.3rem;
+        font-weight: bold;
+        color: #444;
+    }
+
+    .btn {
+        display: inline-block;
+        text-decoration: none;
+        background: #007bff;
+        color: #fff;
+        padding: 10px 15px;
+        border-radius: 5px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        margin-top: 10px;
+    }
+
+    .btn:hover {
+        background: #0056b3;
+    }
+
+    .welcome {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 1.6rem;
+        font-weight: bold;
+        color: #333;
+    }
+</style>
+
+<main>
+    <div class="welcome">
+        Welcome, {{ agency.name }}!  
     </div>
-    {% endblock %}
-</body>
-</html>
+
+    <section class="dashboard">
+        <div class="card">
+            <i class="fas fa-suitcase-rolling card-icon"></i>
+            <h2>Total Packages</h2>
+            <p>{{ total_packages }}</p>
+        </div>
+
+        <div class="card">
+            <i class="fas fa-calendar-check card-icon"></i>
+            <h2>Total Bookings</h2>
+            <p>{{ total_bookings }}</p>
+        </div>
+
+        <div class="card">
+            <i class="fas fa-users card-icon"></i>
+            <h2>Customers Served</h2>
+            <p>{{ total_customers }}</p>
+        </div>
+
+        <div class="card">
+            <i class="fas fa-wallet card-icon"></i>
+            <h2>Total Revenue</h2>
+            <p>₹{{ total_revenue }}</p>
+        </div>
+    </section>
+
+    <section class="dashboard">
+        <div class="card">
+            <i class="fas fa-plus-circle card-icon"></i>
+            <h2>Add New Package</h2>
+            <p>Create and publish new travel packages.</p>
+            <a href="{% url 'add_package' %}" class="btn">Add Package</a>
+        </div>
+
+        <div class="card">
+            <i class="fas fa-box-open card-icon"></i>
+            <h2>Manage Packages</h2>
+            <p>View and update existing travel packages.</p>
+            <a href="{% url 'ta_manage_packages' %}" class="btn">Manage Packages</a>
+        </div>
+
+        <div class="card">
+            <i class="fas fa-list-alt card-icon"></i>
+            <h2>View Bookings</h2>
+            <p>Check and manage customer bookings.</p>
+            <a href="{% url 'ta_bookings' %}" class="btn">View Bookings</a>
+        </div>
+    </section>
+</main>
+
+{% endblock %}

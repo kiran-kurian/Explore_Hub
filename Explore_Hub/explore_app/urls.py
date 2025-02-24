@@ -47,6 +47,7 @@ urlpatterns = [
     path('adminmain/delete-user/<int:user_id>/', admin_delete_user, name='admin_delete_user'),
     path('taregistration/', ta_registration_view, name="ta_registration"),
     path('tahome/', ta_home, name="tahome"),
+    path('ta/manage_packages/', ta_manage_package, name='ta_manage_packages'),
     path('manage_archived/', manage_archived_packages, name='manage_archived_packages'),
     path('manageprofile/', ta_manage_profile, name="ta_profile"),
     path('addpackage/', add_package, name="add_package"),

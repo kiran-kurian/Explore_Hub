@@ -382,9 +382,8 @@ def admin_delete_user(request, user_id):
         return redirect('admin_manage_users')
     else:
         return redirect('login')
-
-#view for home page of travel agency
-@never_cache
+    
+#home page for travel agency
 @login_required(login_url='login')
 def ta_home(request):
     if 'travel' in request.session:
@@ -394,10 +393,31 @@ def ta_home(request):
                 return render(request, "login.html", {
                     "message": "Approval pending"
                 })
-            packages = TravelPackage.objects.filter(agency_id=agency, is_archived=False, is_active=True).prefetch_related('package_images')
+            total_packages = TravelPackage.objects.filter(agency_id=agency).count()
+            total_bookings = Booking.objects.filter(package__agency_id=agency).count()
+            total_customers = Booking.objects.filter(package__agency_id=agency).values('user').distinct().count()
+            total_revenue = Booking.objects.filter(package__agency_id=agency).aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+            context = {
+                'agency': agency,
+                'total_packages': total_packages,
+                'total_bookings': total_bookings,
+                'total_customers': total_customers,
+                'total_revenue': total_revenue,
+            }
+            return render(request, 'ta_home.html', context)
         except TravelAgency.DoesNotExist:
             return redirect('login')
-        return render(request, 'ta_home.html', {'agency': agency, 'packages': packages})
+    else:
+        return redirect('login')
+
+#view for managing packages of travel agency
+@never_cache
+@login_required(login_url='login')
+def ta_manage_package(request):
+    if 'travel' in request.session:
+        agency = TravelAgency.objects.get(username=request.user.username)    
+        packages = TravelPackage.objects.filter(agency_id=agency, is_archived=False, is_active=True).prefetch_related('package_images')
+        return render(request, 'ta_packages.html', {'agency': agency, 'packages': packages})
     else:
         return redirect('login')
 
@@ -1610,7 +1630,7 @@ def guide_booking_detail(request, booking_id):
             
             if suggestion_text:
                 if len([char for char in suggestion_text if char.isalpha()]) < 3:
-                    messages.error(request, "Your suggestion must contain at least three letters.")
+                    messages.error(request, "Enter valid suggestion")
                     return redirect("guide_booking_detail", booking_id=booking_id)
                 else:
                     suggestion = BookingPlan.objects.update(
@@ -2057,6 +2077,14 @@ def approve_organizer(request, organizer_id):
 #view for home page of event organizer
 def event_organizer_home(request):
     if 'organizer' in request.session:
+        try:
+            organizer = EventOrganizer.objects.get(username=request.user.username)
+            if not organizer.approved:
+                return render(request, "login.html", {
+                    "message": "Approval pending"
+                })
+        except LocalGuide.DoesNotExist:
+            return redirect('login')
         return render(request, 'event_organizer_home.html')
     else:
         return redirect('login')

@@ -15,11 +15,12 @@
             <h2>Explore Hub</h2>
             <nav>
                 <ul>
+                    <li><a href="{% url 'tahome' %}">Home</a></li>
                     <li><a href="{% url 'ta_bookings' %}">Bookings</a></li>
                     <li class="dropdown">
                         <a href="#" class="dropbtn">Manage Packages</a>
                         <div class="dropdown-content">
-                            <a href="{% url 'tahome' %}">Active Packages</a>
+                            <a href="{% url 'ta_manage_packages' %}">Active Packages</a>
                             <a href="{% url 'manage_archived_packages' %}">Archived Packages</a>
                         </div>
                     </li>
