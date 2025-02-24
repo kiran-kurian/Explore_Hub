@@ -2083,8 +2083,68 @@ def event_organizer_home(request):
                 return render(request, "login.html", {
                     "message": "Approval pending"
                 })
-        except LocalGuide.DoesNotExist:
+        except EventOrganizer.DoesNotExist:
             return redirect('login')
-        return render(request, 'event_organizer_home.html')
+        events = Event_tbl.objects.filter(organizer_id=organizer).count()
+        upcoming_events = Event_tbl.objects.filter(organizer_id=organizer, event_date__gte=timezone.now()).count()
+        return render(request, 'event_organizer_home.html', {'events': events, 'upcoming_events': upcoming_events})
     else:
         return redirect('login')
+    
+#view for creating event by the event organizer
+def create_event(request):
+    if 'organizer' in request.session:
+        if request.method == 'POST':
+            event_name = request.POST.get('event_name')
+            event_date = request.POST.get('event_date')
+            event_time = request.POST.get('event_time')
+            event_location = request.POST.get('event_location')
+            event_description = request.POST.get('event_description')
+            event_image = request.FILES.getlist('event_image')
+            event_capacity = request.POST.get('event_capacity')
+            event_price = request.POST.get('event_price')
+
+            organizer = EventOrganizer.objects.get(username=request.user.username)
+            event = Event_tbl(
+                organizer_id=organizer,
+                title=event_name,
+                event_date=event_date,
+                event_time=event_time,
+                location=event_location,
+                description=event_description,
+                max_seats=event_capacity,
+                price=event_price
+            )
+            event.save()
+
+            for image in event_image:
+                        EventImage.objects.create(
+                            event=event,
+                            image=image,
+                        )
+            return redirect('event_organizer_home')
+        return render(request, 'create_event.html')
+    else:
+        return redirect('login')
+    
+#view for listing the events
+def event_list(request):
+    events = Event_tbl.objects.filter(event_date__gte=timezone.now(), is_active=True)
+    return render(request, 'event_list.html', {'events': events})
+
+#view for details of the events
+def event_detail(request, event_id):
+    event = get_object_or_404(Event_tbl, pk=event_id)
+    images = EventImage.objects.filter(event=event)
+    available_seats = event.max_seats - event.booking_count
+    return render(request, 'event_detail.html', {'event': event, 'images': images, 'available_seats': available_seats})
+
+#view for searching the events
+def event_search(request):
+    query = request.GET.get('query', '')
+    if query:
+        events = Event_tbl.objects.filter(title__icontains=query, is_active=True)  
+    else:
+        events = Event_tbl.objects.all()
+
+    return render(request, 'event_list_partial.html', {'events': events})

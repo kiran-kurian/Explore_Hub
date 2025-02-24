@@ -210,3 +210,26 @@ class BookingPlan(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     user_preferences = models.TextField(blank=True, null=True)
     guide_plan = models.TextField(blank=True, null=True)
+
+#model for event listing
+class Event_tbl(models.Model):
+    event_id = models.AutoField(primary_key=True)
+    organizer_id = models.ForeignKey(EventOrganizer, on_delete=models.CASCADE, related_name="events")
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    event_date = models.DateField()  
+    event_time = models.TimeField()
+    location = models.CharField(max_length=200)
+    cancellation = models.BooleanField(default=False)
+    images = models.ManyToManyField('EventImage')
+    is_archived = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+    views = models.PositiveIntegerField(default=0)
+    booking_count = models.PositiveIntegerField(default=0)
+    max_seats = models.PositiveIntegerField()
+
+#model for storing images of the events
+class EventImage(models.Model):
+    event = models.ForeignKey(Event_tbl, on_delete=models.CASCADE, related_name='event_images', null=True)
+    image = models.ImageField(upload_to='event_images/')

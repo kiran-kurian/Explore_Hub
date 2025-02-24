@@ -99,9 +99,8 @@ h4 {
 
 .discount-badge {
     display: inline-block;
-    /* margin-top: 5px; */
     padding: 5px 10px;
-    background-color: #28a745; /* Change this to your preferred color */
+    background-color: #28a745; 
     color: white;
     border-radius: 5px;
     font-weight: bold;

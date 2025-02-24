@@ -1,0 +1,141 @@
+{% extends 'event_organizer.html' %}
+{% block title %}Create Event{% endblock %}
+
+{% block content %}
+<style>
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: #f8f9fa;
+    }
+
+    .container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 50px 20px;
+    }
+
+    .event-form {
+        background: white;
+        padding: 40px;
+        border-radius: 10px;
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+        width: 90%;
+        max-width: 1000px;
+    }
+
+    .event-form h2 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 25px;
+        font-size: 2rem;
+        font-weight: 600;
+    }
+
+    .form-group {
+        margin-bottom: 18px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    label {
+        font-weight: 600;
+        color: #444;
+        font-size: 1.1rem;
+        margin-bottom: 6px;
+    }
+
+    input, textarea {
+        width: 100%;
+        padding: 12px;
+        border: 1.5px solid #ccc;
+        border-radius: 6px;
+        font-size: 1.1rem;
+        transition: 0.3s;
+    }
+
+    input:focus, textarea:focus {
+        border-color: #f06161;
+        outline: none;
+        box-shadow: 0 0 8px rgba(240, 97, 97, 0.2);
+    }
+
+    .submit-btn {
+        background: #f06161;
+        color: white;
+        font-size: 1.2rem;
+        padding: 14px;
+        border: none;
+        width: 100%;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: 0.3s;
+        font-weight: bold;
+        margin-top: 18px;
+    }
+
+    .submit-btn:hover {
+        background: #d95050;
+        transform: scale(1.03);
+    }
+</style>
+
+<div class="container">
+    <form class="event-form" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <h2>Create a New Event</h2>
+
+        <div class="form-group">
+            <label>Event Name:</label>
+            <input type="text" name="event_name" required placeholder="Enter event name">
+        </div>
+
+        <div class="form-group">
+            <label>Event Date:</label>
+            <input type="date" name="event_date" id="event_date" required>
+        </div>
+
+        <div class="form-group">
+            <label>Event Time:</label>
+            <input type="time" name="event_time" required>
+        </div>
+
+        <div class="form-group">
+            <label>Event Location:</label>
+            <input type="text" name="event_location" required placeholder="Enter location">
+        </div>
+
+        <div class="form-group">
+            <label>Event Description:</label>
+            <textarea name="event_description" required rows="4" placeholder="Describe your event"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Event Image:</label>
+            <input type="file" name="event_image" accept="image/*" multiple required>
+        </div>
+
+        <div class="form-group">
+            <label>Maximum seats:</label>
+            <input type="number" name="event_capacity" required min="1" placeholder="Number of seats available">
+        </div>
+
+        <div class="form-group">
+            <label>Ticket Price (₹):</label>
+            <input type="number" name="event_price" required min="0" step="0.01" placeholder="Enter ticket price">
+        </div>
+
+        <button type="submit" class="submit-btn">Create Event</button>
+    </form>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        let eventDateInput = document.getElementById("event_date");
+        let today = new Date();
+        today.setDate(today.getDate() + 7); 
+        let minDate = today.toISOString().split("T")[0]; 
+        eventDateInput.setAttribute("min", minDate);
+    });
+</script>
+{% endblock %}

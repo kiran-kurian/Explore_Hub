@@ -1,0 +1,118 @@
+{% extends 'layout_main.html' %}
+{% load static %}
+
+{% block content %}
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'assets/css/style.css' %}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css">
+    <script src="{% static "assets/vendors/jquery/jquery-3.4.1.js" %}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
+
+    <style>
+        .event-container {
+            max-width: 800px;
+            margin: 140px auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .slider-container {
+            width: 100%;
+            height: 300px; 
+            overflow: hidden;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .slide img {
+            width: 100%;
+            height: 300px; 
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .event-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .event-info {
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+
+        .event-description {
+            font-size: 16px;
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .btn-book {
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #f06161;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: background 0.3s ease;
+        }
+
+        .btn-book:hover {
+            background-color: #f03c3c;
+            color: white;
+        }
+    </style>
+</head>
+
+<div class="event-container">
+    <div class="slider-container">
+        {% for image in event.event_images.all %}
+            <div class="slide">
+                <img src="{{ image.image.url }}" alt="{{ event.title }}">
+            </div>
+        {% empty %}
+            <div class="slide">
+                <img src="{% static 'assets/images/default_image.jpg' %}" alt="Default Image">
+            </div>
+        {% endfor %}
+    </div>
+
+    <h2 class="event-title">{{ event.title }}</h2>
+    
+    <p class="event-info"><strong>Location:</strong> {{ event.location }}</p>
+    <p class="event-info"><strong>Date:</strong> {{ event.event_date }}</p>
+    <p class="event-info"><strong>Time:</strong> {{ event.event_time }}</p>
+    <p class="event-info"><strong>Max Seat Capacity:</strong> {{ event.max_seats }}</p>
+    <p class="event-info"><strong>Available Seat:</strong> {{ available_seats }}</p>
+    
+    <p class="event-description">{{ event.description }}</p>
+
+    <a href="#" class="btn-book">Book Now</a>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function(){
+        $('.slider-container').slick({
+            dots: true,
+            infinite: true,
+            speed: 500,
+            slidesToShow: 1,
+            adaptiveHeight: false,
+            autoplay: true,
+            autoplaySpeed: 2000,
+            arrows: true,
+        });
+    });
+</script>
+
+{% endblock %}

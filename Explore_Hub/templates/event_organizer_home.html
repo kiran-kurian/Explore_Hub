@@ -107,12 +107,12 @@
         <div class="stat-box">
             <i class="fas fa-calendar-check stat-icon"></i>
             <h2>Total Events</h2>
-            <p>25</p>
+            <p>{{ events }}</p>
         </div>
         <div class="stat-box">
             <i class="fas fa-calendar-alt stat-icon"></i>
             <h2>Upcoming Events</h2>
-            <p>10</p>
+            <p>{{ upcoming_events }}</p>
         </div>
         <div class="stat-box">
             <i class="fas fa-ticket-alt stat-icon"></i>
@@ -125,7 +125,7 @@
         <div class="action-card">
             <h3>Create New Event</h3>
             <p>Plan and launch new events quickly.</p>
-            <a href="#">Get Started</a>
+            <a href="{% url 'create_event' %}">Get Started</a>
         </div>
         <div class="action-card">
             <h3>Manage Events</h3>
