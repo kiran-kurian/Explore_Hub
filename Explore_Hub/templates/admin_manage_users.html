@@ -1,62 +1,85 @@
 {% extends 'admin.html' %}
 {% load static %}
+{% block title %}Manage Users{% endblock %}
+
 {% block content %}
 <head>
     <link rel="stylesheet" href="{% static 'assets/css/admin_users.css' %}">
 </head>
 
-<div class="body">
-    <section class="dashboard">
-        <h2 class="dashboard-title">Manage Users</h2>
-        
-        {% if users %}
-            <table class="user-table">
-                <th>
-                    <tr>
-                        {% comment %} <th>ID</th> {% endcomment %}
-                        <th>Username</th>
-                        <th>Email</th>
-                        <th>Phone Number</th>
-                        <th>Role</th>
-                        <th>Actions</th>
-                    </tr>
-                </th>
-                <tbody>
-                    {% for user in users %}
-                        <tr>
-                            {% comment %} <td>{{ user.id }}</td> {% endcomment %}
-                            <td>{{ user.username }}</td>
-                            <td>{{ user.email }}</td>
-                            <td>{{ user.phone_number }}</td>
-                            <td>{{ user.role }}</td>
-                            <td class="actions-column">
-                                {% if user.is_active %}
-                                <a href="{% url 'admin_delete_user' user.id %}" class="btn delete-btn" onclick="return confirmBlock();">Block</a>
-                                {% else %}
-                                <a href="{% url 'admin_delete_user' user.id %}" class="btn accept-btn" onclick="return confirmUnblock();">Unblock</a>
-                                {% endif %}
-                            </td>
-                        </tr>
-                    {% empty %}
-                        <tr>
-                            <td colspan="6">No users available</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        {% else %}
-            <p>No users to display.</p>
-        {% endif %}
+<div class="container mt-4">
+    <h2 class="mb-4">Manage Users</h2>
 
-        <script>
-            function confirmBlock() {
-                return confirm('Are you sure you want to block this user?');
-            }
-        
-            function confirmUnblock() {
-                return confirm('Are you sure you want to unblock this user?');
-            }
-        </script>
-    </section>
+    <!-- User Table -->
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Phone Number</th>
+                    <th>Role</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.phone_number }}</td>
+                    <td>{{ user.role }}</td>
+                    <td>
+                        {% if user.is_active %}
+                            <a href="{% url 'admin_delete_user' user.id %}" class="btn btn-danger action-btn" onclick="return confirmBlock();">Block</a>
+                        {% else %}
+                            <a href="{% url 'admin_delete_user' user.id %}" class="btn btn-success action-btn" onclick="return confirmUnblock();">Unblock</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center">No users available.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
+
+<script>
+    function confirmBlock() {
+        return confirm('Are you sure you want to block this user?');
+    }
+
+    function confirmUnblock() {
+        return confirm('Are you sure you want to unblock this user?');
+    }
+</script>
+
+<style>
+    .action-btn {
+        padding: 8px 14px;
+        font-weight: bold;
+        transition: 0.3s ease-in-out;
+        text-decoration: none;
+    }
+    
+    .btn-danger {
+        background: linear-gradient(135deg, #dc3545, #c82333);
+        color: white;
+        border: none;
+    }
+    
+    .btn-success {
+        background: linear-gradient(135deg, #28a745, #218838);
+        color: white;
+        border: none;
+    }
+    
+    .action-btn:hover {
+        opacity: 0.9;
+        transform: scale(1.05);
+    }
+</style>
 {% endblock %}

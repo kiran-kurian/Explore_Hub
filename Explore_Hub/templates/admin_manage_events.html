@@ -1,0 +1,66 @@
+{% extends 'admin.html' %}
+
+{% block title %}Manage Events{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">All Listed Events</h2>
+    
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>#</th>
+                    <th>Event Name</th>
+                    <th>Organizer</th>
+                    <th>Date</th>
+                    <th>Location</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in events %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ event.title }}</td>
+                    <td>{{ event.organizer_id.name }}</td>
+                    <td>{{ event.event_date }}</td>
+                    <td>{{ event.location }}</td>
+                    <td>
+                        {% if event.is_active %}
+                            <span class="badge bg-success">Active</span>
+                        {% else %}
+                            <span class="badge bg-danger">Deleted</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center">No events found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .bg-success {
+        background: linear-gradient(135deg, #28a745, #218838);
+        color: #fff;
+        padding: 8px 14px;
+        border-radius: 20px;
+        box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+        display: inline-block;
+    }
+    
+    .bg-danger {
+        background: linear-gradient(135deg, #dc3545, #c82333);
+        color: #fff;
+        padding: 8px 14px;
+        border-radius: 20px;
+        box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+        display: inline-block;
+    }
+</style>
+{% endblock %}

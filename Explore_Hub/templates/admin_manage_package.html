@@ -1,113 +1,294 @@
 {% extends 'admin.html' %}
-{% load static %}
 {% block content %}
-<head>
-    <link rel="stylesheet" href="{% static 'assets/css/admin_manage_package.css' %}">
-</head>
 
-<div class="body">
-    <section class="dashboard">
-        <h2>Manage Travel Packages</h2>
-        <div class="dashboard-options">
-            {% for package in packages %}
-                <div class="package-box">
-                    {% for image in package.package_images.all %}
-                        <img src="{{ image.image.url }}" alt="{{ package.title }}" style="max-width: 240px; height: 180px;">
-                    {% empty %}
-                        <p>No image available</p>
-                    {% endfor %}
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            display: flex;
+            flex-direction: row;
+            height: 100vh;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: #f4f4f4;
+            border-right: 1px solid #ddd;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        .sidebar ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar ul li {
+            margin-bottom: 10px;
+        }
+        .sidebar ul li a {
+            text-decoration: none;
+            color: #333;
+            padding: 10px;
+            display: block;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .sidebar ul li a:hover, .sidebar ul li a.active {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .content {
+            flex: 1;
+            padding: 20px;
+        }
+        .package-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            padding-top: 30px;
+        }
+        .package-card {
+            display: flex;
+            border: 1px solid #ddd;
+            padding: 15px;
+            background: #fff;
+            border-radius: 8px;
+            width: 100%;
+            flex-direction: column;
+        }
+        .image-gallery {
+            display: flex;
+            flex-direction: row;
+            width: auto;
+            flex-wrap: nowrap;
+            gap: 10px;
+            width: 100%;
+            align-items: center;
+        }
+        .package-image {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+        .package-info {
+            flex: 1;
+            padding-left: 15px;
+        }
+        .original-price {
+            text-decoration: line-through;
+            color: red;
+        }
+        .discounted-price {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: green;
+        }
+        .discount-badge {
+            background-color: gold;
+            padding: 3px 6px;
+            border-radius: 5px;
+            font-size: 0.8em;
+        }
+        button {
+            background-color: #d9534f;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #c9302c;
+        }
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                height: auto;
+                border-right: none;
+                border-bottom: 1px solid #ddd;
+            }
+            .content {
+                padding: 10px;
+            }
+        }
 
-                    <h3>{{ package.title }}</h3>
-                    <p><strong>Description:</strong> {{ package.description }}</p>
-                    <p><strong>Price:</strong> ₹{{ package.price }}</p>
-                    <p><strong>Number of Days:</strong> {{ package.duration }}</p>
-                    <p><strong>Origin:</strong> {{ package.origin }}</p>
-                    <p><strong>Destination:</strong> {{ package.destination }}</p>
-                    <p><strong>Departure Day:</strong> {{ package.departure_day }}</p>
-                    <p><strong>Cancellation:</strong> 
-                        {% if package.cancellation %}
-                            Yes
-                        {% else %}
-                            No
-                        {% endif %}
-                    </p>
-                    <p><strong>Agency Name:</strong> {{ package.agency_id.name }}</p>
-                    {% if not package.is_archived %}
-                    <div class="btn-group">
-                        <button class="btn" onclick="openModal({{ package.package_id }})">Archive</button>
+        #archiveModal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 60%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+            align-items: center;
+        }
+        
+    </style>
+
+    <div class="container">
+        <div class="sidebar">
+            <h2>Package Management</h2>
+            <ul>
+                <li><a href="?view=active" class="{% if active_section == 'active' %}active{% endif %}">Active Packages</a></li>
+                <li><a href="?view=archived" class="{% if active_section == 'archived' %}active{% endif %}">Archived Packages</a></li>
+            </ul>
+        </div>
+        <div class="content">
+            {% if active_section == 'active' %}
+            <h1>Active Packages</h1>
+            <div class="package-list">
+                {% for package in packages %}
+                <div class="package-card">
+                    <div class="image-gallery">
+                        {% for image in package.package_images.all %}
+                            <img src="{{ image.image.url }}" alt="{{ package.title }}" class="package-image">
+                        {% empty %}
+                            <img src="/static/default-image.jpg" alt="No Image Available" class="package-image">
+                        {% endfor %}
                     </div>
-                    {% endif %}
+                    <div class="package-info">
+                        <h3>{{ package.title }}</h3>
+                        <p><strong>Agency:</strong> {{ package.agency_id.name }}</p>
+                        <p><strong>Destination:</strong> {{ package.destination }}</p>
+                        <p>
+                            {% if package.discount_percentage %}
+                                <span class="original-price">₹{{ package.price }}</span>
+                                {% if package.discount_percentage > 0 %}
+                                    <span class="discounted-price">₹{{ package.discounted_price }}</span>
+                                    <span class="discount-badge">({{ package.discount_percentage }}% off)</span>
+                                {% endif %}
+                            {% else %}
+                                <span>₹{{ package.price }}</span>
+                            {% endif %}
+                        </p>
+                        {% if not package.is_archived %}
+                            <div class="btn-group">
+                                <button class="btn" onclick="openModal({{ package.package_id }})">Archive</button>
+                            </div>
+                        {% endif %}
+                    </div>
                 </div>
-            {% empty %}
-                <p>No packages available</p>
-            {% endfor %}
-        </div>
-        
-        <!-- Modal for archiving package -->
-        <div id="archiveModal" class="modal" style="display:none;">
-            <div class="modal-content">
-                <span class="close" onclick="closeModal()">&times;</span>
-                <h2>Archive Package</h2>
-                <p>Please provide a reason for archiving:</p>
-                <form id="archive-form">
-                    {% csrf_token %}
-                    <textarea name="archiveReason" id="archiveReason" rows="4" style="width: 100%;" required></textarea>
-                    <button type="submit" class="btn" id="submitArchive">Submit</button>
-                </form>
+                {% endfor %}
             </div>
+            {% elif active_section == 'archived' %}
+            <h1>Archived Packages</h1>
+            <div class="package-list">
+                {% for package in packages %}
+                <div class="package-card">
+                    <div class="image-gallery">
+                        {% for image in package.package_images.all %}
+                            <img src="{{ image.image.url }}" alt="{{ package.title }}" class="package-image">
+                        {% empty %}
+                            <img src="/static/default-image.jpg" alt="No Image Available" class="package-image">
+                        {% endfor %}
+                    </div>
+                    <div class="package-info">
+                        <h3>{{ package.title }}</h3>
+                        <p><strong>Agency:</strong> {{ package.agency_id.name }}</p>
+                        <p><strong>Destination:</strong> {{ package.destination }}</p>
+                        <p>
+                            {% if package.discount_percentage %}
+                                <span class="original-price">₹{{ package.price }}</span>
+                                {% if package.discount_percentage > 0 %}
+                                    <span class="discounted-price">₹{{ package.discounted_price }}</span>
+                                    <span class="discount-badge">({{ package.discount_percentage }}% off)</span>
+                                {% endif %}
+                            {% else %}
+                                <span>₹{{ package.price }}</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
         </div>
+    </div>
 
-        <script>
-            let currentPackageId;
-        
-            function openModal(packageId) {
-                currentPackageId = packageId; // Store the package ID to use when submitting
-                document.getElementById('archiveModal').style.display = "block"; // Show the modal
-            }
-        
-            function closeModal() {
-                document.getElementById('archiveModal').style.display = "none"; // Hide the modal
-                document.getElementById('archiveReason').value = ''; // Clear the textarea
-            }
-        
-            function submitArchive(event) {
-                event.preventDefault(); // Prevent the default form submission
-                const reason = document.getElementById('archiveReason').value.trim(); // Trim whitespace
-        
-                if (!reason) {
-                    alert("Please provide a reason for archiving the package.");
-                    return; // Prevent submission if no reason is provided
-                }
-        
-                fetch(`/adminmain/archive_package/${currentPackageId}/`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded', // Sending form-encoded data
-                        'X-CSRFToken': '{{ csrf_token }}' // CSRF token for Django
-                    },
-                    body: new URLSearchParams({
-                        'archiveReason': reason
-                    }) // Send the reason in form-encoded format
-                })
-                .then(response => {
-                    return response.json(); // Parse response as JSON
-                })
-                .then(data => {
-                    if (data.error) {
-                        throw new Error(data.error);
-                    }
-                    alert(data.success); // Success message
-                    closeModal();
-                    location.reload(); // Reload the page to reflect changes
-                })
-                .catch(error => {
-                    alert("Error: " + error.message); // Error message
-                });
-            }
-        
-            document.getElementById('archive-form').addEventListener('submit', submitArchive);
-        </script>
-        
-    </section>
+
+<!-- Archive Package Modal -->
+<div id="archiveModal" class="modal" style="display:none;">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2>Archive Package</h2>
+        <p id="package-title"></p> <!-- Show package title here -->
+        <p>Please provide a reason for archiving:</p>
+        <form id="archive-form">
+            {% csrf_token %}
+            <textarea name="archiveReason" id="archiveReason" rows="4" style="width: 100%;" required></textarea>
+            <button type="submit" class="btn" id="submitArchive">Submit</button>
+        </form>
+    </div>
 </div>
+
+<script>
+    let currentPackageId;
+    
+    function openModal(packageId) {
+        currentPackageId = packageId; 
+        document.getElementById('archiveModal').style.display = "block"; 
+
+        // Fetch the package title dynamically
+        let packageTitle = document.querySelector(`[onclick="openModal(${packageId})"]`).parentElement.parentElement.querySelector("h3").innerText;
+        document.getElementById('package-title').innerText = `Archiving: ${packageTitle}`;
+    }
+
+    function closeModal() {
+        document.getElementById('archiveModal').style.display = "none"; 
+        document.getElementById('archiveReason').value = ''; 
+    }
+
+    function submitArchive(event) {
+        event.preventDefault(); 
+        const reason = document.getElementById('archiveReason').value.trim(); 
+        
+        if (!reason) {
+            alert("Please provide a reason for archiving the package.");
+            return;
+        }
+
+        fetch(`/adminmain/archive_package/${currentPackageId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: new URLSearchParams({
+                'archiveReason': reason
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                throw new Error(data.error);
+            }
+            alert(data.success);
+            closeModal();
+            location.reload();
+        })
+        .catch(error => {
+            alert("Error: " + error.message);
+        });
+    }
+
+    document.getElementById('archive-form').addEventListener('submit', submitArchive);
+</script>
+
 {% endblock %}

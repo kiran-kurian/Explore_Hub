@@ -39,7 +39,6 @@ urlpatterns = [
     path('adminmain/approve-agencies/', admin_approve_agencies, name='admin_approve_agencies'),
     path('approve-agency/<int:agency_id>/', approve_travel_agency, name='approve_agency'),
     path('adminmain/manage-packages/', admin_manage_packages, name='admin_manage_packages'),
-    path('adminmain/manage_archived_package/', admin_manage_archived_packages, name='admin_manage_archived_packages'),
     path('adminmain/archive_package/<int:package_id>/', admin_archive_package, name='admin_archive_package'),
     path('adminmain/manage-groups/', admin_manage_groups, name='admin_manage_groups'),
     path('adminmain/delete_group/<int:group_id>/', admin_delete_group, name='admin_delete_group'),
@@ -110,6 +109,7 @@ urlpatterns = [
     path('event_organizer/event/<int:event_id>/delete/', delete_event, name='delete_event'),
     path('event_organizer/event/<int:event_id>/participants/', event_participants, name='event_participants'),
     path('event_organizer/profile/', event_organizer_profile, name='event_organizer_profile'),
+    path('adminmain/manage-events/', admin_manage_events, name='admin_manage_events'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

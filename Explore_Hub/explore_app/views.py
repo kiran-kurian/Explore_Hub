@@ -324,18 +324,20 @@ def approve_travel_agency(request, agency_id):
 @login_required(login_url='login')
 def admin_manage_packages(request):
     if 'master' in request.session:
-        package = TravelPackage.objects.prefetch_related('package_images').filter(is_archived=False, is_active=True)
-        return render(request, 'admin_manage_package.html', {'packages': package})
+        view = request.GET.get('view', 'active')
+
+        if view == 'active':
+            packages = TravelPackage.objects.prefetch_related('package_images').filter(is_archived=False, is_active=True)
+        elif view == 'archived':
+            packages = TravelPackage.objects.prefetch_related('package_images').filter(is_archived=True, is_active=True)
+        
+        return render(request, 'admin_manage_package.html', {
+            'packages': packages,
+            'active_section': view,  
+        })
     else:
         return redirect('login')
 
-@login_required(login_url='login')
-def admin_manage_archived_packages(request):
-    if 'master' in request.session:
-        package = TravelPackage.objects.prefetch_related('package_images').filter(is_archived=True, is_active=True)
-        return render(request, 'admin_manage_package.html', {'packages': package})
-    else:
-        return redirect('login')
 
 @login_required(login_url='login')
 def admin_manage_groups(request):
@@ -2398,3 +2400,11 @@ def event_organizer_profile(request):
 
         return render(request, 'event_organizer_profile.html', {'organizer': organizer})
     return redirect('login')
+
+#view for managing the events by the admin
+def admin_manage_events(request):
+    if 'master' in request.session:
+        events = Event_tbl.objects.all()
+        return render(request, 'admin_manage_events.html', {'events': events})
+    else:
+        return redirect('login')
