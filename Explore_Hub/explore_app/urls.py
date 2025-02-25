@@ -105,6 +105,11 @@ urlpatterns = [
     path('event/payment/success/', event_payment_success, name='event_payment_success'),
     path('event/bookings/', my_event_bookings, name='my_event_bookings'),
     path('event_organizer/bookings/', event_organizer_bookings, name='event_organizer_bookings'),
+    path('event_organizer/my_events/', my_events, name='my_events'),
+    path('event_organizer/event/<int:event_id>/update/', update_event, name='update_event'),
+    path('event_organizer/event/<int:event_id>/delete/', delete_event, name='delete_event'),
+    path('event_organizer/event/<int:event_id>/participants/', event_participants, name='event_participants'),
+    path('event_organizer/profile/', event_organizer_profile, name='event_organizer_profile'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

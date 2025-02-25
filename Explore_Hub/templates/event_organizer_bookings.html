@@ -34,7 +34,7 @@
             </thead>
             <tbody>
                 {% for booking in bookings %}
-                <tr>
+                <tr data-month="{{ booking.event.event_date|date:'Y-m' }}">
                     <td>{{ booking.event.title }}</td>
                     <td>{{ booking.user.first_name }}</td>
                     <td>{{ booking.event.event_date|date:"M d, Y" }}</td>

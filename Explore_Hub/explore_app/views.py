@@ -2333,3 +2333,68 @@ def event_organizer_bookings(request):
         return render(request, 'event_organizer_bookings.html', context)
     else:
         return redirect('login')
+    
+#view for listing all the events of the organizer
+def my_events(request):
+    if 'organizer' in request.session:
+        organizer = EventOrganizer.objects.get(username=request.user.username)
+        events = Event_tbl.objects.filter(organizer_id=organizer, is_active=True)
+        return render(request, 'my_events.html', {'events': events})
+    else:
+        return redirect('login')
+    
+#view for updating the event details
+def update_event(request, event_id):
+    if 'organizer' in request.session:
+        event = get_object_or_404(Event_tbl, pk=event_id)
+        if request.method == 'POST':
+            event.title = request.POST.get('event_name')
+            event.event_date = request.POST.get('event_date')
+            event.event_time = request.POST.get('event_time')
+            event.location = request.POST.get('event_location')
+            event.description = request.POST.get('event_description')
+            event.max_seats = request.POST.get('event_capacity')
+            event.price = request.POST.get('event_price')
+            event.save()
+            return redirect('my_events')
+        return render(request, 'update_event.html', {'event': event})
+    else:
+        return redirect('login')
+    
+#view for deleting the event
+def delete_event(request, event_id):
+    if 'organizer' in request.session:
+        event = get_object_or_404(Event_tbl, pk=event_id)
+        event.is_active = False
+        event.save()
+        return redirect('my_events')
+    else:
+        return redirect('login')
+    
+#view for showing evnet participants
+def event_participants(request, event_id):
+    if 'organizer' in request.session:
+        event = get_object_or_404(Event_tbl, pk=event_id)
+        bookings = EventBooking.objects.filter(event=event)
+        return render(request, 'event_participants.html', {'event': event, 'bookings': bookings})
+    else:
+        return redirect('login')
+    
+#view for updating the profile of the event organizer
+def event_organizer_profile(request):
+    if 'organizer' in request.session:
+        organizer = get_object_or_404(EventOrganizer, username=request.user.username)
+        event_organizer = get_object_or_404(CustomUser, username=request.user.username)
+
+        if request.method == "POST":
+            organizer.name = request.POST.get('name')
+            organizer.contact = request.POST.get('contact')
+            organizer.bio = request.POST.get('bio')
+            organizer.save()
+            event_organizer.first_name = request.POST.get('name')
+            event_organizer.phone_number = request.POST.get('contact')
+            event_organizer.save()
+            return redirect('event_organizer_home')  
+
+        return render(request, 'event_organizer_profile.html', {'organizer': organizer})
+    return redirect('login')
