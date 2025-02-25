@@ -17,7 +17,7 @@
         border: 1px solid #ee5050;
         padding: 6px 20px;
         font-size: 16px;
-        width:50px;
+        width: auto;
         border-radius: 5px;
         transition: background-color 0.3s ease, transform 0.2s ease;
     }
@@ -34,7 +34,7 @@
         color: #ee5050;
         border: 1px solid #ee5050;
         padding: 8px 20px;
-        width: 10px;
+        width: auto;
         font-size: 16px;
         border-radius: 5px;
         transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
@@ -56,6 +56,7 @@
     }
 
 </style>
+
 <div class="container mt-5">
     <h2 class="text-center mb-4">My Bookings</h2>
 
@@ -65,19 +66,21 @@
         {% endfor %}
     {% endif %}
 
-    <!-- Buttons to toggle between package bookings and guide bookings -->
     <div class="btn-group">
         <a href="{% url 'my_bookings' %}" 
-           class="btn {% if not is_guide_bookings %}btn-primary1{% else %}btn-outline-primary1{% endif %}">
+           class="btn {% if not is_guide_bookings and not is_event_bookings %}btn-primary1{% else %}btn-outline-primary1{% endif %}">
             Package Bookings
         </a>
         <a href="{% url 'my_guide_bookings' %}" 
            class="btn {% if is_guide_bookings %}btn-primary1{% else %}btn-outline-primary1{% endif %}">
             Guide Bookings
         </a>
+        <a href="{% url 'my_event_bookings' %}" 
+           class="btn {% if is_event_bookings %}btn-primary1{% else %}btn-outline-primary1{% endif %}">
+            Event Bookings
+        </a>
     </div>
 
-    <!-- Booking table -->
     <div class="table-responsive">
         <table class="table table-bordered">
             <thead class="thead-light">
@@ -86,6 +89,10 @@
                         <th>Guide Name</th>
                         <th>Start Date</th>
                         <th>End Date</th>
+                    {% elif is_event_bookings %}
+                        <th>Event Name</th>
+                        <th>Event Date</th>
+                        <th>Seats</th>
                     {% else %}
                         <th>Package</th>
                         <th>Trip Date</th>
@@ -102,6 +109,10 @@
                         <td>{{ booking.guide.name }}</td>
                         <td>{{ booking.start_date|date:"d-m-Y" }}</td>
                         <td>{{ booking.end_date|date:"d-m-Y" }}</td>
+                    {% elif is_event_bookings %}
+                        <td>{{ booking.event.title }}</td>
+                        <td>{{ booking.event.event_date|date:"d-m-Y" }}</td>
+                        <td>{{ booking.number_of_people }}</td>
                     {% else %}
                         <td>{{ booking.package.title }}</td>
                         <td>{{ booking.trip_date|date:"d-m-Y" }}</td>
@@ -118,43 +129,44 @@
                     </td>
                     <td>
                         {% if not booking.is_cancelled %}
-                            {% if booking.trip_date < request.now|date %}
-                                <span class="text-success">Completed</span>
-                            {% else %}
-                                {% if not is_guide_bookings %}
+                            {% if is_event_bookings %}
+                                {% if booking.event_date < request.now|date %}
+                                    <span class="text-success">Completed</span>
+                                {% else %}
                                     {% if booking.cancellation %} 
-                                        <form action="{% url 'cancel_booking' booking.id %}" method="POST" style="display:inline;">
+                                        <form action="{% url 'cancel_event_booking' booking.id %}" method="POST" style="display:inline;">
                                             {% csrf_token %}
                                             <button type="submit" class="btn btn-danger btn-sm"
-                                                {% if booking.trip_date|date <= request.now|date|add:"7" %}
-                                                    disabled
-                                                {% endif %}>
+                                                {% if booking.event_date|date <= request.now|date|add:"7" %} disabled {% endif %}>
                                                 Cancel
                                             </button>
                                         </form>
                                     {% else %}
                                         <span class="text-muted">Cancellation not available</span>
                                     {% endif %}
+                                {% endif %}
+                            {% elif is_guide_bookings %}
+                                <form action="{% url 'guide_booking_detail' booking.id %}" method="POST" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger btn-sm">
+                                        Details
+                                    </button>
+                                </form>
+                            {% else %}
+                                {% if booking.trip_date < request.now|date %}
+                                    <span class="text-success">Completed</span>
                                 {% else %}
-                                    {% comment %} {% if booking.cancellation %} 
-                                        <form action="{% url 'cancel_guide_booking' booking.id %}" method="POST" style="display:inline;">
+                                    {% if booking.cancellation %} 
+                                        <form action="{% url 'cancel_booking' booking.id %}" method="POST" style="display:inline;">
                                             {% csrf_token %}
                                             <button type="submit" class="btn btn-danger btn-sm"
-                                                {% if booking.start_date|date <= request.now|date|add:"7" %}
-                                                    disabled
-                                                {% endif %}>
+                                                {% if booking.trip_date|date <= request.now|date|add:"7" %} disabled {% endif %}>
                                                 Cancel
                                             </button>
                                         </form>
                                     {% else %}
                                         <span class="text-muted">Cancellation not available</span>
-                                    {% endif %} {% endcomment %}
-                                    <form action="{% url 'guide_booking_detail' booking.id %}" method="POST" style="display:inline;">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn btn-danger btn-sm">
-                                            Details
-                                        </button>
-                                    </form>
+                                    {% endif %}
                                 {% endif %}
                             {% endif %}
                         {% else %}

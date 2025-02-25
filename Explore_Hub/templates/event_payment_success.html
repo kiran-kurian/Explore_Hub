@@ -5,20 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment Successful</title>
     <script>
-
         setTimeout(function() {
-            window.location.href = "{% url 'package' %}"; 
-        }, 3000); 
+            window.location.href = "{% url 'event_list' %}";
+        }, 3000);
         function downloadPDF() {
-            const pdfData = "{{ pdf_data }}"; 
+            const pdfData = "{{ pdf_data }}";
             const link = document.createElement('a');
             link.href = 'data:application/pdf;base64,' + pdfData;
-            link.download = 'Booking_{{ booking.booking_id }}.pdf'; 
+            link.download = 'Event_Booking_{{ booking.booking_id }}.pdf';
             document.body.appendChild(link);
-            link.click(); 
-            document.body.removeChild(link); 
+            link.click();
+            document.body.removeChild(link);
         }
-
         window.onload = downloadPDF;
     </script>
     <style>
@@ -29,7 +27,7 @@
             padding: 50px;
         }
         h1 {
-            color: #2980b9;
+            color: #27ae60;
         }
         p {
             font-size: 18px;
@@ -39,9 +37,9 @@
 </head>
 <body>
     <h1>Payment Successful!</h1>
-    <p>Your booking for "{{ booking.package.title }}" has been confirmed. Booking ID: {{ booking.booking_id }}</p>
-    <p>You will be redirected to the homepage shortly.</p>
-    <p><a href="data:application/pdf;base64,{{ pdf_data }}" download="Booking_{{ booking.booking_id }}.pdf">Download your booking details</a></p>
-    <p><a href="{% url 'package' %}">Back to page</a></p>
+    <p>Your booking for the event "{{ booking.event.name }}" has been confirmed. Booking ID: {{ booking.booking_id }}</p>
+    <p>You will be redirected to the event listing page shortly.</p>
+    <p><a href="data:application/pdf;base64,{{ pdf_data }}" download="Event_Booking_{{ booking.booking_id }}.pdf">Download your booking details</a></p>
+    <p><a href="{% url 'event_list' %}">Back to Events</a></p>
 </body>
 </html>

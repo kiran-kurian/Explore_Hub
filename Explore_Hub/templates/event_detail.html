@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="{% static 'assets/css/style.css' %}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css">
-    <script src="{% static "assets/vendors/jquery/jquery-3.4.1.js" %}"></script>
+    <script src="{% static 'assets/vendors/jquery/jquery-3.4.1.js' %}"></script>
     <script src="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
 
     <style>
@@ -24,7 +24,7 @@
 
         .slider-container {
             width: 100%;
-            height: 300px; 
+            height: 300px;
             overflow: hidden;
             border-radius: 8px;
             margin-bottom: 20px;
@@ -32,45 +32,54 @@
 
         .slide img {
             width: 100%;
-            height: 300px; 
+            height: 300px;
             object-fit: cover;
             border-radius: 8px;
         }
 
         .event-title {
-            font-size: 24px;
+            font-size: 26px;
             font-weight: bold;
+            color: #333;
             margin-bottom: 10px;
         }
 
-        .event-info {
-            font-size: 16px;
-            margin-bottom: 15px;
-        }
-
-        .event-description {
-            font-size: 16px;
-            color: #555;
+        .event-info, .event-description {
+            font-size: 18px;
+            color: #444;
             line-height: 1.6;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
         .btn-book {
             display: inline-block;
-            padding: 10px 20px;
-            font-size: 16px;
+            padding: 12px 24px;
+            font-size: 18px;
             background-color: #f06161;
             color: white;
             text-decoration: none;
             border-radius: 5px;
             font-weight: bold;
             transition: background 0.3s ease;
+            border: none;
+            cursor: pointer;
+            margin-top: 15px;
         }
 
         .btn-book:hover {
             background-color: #f03c3c;
             color: white;
         }
+
+        .input-field {
+            padding: 10px;
+            font-size: 16px;
+            width: 100%;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
     </style>
 </head>
 
@@ -93,11 +102,20 @@
     <p class="event-info"><strong>Date:</strong> {{ event.event_date }}</p>
     <p class="event-info"><strong>Time:</strong> {{ event.event_time }}</p>
     <p class="event-info"><strong>Max Seat Capacity:</strong> {{ event.max_seats }}</p>
-    <p class="event-info"><strong>Available Seat:</strong> {{ available_seats }}</p>
+    <p class="event-info"><strong>Available Seats:</strong> {{ available_seats }}</p>
+    <p class="event-info"><strong>Organized By:</strong> {{ event.organizer_id.name }}</p>
     
     <p class="event-description">{{ event.description }}</p>
 
-    <a href="#" class="btn-book">Book Now</a>
+    <form method="POST" action="{% url 'book_event' event.event_id %}">
+        {% csrf_token %}
+        <label for="number_of_seats" class="event-info"><strong>Number of Seats:</strong></label>
+        <input type="number" name="number_of_seats" id="number_of_seats" class="input-field" min="1" required>
+        <p class="event-info"><strong>Price per seat:</strong> ₹{{ event.price }}</p>
+        <button type="submit" class="btn-book">Book Now</button>
+    </form>
+
+    <a href="{% url 'event_list' %}" class="btn-book">Go Back</a>
 </div>
 
 <script type="text/javascript">

@@ -183,8 +183,6 @@ class GuideBooking(models.Model):
     cancellation = models.BooleanField(default=False)
     cancellation_reason = models.TextField(null=True, blank=True)
     cancellation_date = models.DateTimeField(null=True, blank=True)
-
-    # Payment Details
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     payment_status = models.CharField(max_length=20, choices=[
         ('pending', 'Pending'),
@@ -233,3 +231,31 @@ class Event_tbl(models.Model):
 class EventImage(models.Model):
     event = models.ForeignKey(Event_tbl, on_delete=models.CASCADE, related_name='event_images', null=True)
     image = models.ImageField(upload_to='event_images/')
+
+#model for event booking
+class EventBooking(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    event = models.ForeignKey('Event_tbl', on_delete=models.CASCADE)
+    organizer = models.ForeignKey(EventOrganizer, on_delete=models.CASCADE)
+    booking_date = models.DateTimeField(auto_now_add=True)
+    event_date = models.DateField(null=True, blank=False)
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    booking_id = models.CharField(max_length=100, unique=True)
+    is_confirmed = models.BooleanField(default=False)
+    number_of_people = models.PositiveIntegerField(default=1)
+    payment_status = models.CharField(max_length=20, choices=[
+        ('pending', 'Pending'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
+    ], default='pending')  
+    transaction_id = models.CharField(max_length=100, unique=True, null=True, blank=True)  
+    payment_method = models.CharField(max_length=50, choices=[
+        ('credit_card', 'Credit Card'),
+        ('debit_card', 'Debit Card'),
+        ('paypal', 'PayPal'),
+        ('net_banking', 'Net Banking'),
+        ('upi', 'UPI'),
+    ], null=True, blank=True)  
+    payment_date = models.DateTimeField(null=True, blank=True)
+    refunded_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    razorpay_payment_id = models.CharField(max_length=255, blank=True, null=True)

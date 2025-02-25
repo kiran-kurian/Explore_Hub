@@ -117,7 +117,7 @@
         <div class="stat-box">
             <i class="fas fa-ticket-alt stat-icon"></i>
             <h2>Bookings Received</h2>
-            <p>120</p>
+            <p>{{ booking_count }}</p>
         </div>
     </div>
 
@@ -135,7 +135,7 @@
         <div class="action-card">
             <h3>View Bookings</h3>
             <p>Track and manage event bookings easily.</p>
-            <a href="#">Check Now</a>
+            <a href="{% url 'event_organizer_bookings' %}">Check Now</a>
         </div>
     </div>
 </div>

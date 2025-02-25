@@ -35,6 +35,7 @@ import requests
 from opencage.geocoder import OpenCageGeocode
 from django.db.models import Sum
 import json
+from django.utils.timezone import now
 
 
 # Create your views here.
@@ -1421,7 +1422,7 @@ def guide_payment_success(request):
 def generate_guide_pdf(booking, buffer):
     p = canvas.Canvas(buffer, pagesize=A4)
 
-    logo_path = "static/images/logo.png"  # Update with your actual logo path
+    logo_path = "static/images/logo.png"        
     p.drawImage(logo_path, 50, 770, width=40, height=50)
 
     p.setTitle("Guide Booking Invoice")
@@ -2087,7 +2088,8 @@ def event_organizer_home(request):
             return redirect('login')
         events = Event_tbl.objects.filter(organizer_id=organizer).count()
         upcoming_events = Event_tbl.objects.filter(organizer_id=organizer, event_date__gte=timezone.now()).count()
-        return render(request, 'event_organizer_home.html', {'events': events, 'upcoming_events': upcoming_events})
+        booking_count = EventBooking.objects.filter(event__organizer_id=organizer).count()
+        return render(request, 'event_organizer_home.html', {'events': events, 'upcoming_events': upcoming_events, 'booking_count': booking_count})
     else:
         return redirect('login')
     
@@ -2148,3 +2150,186 @@ def event_search(request):
         events = Event_tbl.objects.all()
 
     return render(request, 'event_list_partial.html', {'events': events})
+
+#view for booking the event
+def book_event(request, event_id):
+    if 'normal' in request.session:
+        event = get_object_or_404(Event_tbl, pk=event_id)
+        if request.method == 'POST':
+            number_of_seats = request.POST.get('number_of_seats')
+            total_amount = int(number_of_seats) * event.price
+            booking = EventBooking(
+                user=request.user,
+                event=event,
+                number_of_people=number_of_seats,
+                total_amount=total_amount,
+                event_date=event.event_date,
+                organizer=event.organizer_id,
+                payment_status='Pending',
+                booking_id=str(uuid.uuid4()),
+            )
+
+            client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+            razorpay_order = client.order.create({
+                'amount': int(total_amount * 100),  
+                'currency': 'INR',
+                'payment_capture': '1'
+            })
+            request.session['razorpay_order_id'] = booking.booking_id
+
+            booking.save()
+
+            context = {
+                'booking_type': 'Event',
+                'title': event.title,
+                'total_amount': total_amount,
+                'razorpay_key': settings.RAZORPAY_KEY_ID,
+                'razorpay_order_id': razorpay_order['id'],
+                'payment_success_url': 'event_payment_success',
+            }
+            return render(request, 'payment_page.html', context)
+        return redirect('event_list')
+    else:
+        return redirect('login')
+    
+#view for payment success for event booking
+@csrf_exempt
+def event_payment_success(request):
+    if 'normal' in request.session:
+        razorpay_client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+        if request.method == 'POST':
+            payment_id = request.POST.get('razorpay_payment_id', '')
+            razorpay_order_id = request.POST.get('razorpay_order_id', '')
+            signature = request.POST.get('razorpay_signature', '')
+
+            try:
+                params_dict = {
+                    'razorpay_order_id': razorpay_order_id,
+                    'razorpay_payment_id': payment_id,
+                    'razorpay_signature': signature
+                }
+
+                razorpay_client.utility.verify_payment_signature(params_dict)
+
+                booking = EventBooking.objects.get(booking_id=request.session['razorpay_order_id'])
+                booking.payment_status = 'completed'
+                booking.transaction_id = payment_id
+                booking.is_confirmed = True
+                booking.payment_date = timezone.localtime()
+                booking.razorpay_payment_id = payment_id
+                booking.save()
+
+                user = request.user.customuser
+
+                pdf_buffer = BytesIO()
+                generate_event_pdf(booking, pdf_buffer)
+                pdf_buffer.seek(0)
+
+                email = EmailMessage(
+                    subject='Event Booking Confirmation',
+                    body=f'Your booking for event {booking.event.title} has been confirmed. Booking ID: {booking.booking_id}',
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    to=[booking.user.email],
+                )
+
+                email.attach('event_booking_details.pdf', pdf_buffer.getvalue(), 'application/pdf')
+
+                email.send(fail_silently=False)
+                pdf_data = base64.b64encode(pdf_buffer.getvalue()).decode('utf-8')
+                pdf_buffer.close()
+
+                return render(request, 'event_payment_success.html', {'booking': booking, 'pdf_data': pdf_data})
+
+            except razorpay.errors.SignatureVerificationError:
+                return HttpResponse("Payment failed. Signature verification failed.", status=400)
+
+        return HttpResponse("Invalid request.")
+    else:
+        return redirect('login')
+    
+#pdf receipt for event booking
+def generate_event_pdf(booking, buffer):
+    p = canvas.Canvas(buffer, pagesize=A4)
+
+    logo_path = "static/images/logo.png"  
+    p.drawImage(logo_path, 50, 770, width=40, height=50)
+
+    p.setTitle("Event Booking Invoice")
+
+    p.setFont("Helvetica-Bold", 24)
+    p.drawCentredString(300, 740, "Event Booking Invoice")
+
+    p.setFont("Helvetica", 12)
+    p.drawString(50, 725, "Explore Hub")
+    p.drawString(50, 710, "123 Travel Street")
+    p.drawString(50, 695, "Travel City, TC 12345")
+    p.drawString(50, 680, "Phone: +91 1234567890")
+    p.drawString(50, 665, "Email: explorehub123@gmail.com")
+
+    p.line(50, 655, 550, 655)
+
+    total_cost = booking.total_amount
+
+    booking_details = [
+        ["Customer Name:", booking.user.first_name],
+        ["Email:", booking.user.email],
+        ["Booking ID:", booking.booking_id],
+        ["Event Name:", booking.event.title],
+        [" Date:", booking.event.event_date.strftime('%d-%m-%Y')],
+        ["Total Amount:", f"₹{total_cost:.2f}"],
+        ["Payment Date:", booking.payment_date.strftime('%d-%m-%Y')],
+        ["Transaction ID:", booking.transaction_id]
+    ]
+
+    table = Table(booking_details, colWidths=[150, 350])
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),  
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),  
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),  
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),  
+        ('FONTSIZE', (0, 0), (-1, 0), 12),  
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),  
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige), 
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),  
+    ]))
+
+    table.wrapOn(p, 400, 600)
+    table.drawOn(p, 50, 400)
+
+    p.line(50, 380, 550, 380)
+
+    # Thank you message
+    p.setFont("Helvetica-Oblique", 10)
+    p.drawCentredString(300, 120, "Thank you for booking an event with Explore Hub!")
+    p.drawCentredString(300, 105, "Please contact us if you have any questions regarding your booking.")
+
+    p.showPage()
+    p.save()
+
+#view for listing the event bookings of the user
+def my_event_bookings(request):
+    if 'normal' in request.session:
+        my_bookings = EventBooking.objects.filter(user=request.user, event__event_date__gte=timezone.now(), payment_status='completed').order_by('event__event_date')
+        context = {
+            'my_bookings': my_bookings,
+            'is_event_bookings': True,
+        }
+        return render(request, 'my_bookings.html', context)
+    else:
+        return redirect('login')
+    
+#view for viewing bookings for the organizer
+def event_organizer_bookings(request):
+    if 'organizer' in request.session:
+        organizer = EventOrganizer.objects.get(username=request.user.username)
+        bookings = EventBooking.objects.filter(organizer=organizer)
+        months = EventBooking.objects.dates('event_date', 'month')
+
+        context = {
+            "organizer": organizer,
+            "bookings": bookings,
+            "months": months,
+        }
+        return render(request, 'event_organizer_bookings.html', context)
+    else:
+        return redirect('login')

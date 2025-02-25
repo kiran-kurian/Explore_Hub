@@ -101,6 +101,10 @@ urlpatterns = [
     path('events/list/', event_list, name='event_list'),
     path('event/<int:event_id>/', event_detail, name='event_detail'),
     path('event/search/', event_search, name='event_search'),
+    path('event/<int:event_id>/book/', book_event, name='book_event'),
+    path('event/payment/success/', event_payment_success, name='event_payment_success'),
+    path('event/bookings/', my_event_bookings, name='my_event_bookings'),
+    path('event_organizer/bookings/', event_organizer_bookings, name='event_organizer_bookings'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
