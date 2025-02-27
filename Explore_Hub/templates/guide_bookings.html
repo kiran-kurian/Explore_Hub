@@ -39,7 +39,7 @@
                     </td>
                     <td>
                         {% if not booking.is_cancelled %}
-                            <a href="{% url 'booking_details' booking.id %}" class="btn btn-primary">Details</a>
+                            <a href="{% url 'booking_details' booking.id %}" id="details" class="btn btn-primary">Details</a>
                         {% endif %}
                     </td>
                 </tr>

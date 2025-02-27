@@ -87,45 +87,45 @@
 
         <div class="form-group">
             <label>Event Name:</label>
-            <input type="text" name="event_name" required placeholder="Enter event name">
+            <input type="text" id="event_name" name="event_name" required placeholder="Enter event name">
         </div>
 
         <div class="form-group">
             <label>Event Date:</label>
-            <input type="date" name="event_date" id="event_date" required>
+            <input type="date" id="date" name="event_date" id="event_date" required>
         </div>
 
         <div class="form-group">
             <label>Event Time:</label>
-            <input type="time" name="event_time" required>
+            <input type="time" id="time" name="event_time" required>
         </div>
 
         <div class="form-group">
             <label>Event Location:</label>
-            <input type="text" name="event_location" required placeholder="Enter location">
+            <input type="text" id="location" name="event_location" required placeholder="Enter location">
         </div>
 
         <div class="form-group">
             <label>Event Description:</label>
-            <textarea name="event_description" required rows="4" placeholder="Describe your event"></textarea>
+            <textarea name="event_description" id="description" required rows="4" placeholder="Describe your event"></textarea>
         </div>
 
         <div class="form-group">
             <label>Event Image:</label>
-            <input type="file" name="event_image" accept="image/*" multiple required>
+            <input type="file" name="event_image" id="image" accept="image/*" multiple required>
         </div>
 
         <div class="form-group">
             <label>Maximum seats:</label>
-            <input type="number" name="event_capacity" required min="1" placeholder="Number of seats available">
+            <input type="number" id="seats" name="event_capacity" required min="1" placeholder="Number of seats available">
         </div>
 
         <div class="form-group">
             <label>Ticket Price (₹):</label>
-            <input type="number" name="event_price" required min="0" step="0.01" placeholder="Enter ticket price">
+            <input type="number" id="price" name="event_price" required min="0" step="0.01" placeholder="Enter ticket price">
         </div>
 
-        <button type="submit" class="submit-btn">Create Event</button>
+        <button type="submit" id="create_event" class="submit-btn">Create Event</button>
     </form>
 </div>
 

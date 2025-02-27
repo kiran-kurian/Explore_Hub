@@ -93,7 +93,7 @@
                             <textarea class="form-control" id="trip_itinerary" rows="5" name="trip_itinerary" placeholder="Enter the itinerary details here...">{{ plan.guide_plan }}</textarea>
                         </div>
 
-                        <button type="submit" class="btn btn-primary">Update Trip Plan</button>
+                        <button type="submit" id="update_trip_plan" class="btn btn-primary">Update Trip Plan</button>
                     </form>
                 </div>
             </div>
@@ -104,6 +104,14 @@
         </div>
     </div>
 </div>
+
+<script>
+    window.addEventListener("pageshow", function(event) {
+        if (event.persisted || window.performance && window.performance.navigation.type === 2) {
+            window.location.reload();
+        }
+    });
+</script>
 
 <style>
 

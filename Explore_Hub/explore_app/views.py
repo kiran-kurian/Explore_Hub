@@ -1524,7 +1524,6 @@ def reply_advice_request(request, request_id):
         return redirect('login')
     
 #view for displaying the bookings of local guide
-@login_required
 def local_guide_bookings(request):
     if 'guide' in request.session:
         guide = LocalGuide.objects.get(username=request.user.username)
@@ -1533,7 +1532,6 @@ def local_guide_bookings(request):
     else:
         return redirect('login')
     
-@login_required
 def booking_details(request, booking_id):
     if 'guide' in request.session:
         guide = LocalGuide.objects.get(username=request.user.username)
