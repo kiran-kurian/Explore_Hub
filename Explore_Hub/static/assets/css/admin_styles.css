@@ -6,10 +6,10 @@ body {
 }
 
 header {
-    background-color: #1f4e79; 
+    background-color: #ececec; 
     padding: 20px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    color: white;
+    color: #f06161;
     text-align: center;
 }
 
@@ -23,11 +23,11 @@ nav {
     display: flex;
     justify-content: flex-end;
     padding-right: 20px;
-    background-color: #1f4e79;
+    background-color: #ececec;
 }
 
 nav a {
-    color: white;
+    color: #f06161;
     text-decoration: none;
     font-size: 1rem;
     margin: 0 10px;
@@ -196,7 +196,7 @@ li {
 
 li a {
     text-decoration: none;
-    color: white; 
+    color: #f06161; 
     padding: 10px 20px;
     font-size: 1.1rem;
     border-radius: 5px;
@@ -246,4 +246,71 @@ li a:hover {
 
 .dropdown-content a:hover {
     background-color: #145276;
+}
+
+.admin-header {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.analytics-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.analytics-card {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.analytics-card h3 {
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+.analytics-card p {
+    font-size: 22px;
+    font-weight: bold;
+    color: #f06161;
+}
+
+.admin-overview {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 20px;
+    justify-content: space-between;
+}
+
+.card {
+    flex: 1 1 calc(33.333% - 20px);
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.card h3 {
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+.card p {
+    font-size: 16px;
+}
+
+.card a {
+    color: #f06161;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.card a:hover {
+    text-decoration: underline;
 }

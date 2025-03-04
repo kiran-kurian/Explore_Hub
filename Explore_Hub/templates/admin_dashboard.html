@@ -2,32 +2,65 @@
 
 {% block content %}
 {% if user.is_authenticated %}
-<h2>Welcome, {{ user.username }} </h2>
+<h2 class="admin-header">Welcome, {{ user.username }} </h2>
+
+<!-- Admin Analytics Section -->
+<div class="analytics-container">
+    <div class="analytics-card">
+        <h3>Total Users</h3>
+        <p>{{ total_users }}</p>
+    </div>
+    <div class="analytics-card">
+        <h3>Total Agencies</h3>
+        <p>{{ total_agencies }}</p>
+    </div>
+    <div class="analytics-card">
+        <h3>Total Guides</h3>
+        <p>{{ total_guides }}</p>
+    </div>
+    <div class="analytics-card">
+        <h3>Total Event Organizers</h3>
+        <p>{{ total_organizers }}</p>
+    </div>
+    <div class="analytics-card">
+        <h3>Total Bookings</h3>
+        <p>{{ total_bookings }}</p>
+    </div>
+    <div class="analytics-card">
+        <h3>Total Revenue</h3>
+        <p>₹{{ total_revenue|floatformat:2 }}</p>
+    </div>
+</div>
+
+<!-- Admin Management Overview -->
 <div class="admin-overview">
     <div class="card">
         <h3>Pending Approvals</h3>
-        <p><a href="{% url 'admin_approve_agencies' %}">View Pending Agencies</a></p>
+        <p><a href="{% url 'admin_approve_agencies' %}">View Pending Agencies ({{ pending_agencies }})</a></p>
     </div>
     <div class="card">
         <h3>Total Packages</h3>
-        <p><a href="{% url 'admin_manage_packages' %}">Manage Packages</a></p>
+        <p><a href="{% url 'admin_manage_packages' %}">Manage Packages ({{ total_packages }})</a></p>
     </div>
     <div class="card">
         <h3>Travel Groups</h3>
-        <p><a href="{% url 'admin_manage_groups' %}">Manage Groups</a></p>
+        <p><a href="{% url 'admin_manage_groups' %}">Manage Groups ({{ total_groups }})</a></p>
     </div>
     <div class="card">
         <h3>Events</h3>
-        <p><a href="{% url 'admin_manage_events' %}">Manage Events</a></p>
+        <p><a href="{% url 'admin_manage_events' %}">Manage Events ({{ total_events }})</a></p>
     </div>
     <div class="card">
         <h3>Manage Users</h3>
         <p><a href="{% url 'admin_manage_users' %}">Manage Users</a></p>
     </div>
 </div>
+
 {% else %}
-<a href="{% url 'login' %}"> Login </a>
+<a href="{% url 'login' %}">Login</a>
 {% endif %}
+
+<!-- JavaScript for Page Reload Handling -->
 <script>
     window.addEventListener("pageshow", function(event) {
         if (event.persisted || window.performance && window.performance.navigation.type === 2) {
@@ -36,4 +69,3 @@
     });
 </script>
 {% endblock %}
-

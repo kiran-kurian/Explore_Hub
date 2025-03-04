@@ -1,4 +1,3 @@
-/* General body styling */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #f7f9fc;
@@ -6,10 +5,9 @@ body {
     padding: 0;
 }
 
-/* Header styling */
 .header {
-    background: linear-gradient(90deg, #4b6cb7, #182848);
-    color: #fff;
+    background: #ececec;
+    color: #f06161;
     padding: 20px;
     position: fixed;
     width: 100%;
@@ -45,20 +43,19 @@ body {
 }
 
 .header nav ul li a {
-    color: #fff;
+    color: #f06161;
     text-decoration: none;
-    font-size: 16px;
+    font-size: 18px;
     padding: 10px;
     transition: color 0.3s ease;
 }
 
 .header nav ul li a:hover {
-    color: #f0a500;
+    color: #e91b1b;
 }
 
-/* Main dashboard styling */
 .dashboard {
-    padding: 120px 10px 50px; /* Adjusted for header */
+    padding: 120px 10px 50px; 
     background-color: #f7f9fc;
 }
 
@@ -93,7 +90,6 @@ body {
     transform: translateX(-50%);
 }
 
-/* Package box styling */
 .package-box {
     border: 2px solid #f0a500;
     border-radius: 12px;
@@ -189,7 +185,6 @@ body {
     background-color: #218838;
 }
 
-/* Package listing layout */
 .package-list {
     display: flex;
     flex-wrap: wrap;
@@ -199,7 +194,6 @@ body {
     padding: 10px;
 }
 
-/* Footer */
 .footer {
     padding: 20px;
     text-align: center;
@@ -207,13 +201,12 @@ body {
     color: #fff;
     margin-top: 50px;
 }
-/* Dropdown */
+
 .dropdown {
     position: relative;
     display: inline-block;
 }
 
-/* Dropdown button */
 .dropbtn {
     color: white;
     padding: 12px 16px;
@@ -221,44 +214,37 @@ body {
     border: none;
     cursor: pointer;
     transition: color 0.3s ease;
-    background: none; /* No background, just the text */
+    background: none; 
 }
 
-/* Dropdown button hover effect */
 .dropbtn:hover {
-    color: #f0a500; /* Matches your header link hover effect */
+    color: #e91b1b; 
 }
 
-/* Dropdown content (hidden by default) */
 .dropdown-content {
     display: none;
     position: absolute;
-    background: linear-gradient(90deg, #4b6cb7, #182848);
+    background: #ececec;
     font-size: 16px;
     min-width: 160px;
     z-index: 1;
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-    /* background-color: #fff;  */
     border-radius: 6px;
-    overflow: hidden; /* Smooth edges */
+    overflow: hidden; 
 }
 
-/* Dropdown content links */
 .dropdown-content a {
-    color: #333; /* Darker text for better visibility */
+    color: #333; 
     padding: 12px 16px;
     text-decoration: none;
     display: block;
     transition: background 0.3s ease, color 0.3s ease;
 }
 
-/* Dropdown content links hover effect */
 .dropdown-content a:hover {
-    /* background-color: #f0a500;  */
     color: white;
 }
 
-/* Show the dropdown menu on hover */
 .dropdown:hover .dropdown-content {
     display: block;
 }

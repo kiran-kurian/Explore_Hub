@@ -38,6 +38,7 @@ import json
 from django.utils.timezone import now
 import os
 import pandas as pd
+from decimal import Decimal
 
 
 # Create your views here.
@@ -275,7 +276,28 @@ def reg_user_home_view(request):
 @user_passes_test(admin_check)
 def admin_dashboard(request):
     if request.session.has_key('master'):
-        return render(request, 'admin_dashboard.html')
+        total_users = CustomUser.objects.filter(is_superuser=False, role="reguser").count()
+        total_agencies = TravelAgency.objects.filter(approved=True).count()
+        total_guides = LocalGuide.objects.filter(approved=True).count()
+        total_organizers = EventOrganizer.objects.filter(approved=True).count()
+        total_bookings = Booking.objects.filter(payment_status='completed', is_cancelled="False").count() + GuideBooking.objects.filter(payment_status='completed', is_cancelled="False").count() + EventBooking.objects.filter(payment_status='completed').count()
+        package_revenue = Booking.objects.filter(payment_status='completed').aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+        c_package_revenue = package_revenue * Decimal('0.10')
+        guide_revenue = GuideBooking.objects.filter(payment_status='completed').aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+        c_guide_revenue = guide_revenue * Decimal('0.01')
+        event_revenue = EventBooking.objects.filter(payment_status='completed').aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+        c_event_revenue = event_revenue * Decimal('0.10')
+        total_revenue = c_package_revenue + c_guide_revenue + c_event_revenue
+
+        context = {
+            'total_users': total_users,
+            'total_agencies': total_agencies,
+            'total_guides': total_guides,
+            'total_organizers': total_organizers,
+            'total_bookings': total_bookings,
+            'total_revenue': total_revenue,
+        }
+        return render(request, 'admin_dashboard.html', context)
     else:
         return redirect('login')
 
@@ -402,12 +424,13 @@ def ta_home(request):
             total_bookings = Booking.objects.filter(package__agency_id=agency).count()
             total_customers = Booking.objects.filter(package__agency_id=agency).values('user').distinct().count()
             total_revenue = Booking.objects.filter(package__agency_id=agency).aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+            actual_revenue = total_revenue - total_revenue * Decimal('0.10')
             context = {
                 'agency': agency,
                 'total_packages': total_packages,
                 'total_bookings': total_bookings,
                 'total_customers': total_customers,
-                'total_revenue': total_revenue,
+                'total_revenue': actual_revenue,
             }
             return render(request, 'ta_home.html', context)
         except TravelAgency.DoesNotExist:

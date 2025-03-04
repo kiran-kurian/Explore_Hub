@@ -24,8 +24,15 @@
                             <a href="{% url 'manage_archived_packages' %}">Archived Packages</a>
                         </div>
                     </li>
-                    <li><a href="{% url 'ta_profile' %}">Profile</a></li>
-                    <li><a href="{% url 'logout' %}">Logout</a></li>
+                    <li class="dropdown">
+                        <a href="#" class="dropbtn">
+                            <i class="fa-regular fa-user"></i>
+                            {{ request.user.first_name }} &#9662;</a></i>
+                        <div class="dropdown-content">
+                            <a href="{% url 'ta_profile' %}">Profile</a>
+                            <a href="{% url 'logout' %}">Logout</a>
+                        </div>
+                    </li>
                 </ul>
             </nav>
         </div>

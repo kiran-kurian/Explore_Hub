@@ -31,7 +31,7 @@
 
     .card-icon {
         font-size: 2rem;
-        color: #007bff;
+        color: #f06161;
         margin-bottom: 10px;
     }
 
@@ -50,7 +50,7 @@
     .btn {
         display: inline-block;
         text-decoration: none;
-        background: #007bff;
+        background: #f06161;
         color: #fff;
         padding: 10px 15px;
         border-radius: 5px;
@@ -60,7 +60,8 @@
     }
 
     .btn:hover {
-        background: #0056b3;
+        background: #e91b1b;
+        color: #fff;
     }
 
     .welcome {
@@ -99,7 +100,7 @@
         <div class="card">
             <i class="fas fa-wallet card-icon"></i>
             <h2>Total Revenue</h2>
-            <p>₹{{ total_revenue }}</p>
+            <p>₹{{ total_revenue|floatformat:2 }}</p>
         </div>
     </section>
 

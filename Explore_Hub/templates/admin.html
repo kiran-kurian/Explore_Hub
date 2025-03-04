@@ -11,14 +11,12 @@
 </head>
 <body>
     <header>
-        <h1>Admin Dashboard</h1>
+        <h1>Admin Dashboard</h1><br>
         <nav>
             <ul>
                 <li><a href="{% url 'admin_dashboard' %}">Home</a></li>
                 <li><a href="{% url 'admin_approve_agencies' %}">Approvals</a></li>
-                <li class="dropdown">
-                    <a href="{% url 'admin_manage_packages' %}" class="dropbtn">Manage Packages</a>
-                </li>
+                <li><a href="{% url 'admin_manage_packages' %}">Manage Packages</a></li>
                 <li><a href="{% url 'admin_manage_groups' %}">Manage Groups</a></li>
                 <li><a href="{% url 'admin_manage_events' %}">Manage Events</a></li>
                 <li><a href="{% url 'admin_manage_users' %}">Manage Users</a></li>
