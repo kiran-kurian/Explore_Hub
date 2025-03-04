@@ -36,6 +36,8 @@ from opencage.geocoder import OpenCageGeocode
 from django.db.models import Sum
 import json
 from django.utils.timezone import now
+import os
+import pandas as pd
 
 
 # Create your views here.
@@ -1669,91 +1671,167 @@ def update_guide_profile(request):
     return redirect('login')
 
 def itinerary_planner(request):
+    DATASET_PATH = os.path.join(settings.BASE_DIR, 'Top Indian Places to Visit.csv')
+    df = pd.read_csv(DATASET_PATH)
     if request.method == 'POST':
-        budget = request.POST.get('budget')
+        budget = float(request.POST.get('budget', 0))
         origin = request.POST.get('origin')
         destination = request.POST.get('destination')
-        duration = int(request.POST.get('duration'))
+        duration = int(request.POST.get('duration', 1))
         preferences = request.POST.get('preferences')
         start_date = request.POST.get('start_date')
-        no_of_people = request.POST.get('no_of_people')
+        no_of_people = int(request.POST.get('no_of_people', 1))
 
         start_date_obj = datetime.strptime(start_date, "%Y-%m-%d").date()
         end_date = start_date_obj + timedelta(days=duration)
 
         origin_code = get_city_code(origin)
-        # print(origin_code)
         destination_code = get_city_code(destination)
-        # print(destination_code)
 
-        flights = search_flights(origin_code, destination_code, start_date, end_date) if origin_code and destination_code else "No flights available"
-        hotels = search_hotels(destination_code)
-        activities = search_activities(destination)
+        flights = search_flights(origin_code, destination_code, start_date, end_date) if origin_code and destination_code else None
+        # hotels = search_hotels(destination_code)
+        # activities = search_activities(destination)
         trains = search_trains(origin, destination, start_date)
-        # print(search_buses(origin, destination, start_date))
+        # print("Hotels: ", hotels)
+        # print("Activities: ", activities)
+        # print("Trains: ", trains)
 
-        items=[]
+        transport_options = []
+        exchange_rate = get_exchange_rate()
 
-        if isinstance(flights, dict):  
+        items = []
+
+        if isinstance(flights, dict) and "data" in flights:
             carriers = flights.get("dictionaries", {}).get("carriers", {})
-            aircrafts = flights.get("dictionaries", {}).get("aircraft", {})
 
-            if "data" in flights and isinstance(flights["data"], list):
-                for flight in flights["data"]:
-                    airline_code = flight.get("airline", "")
-                    aircraft_code = flight.get("aircraft", "")
+            for flight in flights["data"]:
+                airline_code = flight.get("validatingAirlineCodes", [None])[0]
+                airline_name = carriers.get(airline_code, airline_code)
 
-                    airline_name = carriers.get(airline_code, airline_code)
-                    aircraft_name = aircrafts.get(aircraft_code, aircraft_code)
+                first_itinerary = flight.get("itineraries", [{}])[0]
+                first_segment = first_itinerary.get("segments", [{}])[0]
+                
+                departure = first_segment.get("departure", {}).get("iataCode", "Unknown")
+                arrival = first_segment.get("arrival", {}).get("iataCode", "Unknown")
 
-                    items.append({
-                        "name": f"Flight: {airline_name} - {aircraft_name}",
-                        "cost": flight.get("cost", 0),
-                        "value": flight.get("rating", 0),
-                        "category": "transport"
-                    })
+                total_price = float(flight.get("price", {}).get("total", 0)) * no_of_people * exchange_rate
 
-
-        if isinstance(trains, list):
-            for train in trains:
-                items.append({
-                    "name": f"Train: {train.get('train', 'Unknown Train')}",
-                    "cost": train.get("cost", 0),
-                    "value": train.get("rating", 0),
+                transport_options.append({
+                    "name": f"Flight: {airline_name} ({departure} → {arrival})",
+                    "cost": total_price,
+                    "value": flight.get("travelerPricings", [{}])[0].get("fareDetailsBySegment", [{}])[0].get("cabin", "Economy"),
                     "category": "transport"
                 })
 
-        if isinstance(hotels, list):
-            for hotel in hotels:
-                items.append({
-                    "name": f"Hotel: {hotel.get('name', 'Unknown Hotel')}",
-                    "cost": hotel.get("cost_per_night", 0) * duration,  
-                    "value": hotel.get("rating", 0),
-                    "category": "hotel"
-                })
+        if isinstance(trains, HttpResponse):
+            print("Trains API Error:", trains.content.decode())  # Print error details
+            trains = []
+        else:
+            trains = trains or []
 
-        if isinstance(activities, list):
-            for activity in activities:
-                items.append({
-                    "name": f"Activity: {activity.get('name', 'Unknown Activity')}",
-                    "cost": activity.get("cost", 0),
-                    "value": activity.get("rating", 0),
-                    "category": "activity"
-                })
-        # print(items, budget)
+        # if isinstance(trains, dict):
+            # for train in trains:
+            #     items.append({
+            #         "name": f"Train: {train.get('train', 'Unknown Train')}",
+            #         "cost": float(train.get("cost", 0)) * no_of_people,
+            #         "value": train.get("rating", 0),
+            #         "category": "transport"
+            #     })
 
-        selected_items, total_cost = knapsack(items, budget)
+        # if isinstance(hotels, list):
+        #     print("Keys in hotels dictionary:", hotels.keys())
+        #     for hotel in hotels:
+        #         items.append({
+        #             "name": f"Hotel: {hotel.get('name', 'Unknown Hotel')}",
+        #             "cost": float(hotel.get("cost_per_night", 0)) * duration,  
+        #             "value": hotel.get("rating", 0),
+        #             "category": "hotel"
+        #         })
+
+        # if isinstance(activities, list):
+        #     print("Keys in activities dictionary:", activities.keys())
+        #     for activity in activities:
+        #         items.append({
+        #             "name": f"Activity: {activity.get('name', 'Unknown Activity')}",
+        #             "cost": float(activity.get("cost", 0)),
+        #             "value": activity.get("rating", 0),
+        #             "category": "activity"
+        #         })
+
+        transport_options = sorted(transport_options, key=lambda x: x["cost"])
+
+        remaining_budget = budget
+
+        transport = None
+        for option in transport_options:
+            if option["cost"] <= budget * 0.9:  
+                transport = option
+                remaining_budget -= option["cost"]
+                break
+
+        # hotel = None
+        # if isinstance(hotels, list) and hotels:
+        #     hotels = sorted(hotels, key=lambda x: x["cost_per_night"])
+        #     for h in hotels:
+        #         total_hotel_cost = float(h["cost_per_night"]) * duration
+        #         if total_hotel_cost <= budget * 0.3:  # Allocate max 30% to hotel
+        #             hotel = h
+        #             budget -= total_hotel_cost
+        #             break
+
+        destination_activities = df[df["City"].str.lower() == destination.lower()]
+        destination_activities = destination_activities.to_dict(orient="records")
+        itinerary_schedule = []
+        available_hours_per_day = 8  
+        assigned_activities = set()
+
+        for day in range(duration):
+            day_schedule = {"day": day + 1, "activities": [], "total_time": 0}
+            remaining_hours = available_hours_per_day
+
+            for activity in destination_activities:
+                activity_name = activity.get("Name", "Unknown")
+
+                if activity_name in assigned_activities:
+                    continue  
+
+                activity_cost = activity["Entrance Fee in INR"] * no_of_people
+
+                if remaining_budget >= activity_cost and remaining_hours >= activity["time needed to visit in hrs"]:
+                    day_schedule["activities"].append({
+                        "name": activity_name,
+                        "type": activity["Type"],
+                        "duration": activity["time needed to visit in hrs"],
+                        "rating": activity["Google review rating"],
+                        "significance": activity["Significance"],
+                        "cost": activity_cost
+                    })
+                    assigned_activities.add(activity_name)  # Mark as assigned
+                    remaining_budget -= activity_cost
+                    remaining_hours -= activity["time needed to visit in hrs"]
+
+            itinerary_schedule.append(day_schedule)
 
         planned_itinerary = {
             "destination": destination,
             "start_date": start_date,
             "end_date": end_date.isoformat(),
             "budget": budget,
-            "used_budget": total_cost,
-            "details": selected_items
+            "transport": transport,
+            # "hotel": hotel,
+            "schedule": itinerary_schedule
         }
         return render(request, 'itinerary_planner.html', {'itinerary': planned_itinerary})
+    
     return render(request, 'itinerary_planner.html')
+
+def get_exchange_rate():
+    try:
+        url = "https://api.exchangerate-api.com/v4/latest/EUR"
+        response = requests.get(url).json()
+        return response["rates"]["INR"]
+    except:
+        return 90
 
 
 def knapsack(items, max_budget):
@@ -1762,9 +1840,12 @@ def knapsack(items, max_budget):
     dp = [[0 for _ in range(max_budget + 1)] for _ in range(n + 1)]
     
     for i in range(1, n + 1):
+        item_cost = int(items[i - 1]["cost"])
+        item_value = items[i - 1]["value"]
+        item_value = int(item_value) if str(item_value).isdigit() else 1
         for w in range(max_budget + 1):
             if items[i - 1]["cost"] <= w:
-                dp[i][w] = max(items[i - 1]["value"] + dp[i - 1][w - items[i - 1]["cost"]], dp[i - 1][w])
+                dp[i][w] = max(item_value + dp[i - 1][w - item_cost], dp[i - 1][w])
             else:
                 dp[i][w] = dp[i - 1][w]
 
@@ -1774,10 +1855,8 @@ def knapsack(items, max_budget):
     for i in range(n, 0, -1):
         if dp[i][w] != dp[i - 1][w]:
             selected_items.append(items[i - 1])
-            w -= items[i - 1]["cost"]
-            total_cost += items[i - 1]["cost"]
-
-    print(selected_items, total_cost)
+            w -= item_cost
+            total_cost += item_cost
 
     return selected_items, total_cost
 
@@ -1840,95 +1919,48 @@ def get_city_code_google(city_name):
     else:
         return None  
 
-# def search_buses(origin, destination, date_of_journey):
-#     options = Options()
-#     options.add_argument("--disable-gpu")
-#     options.add_argument("--no-sandbox")
-#     options.add_argument("--ignore-certificate-errors")
-#     options.add_argument("--allow-running-insecure-content")
-#     options.add_argument("--incognito")
-
-#     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-
-#     driver.get("https://www.abhibus.com")
-
-#     time.sleep(3)
-
-#     wait = WebDriverWait(driver, 10)
-
-#     from_input = wait.until(EC.element_to_be_clickable((By.XPATH, "//input[@placeholder='From Station']")))
-#     from_input.send_keys(origin)
-#     time.sleep(2)
-#     from_input.send_keys(Keys.RETURN)
-
-#     to_input = wait.until(EC.element_to_be_clickable((By.XPATH, "//input[@placeholder='To Station']")))
-#     to_input.send_keys(destination)
-#     time.sleep(2)
-#     to_input.send_keys(Keys.RETURN)
-
-#     date_input = driver.find_element(By.XPATH, "//input[@placeholder='Onward Journey Date']")
-#     date_input.click()
-#     time.sleep(1)
-#     date_input.send_keys(Keys.RETURN)
-
-#     search_button = driver.find_element(By.XPATH, "//button[contains(text(), 'Search')]")
-#     search_button.click()
-
-#     time.sleep(5)
-
-#     buses = driver.find_elements(By.XPATH, "//div[contains(@id, 'service-operator-info')]")
-    
-#     bus_list = []
-    
-#     for bus in buses:
-#         try:
-#             operator_name = bus.find_element(By.XPATH, ".//h5[@class='title']").text
-#             bus_type = bus.find_element(By.XPATH, ".//p[@class='sub-title']").text
-#             departure_time = bus.find_element(By.XPATH, ".//span[@class='departure-time']").text
-#             travel_time = bus.find_element(By.XPATH, ".//div[@class='travel-time']").text
-#             arrival_time = bus.find_element(By.XPATH, ".//span[@class='arrival-time']").text
-#             destination = bus.find_element(By.XPATH, ".//div[@class='destination-name']").text
-#             fare = bus.find_element(By.XPATH, ".//strong[@class='h5 fare']/span").text
-
-#             bus_list.append({
-#                 "operator_name": operator_name,
-#                 "bus_type": bus_type,
-#                 "departure_time": departure_time,
-#                 # "source": source,
-#                 "travel_time": travel_time,
-#                 "arrival_time": arrival_time,
-#                 "destination": destination,
-#                 "fare": fare,
-#             })
-        
-#         except Exception as e:
-#             print("Error extracting bus details:", e)
-
-#     driver.quit()
-#     return bus_list
-
-
 def search_trains(origin, destination, start_date):
-    api_url = f"https://www.ixigo.com/trains/v2/search/between/{origin}/{destination}?date={start_date}&languageCode=en"
-    
-    headers = {
-        "accept": "*/*",
-        "content-type": "application/json",
-        "user-agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Mobile Safari/537.36",
-        "apikey": "iximweb!2$",  
-    }
+    url = f"https://irctc1.p.rapidapi.com/api/v3/trainBetweenStations"
 
+    querystring = {"fromStationCode": origin,
+                    "toStationCode": destination,
+                    "dateOfJourney": start_date}
+
+    headers = {
+        "X-RapidAPI-Host": "irctc1.p.rapidapi.com",
+        "X-RapidAPI-Key": "fb8dbe5110mshcf13c98485917cfp100148jsnc69d7b39758b",
+        "x-rapidapi-ua": "RapidAPI-Playground",
+        'x-apihub-key': 'Qvy-r4HSAi7lRciA7nRlNbrHAHJyPYL0NfjANZXE4xCV8s6K24',
+        "x-apihub-host": "IRCTC.allthingsdev.co",
+        'x-apihub-endpoint': 'ba186358-897d-4f31-8c78-33941455b792'
+    }
+    
     try:
-        response = requests.get(api_url, headers=headers)
+        response = requests.get(url, headers=headers, params=querystring)
         
         if response.status_code == 200:
             train_data = response.json()
-            return train_data
-        else:
-            return HttpResponse(f"Error: {response.status_code}", status=response.status_code)
-
+            
+            if "trains" not in train_data or not train_data["trains"]:
+                return {"error": "No trains found for this route."}
+            
+            train_list = []
+            for train in train_data["trains"]:
+                train_list.append({
+                    "train_number": train["train_number"],
+                    "train_name": train["train_name"],
+                    "departure": train["departure_time"],
+                    "arrival": train["arrival_time"],
+                    "duration": train["duration"],
+                    "fare": train.get("fare", "N/A") 
+                })
+            
+            return train_list
+        
+        return {"error": f"API request failed with status code {response.status_code}"}
+    
     except requests.exceptions.RequestException as e:
-        return HttpResponse(f"API Request Failed: {e}", status=500)
+        return {"error": f"API request failed: {e}"}
     
 def search_flights(origin, destination, departure_date, return_date=None):
     access_token = get_amadeus_access_token()

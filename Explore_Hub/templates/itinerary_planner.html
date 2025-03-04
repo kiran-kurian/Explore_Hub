@@ -73,25 +73,55 @@
 {% if itinerary %}
     <div id="itinerary-results" class="card shadow-sm p-4">
         <h4 class="card-title mb-3 text-success">Optimized Itinerary</h4>
-        <h5 class="mt-2 text-primary">Destination: {{ itinerary.destination }}</h5>
+        <h5 class="text-primary">Destination: {{ itinerary.destination }}</h5>
         <p><strong>Travel Dates:</strong> {{ itinerary.start_date }} to {{ itinerary.end_date }}</p>
-        <p><strong>Total Budget:</strong> ₹{{ itinerary.budget }}</p>
-        <p><strong>Used Budget:</strong> ₹{{ itinerary.used_budget }}</p>
+        <p><strong>Initial Budget:</strong> ₹{{ itinerary.budget }}</p>
 
-        <h5 class="mt-4 text-success">Planned Itinerary:</h5>
-        <ul class="list-group">
-            {% for item in itinerary.details %}
-            <li class="list-group-item">
-                <strong>{{ item.category|title }}:</strong> {{ item.name }} <br>
-                <strong>Cost:</strong> ₹{{ item.cost }} <br>
-                <strong>Rating:</strong> {{ item.value }}/5
-            </li>
-            {% endfor %}
-        </ul>
+        <hr>
+
+        <!-- Transport Details -->
+        {% if itinerary.transport %}
+        <h5 class="text-info">🚆/✈ Transport</h5>
+        <p><strong>Name:</strong> {{ itinerary.transport.name }}</p>
+        <p><strong>Cost:</strong> ₹{{ itinerary.transport.cost }}</p>
+        <hr>
+        {% endif %}
+
+        <!-- Hotel Details -->
+        {% if itinerary.hotel %}
+        <h5 class="text-warning">🏨 Hotel</h5>
+        <p><strong>Name:</strong> {{ itinerary.hotel.name }}</p>
+        <p><strong>Cost:</strong> ₹{{ itinerary.hotel.cost_per_night }} per night</p>
+        <p><strong>Rating:</strong> ⭐ {{ itinerary.hotel.rating }}</p>
+        <hr>
+        {% endif %}
+
+        <!-- Daily Itinerary -->
+        <h5 class="text-success">📅 Daily Plan</h5>
+        {% for day in itinerary.schedule %}
+            <div class="mb-3">
+                <h6 class="text-primary">Day {{ day.day }}</h6>
+                {% if day.activities %}
+                    <ul class="list-group">
+                        {% for activity in day.activities %}
+                        <li class="list-group-item">
+                            <strong>{{ activity.name }}</strong> ({{ activity.type }})<br>
+                            <small>⭐ Rating: {{ activity.rating }}</small><br>
+                            <small>⏳ Duration: {{ activity.duration }} hrs</small><br>
+                            <small>💰 Cost: ₹{{ activity.cost }}</small>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">No activities planned for this day.</p>
+                {% endif %}
+            </div>
+        {% endfor %}
+
+        <hr>
+
     </div>
-{% else %}
-    <div id="itinerary-results" class="d-none"></div>
-{% endif %}
+    {% endif %}
 
 
 <style>
