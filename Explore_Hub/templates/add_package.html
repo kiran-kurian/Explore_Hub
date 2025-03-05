@@ -3,73 +3,181 @@
 {% block body %}
 <head>
     <link rel="stylesheet" href="{% static 'assets/css/add_package.css' %}">
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            function validateField(field, errorElement, validationFn) {
+                field.addEventListener("input", function () {
+                    let errorMessage = validationFn(field.value.trim());
+                    errorElement.innerText = errorMessage;
+                });
+            }
+
+            function validateTitle(value) {
+                let titlePattern = /^[a-zA-Z0-9\s]+$/;
+                if (value === "") return "Package title is required.";
+                if (!titlePattern.test(value)) return "Enter a valid title.";
+                return "";
+            }
+
+            function validateDescription(value) {
+                return value.length < 20 ? "Description must be at least 20 characters." : "";
+            }
+
+            function validatePrice(value) {
+                return value <= 0 ? "Enter a valid price" : "";
+            }
+
+            function validateDiscount(value) {
+                if (value !== "" && (value < 0 || value > 100)) return "Enter a valid discount percentage";
+                return "";
+            }
+
+            function validateDuration(value) {
+                let durationPattern = /^[0-9]+D\/[0-9]+N$/;
+                return !durationPattern.test(value) ? "Duration format must be 'ND/NM' (e.g., 3D/2N)." : "";
+            }
+
+            function validateLocation(value) {
+                let locationPattern = /^[a-zA-Z\s]+$/;
+                return !locationPattern.test(value) ? "Enter valid location" : "";
+            }
+
+            function validateImages(value, files) {
+                return files.length === 0 ? "At least one image is required." : "";
+            }
+
+            function validateItinerary(value) {
+                return value.length < 30 ? "Itinerary must be at least 30 characters." : "";
+            }
+
+            let title = document.getElementById("title");
+            let titleError = document.getElementById("titleError");
+            validateField(title, titleError, validateTitle);
+
+            let description = document.getElementById("description");
+            let descriptionError = document.getElementById("descriptionError");
+            validateField(description, descriptionError, validateDescription);
+
+            let price = document.getElementById("price");
+            let priceError = document.getElementById("priceError");
+            validateField(price, priceError, validatePrice);
+
+            let discount = document.getElementById("discount_percentage");
+            let discountError = document.getElementById("discountError");
+            validateField(discount, discountError, validateDiscount);
+
+            let duration = document.getElementById("duration");
+            let durationError = document.getElementById("durationError");
+            validateField(duration, durationError, validateDuration);
+
+            let origin = document.getElementById("origin");
+            let originError = document.getElementById("originError");
+            validateField(origin, originError, validateLocation);
+
+            let destination = document.getElementById("destination");
+            let destinationError = document.getElementById("destinationError");
+            validateField(destination, destinationError, validateLocation);
+
+            let images = document.getElementById("images");
+            let imagesError = document.getElementById("imagesError");
+            images.addEventListener("change", function () {
+                imagesError.innerText = validateImages(images.value, images.files);
+            });
+
+            let itinerary = document.getElementById("itinerary");
+            let itineraryError = document.getElementById("itineraryError");
+            validateField(itinerary, itineraryError, validateItinerary);
+
+            title.addEventListener("blur", function () {
+                let titleValue = title.value.trim();
+                if (titleValue === "") return;
+
+                fetch(`/check-package-title/?title=${encodeURIComponent(titleValue)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.exists) {
+                            titleError.innerText = "Package title is already taken.";
+                        }
+                    })
+                    .catch(error => console.error("Error:", error));
+            });
+
+            document.getElementById("addPackageForm").addEventListener("submit", function (event) {
+                let valid = true;
+                document.querySelectorAll(".error").forEach(errorElement => {
+                    if (errorElement.innerText !== "") valid = false;
+                });
+
+                if (!valid) event.preventDefault();
+            });
+        });
+    </script>
 </head>
 <section class="add-package">
     <div class="container">
         <h3>Add New Package</h3>
         {% if message %}
-            <ul class="messages">
-                {{ message }}
-            </ul>
+            <ul class="messages">{{ message }}</ul>
         {% endif %}
-        <form method="POST" action="{% url 'add_package' %}" enctype="multipart/form-data">
+        <form id="addPackageForm" method="POST" action="{% url 'add_package' %}" enctype="multipart/form-data">
             {% csrf_token %}
             <div class="form-group">
                 <label for="title">Title</label>
-                <input type="text" id="title" name="title" class="form-control" required>
+                <input type="text" id="title" name="title" required>
+                <span id="titleError" class="error"></span>
             </div>
 
             <div class="form-group">
                 <label for="description">Description</label>
-                <textarea id="description" name="description" class="form-control" rows="4" required></textarea>
+                <textarea id="description" name="description" rows="4" required></textarea>
+                <span id="descriptionError" class="error"></span>
             </div>
 
             <div class="form-group">
                 <label for="price">Price</label>
-                <input type="number" id="price" name="price" class="form-control" step="0.01" required>
+                <input type="number" id="price" name="price" step="0.01" required>
+                <span id="priceError" class="error"></span>
             </div>
 
             <div class="form-group">
-                <label for="departure_day">Discount Percentage % (If Any)</label>
-                <input type="number" id="discount_percentage" name="discount_percentage" class="form-control">
+                <label for="discount_percentage">Discount Percentage % (If Any)</label>
+                <input type="number" id="discount_percentage" name="discount_percentage">
+                <span id="discountError" class="error"></span>
             </div>
 
             <div class="form-group">
                 <label for="duration">Duration (e.g., 3D/2N):</label>
                 <input type="text" id="duration" name="duration" required>
+                <span id="durationError" class="error"></span>
             </div>
 
             <div class="form-group">
                 <label for="origin">Origin</label>
-                <input type="text" id="origin" name="origin" class="form-control" required>
+                <input type="text" id="origin" name="origin" required>
+                <span id="originError" class="error"></span>
             </div>
 
             <div class="form-group">
                 <label for="destination">Destination</label>
-                <input type="text" id="destination" name="destination" class="form-control" required>
-            </div>
-
-            <div class="form-group">
-                <label for="cancellation">Cancellation policy:</label>
-                <select id="cancellation" name="cancellation" class="form-control" required>
-                    <option value="yes">Yes</option>
-                    <option value="no">No</option>
-                </select>
+                <input type="text" id="destination" name="destination" required>
+                <span id="destinationError" class="error"></span>
             </div>
 
             <div class="form-group">
                 <label for="images">Images</label>
-                <input type="file" id="images" name="images" class="form-control" accept="image/*" multiple required>   
+                <input type="file" id="images" name="images" accept="image/*" multiple required>
+                <span id="imagesError" class="error"></span>
             </div>
 
             <div class="form-group">
-                <label for="itinerary">Itinerary (Enter details for each day separated by commas or line breaks)</label>
-                <textarea id="itinerary" name="itinerary" class="form-control" rows="6" required></textarea>
+                <label for="itinerary">Itinerary</label>
+                <textarea id="itinerary" name="itinerary" rows="6" required></textarea>
+                <span id="itineraryError" class="error"></span>
             </div>
 
             <div class="form-buttons">
-                <button type="submit" class="btn btn-primary" id="add_package" >Add Package</button>
-                <a href="{% url 'tahome' %}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">Add Package</button>
+                <a href="{% url 'ta_manage_packages' %}" class="btn btn-secondary">Cancel</a>
             </div>
         </form>
     </div>

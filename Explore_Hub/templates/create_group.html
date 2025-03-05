@@ -7,7 +7,6 @@
     .form-group {
         margin-bottom: 15px;
     }
-    
     .form-control {
         width: 100%;
         padding: 10px;
@@ -15,12 +14,15 @@
         border-radius: 5px;
         transition: border-color 0.3s;
     }
-    
     .form-control:focus {
         border-color: #ff6666;
         outline: none;
     }
-    
+    .error {
+        color: red;
+        font-size: 14px;
+        display: none;
+    }
     .btn_create {
         display: inline-block;
         margin: 20px auto;
@@ -30,60 +32,144 @@
         text-decoration: none;
         border-radius: 5px;
         transition: background-color 0.3s;
+        border: none;
+        cursor: pointer;
     }
-    
     .btn_create:hover {
         background-color: #e65c5c;
-        color: white;
     }
     .btn-secondary {
         text-decoration: none;
         border-radius: 5px;
         margin: 20px auto;
         padding: 10px 20px;
+        background: #ccc;
+        border: none;
     }
 </style>
+
 <div class="body">
     <h3>Create a Group</h3>
-    <form method="POST" action="{% url 'create_group' %}">  
+    <form id="createGroupForm" method="POST" action="{% url 'create_group' %}">  
         {% csrf_token %}
+        
         <div class="form-group">
             <label for="group_name">Group Name:</label>
             <input type="text" id="group_name" name="group_name" required class="form-control">
+            <span class="error" id="groupNameError">Group name is required.</span>
         </div>
 
         <div class="form-group">
             <label for="destination">Destination:</label>
             <input type="text" id="destination" name="destination" required class="form-control">
+            <span class="error" id="destinationError">Destination is required.</span>
         </div>
 
         <div class="form-group">
             <label for="max_members">Maximum number of People (Max: 10):</label>
             <input type="number" id="max_members" name="max_members" min="1" max="10" required class="form-control">
+            <span class="error" id="maxMembersError">Enter a number between 1 and 10.</span>
         </div>
 
         <div class="form-group">
             <label for="date">Date of trip:</label>
-            <input type="date" id="date" name="date" min="{{ today }}" required class="form-control">
+            <input type="date" id="date" name="date" required class="form-control">
+            <span class="error" id="dateError">Date must be today or in the future.</span>
         </div>
 
         <div class="form-group">
             <label for="gender">Gender Preference:</label>
-            <select id="gender" name="gender_preference">
+            <select id="gender" name="gender_preference" class="form-control">
                 <option value="" disabled selected>Select your preference</option>
                 <option value="male">Male</option>
                 <option value="female">Female</option>
                 <option value="no_preference">No Preference</option>
             </select>
+            <span class="error" id="genderError">Please select a gender preference.</span>
         </div>
 
         <div class="form-group">
             <label for="description">Description:</label>
             <textarea id="description" name="description" rows="4" required class="form-control"></textarea>
+            <span class="error" id="descriptionError">Description is required.</span>
         </div>
 
-        <button type="submit" class="btn btn_create" id="create_group" >Create Group</button>
+        <button type="submit" class="btn btn_create" id="create_group">Create Group</button>
         <a href="{% url 'available_group' %}" class="btn btn-secondary">Cancel</a>
     </form>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const form = document.getElementById("createGroupForm");
+
+        function validateField(input, errorElement, condition) {
+            if (condition) {
+                errorElement.style.display = "block";
+            } else {
+                errorElement.style.display = "none";
+            }
+        }
+
+        const groupName = document.getElementById("group_name");
+        const groupNameError = document.getElementById("groupNameError");
+        groupName.addEventListener("input", () => {
+            validateField(groupName, groupNameError, groupName.value.trim() === "");
+        });
+
+        const destination = document.getElementById("destination");
+        const destinationError = document.getElementById("destinationError");
+        destination.addEventListener("input", () => {
+            validateField(destination, destinationError, destination.value.trim() === "");
+        });
+
+        const maxMembers = document.getElementById("max_members");
+        const maxMembersError = document.getElementById("maxMembersError");
+        maxMembers.addEventListener("input", () => {
+            validateField(maxMembers, maxMembersError, maxMembers.value < 1 || maxMembers.value > 10);
+        });
+
+        const dateInput = document.getElementById("date");
+        const dateError = document.getElementById("dateError");
+        const today = new Date().toISOString().split("T")[0];
+        dateInput.setAttribute("min", today);
+        dateInput.addEventListener("change", () => {
+            validateField(dateInput, dateError, dateInput.value < today);
+        });
+
+        const gender = document.getElementById("gender");
+        const genderError = document.getElementById("genderError");
+        gender.addEventListener("change", () => {
+            validateField(gender, genderError, gender.value === "");
+        });
+
+        const description = document.getElementById("description");
+        const descriptionError = document.getElementById("descriptionError");
+        description.addEventListener("input", () => {
+            validateField(description, descriptionError, description.value.trim() === "");
+        });
+
+        form.addEventListener("submit", function(event) {
+            let isValid = true;
+
+            validateField(groupName, groupNameError, groupName.value.trim() === "");
+            validateField(destination, destinationError, destination.value.trim() === "");
+            validateField(maxMembers, maxMembersError, maxMembers.value < 1 || maxMembers.value > 10);
+            validateField(dateInput, dateError, dateInput.value < today);
+            validateField(gender, genderError, gender.value === "");
+            validateField(description, descriptionError, description.value.trim() === "");
+
+            document.querySelectorAll(".error").forEach(error => {
+                if (error.style.display === "block") {
+                    isValid = false;
+                }
+            });
+
+            if (!isValid) {
+                event.preventDefault();
+            }
+        });
+    });
+</script>
+
 {% endblock %}

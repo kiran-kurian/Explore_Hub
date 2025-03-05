@@ -32,6 +32,12 @@
         border-radius: 8px;
     }
 
+    .error-message {
+        color: red;
+        font-size: 0.9em;
+        margin-top: 5px;
+    }
+
     .btn-container {
         display: flex;
         justify-content: space-between;
@@ -69,49 +75,152 @@
 <div class="container mt-4">
     <div class="form-container">
         <h2>Edit Event</h2>
-        <form method="POST">
+        <form method="POST" id="editEventForm">
             {% csrf_token %}
             <div class="form-group">
                 <label for="event_name">Event Name</label>
                 <input type="text" id="event_name" name="event_name" value="{{ event.title }}" required>
+                <div class="error-message" id="event_name_error"></div>
             </div>
 
             <div class="form-group">
                 <label for="event_date">Event Date</label>
                 <input type="date" id="event_date" name="event_date" value="{{ event.event_date|date:'Y-m-d' }}" required>
+                <div class="error-message" id="event_date_error"></div>
             </div>
 
             <div class="form-group">
                 <label for="event_time">Event Time</label>
                 <input type="time" id="event_time" name="event_time" value="{{ event.event_time|time:'H:i' }}" required>
+                <div class="error-message" id="event_time_error"></div>
             </div>
 
             <div class="form-group">
                 <label for="event_location">Location</label>
                 <input type="text" id="event_location" name="event_location" value="{{ event.location }}" required>
+                <div class="error-message" id="event_location_error"></div>
             </div>
 
             <div class="form-group">
                 <label for="event_description">Description</label>
                 <textarea id="event_description" name="event_description" rows="4" required>{{ event.description }}</textarea>
+                <div class="error-message" id="event_description_error"></div>
             </div>
 
             <div class="form-group">
                 <label for="event_capacity">Maximum Seats</label>
                 <input type="number" id="event_capacity" name="event_capacity" value="{{ event.max_seats }}" required>
+                <div class="error-message" id="event_capacity_error"></div>
             </div>
 
             <div class="form-group">
                 <label for="event_price">Price (₹)</label>
                 <input type="number" id="event_price" name="event_price" value="{{ event.price }}" required>
+                <div class="error-message" id="event_price_error"></div>
             </div>
 
             <div class="btn-container">
-                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <button type="submit" class="btn btn-primary" id="submitBtn">Save Changes</button>
                 <a href="{% url 'my_events' %}" class="btn btn-danger">Cancel</a>
             </div>
         </form>
     </div>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        let today = new Date();
+        today.setDate(today.getDate() + 7);
+        let minDate = today.toISOString().split("T")[0];
+
+        document.getElementById("event_date").setAttribute("min", minDate);
+        validateForm(); // Run validation on page load to handle pre-filled values
+    });
+
+    const eventForm = document.getElementById("editEventForm");
+    const submitBtn = document.getElementById("submitBtn");
+
+    function showError(inputId, message) {
+        let errorElement = document.getElementById(inputId + "_error");
+        errorElement.textContent = message;
+        errorElement.style.display = "block";
+    }
+
+    function clearError(inputId) {
+        let errorElement = document.getElementById(inputId + "_error");
+        errorElement.textContent = "";
+        errorElement.style.display = "none";
+    }
+
+    function validateForm() {
+        let isValid = true;
+        let today = new Date();
+        today.setDate(today.getDate() + 7);
+        let minDate = today.toISOString().split("T")[0];
+
+        let fields = [
+            "event_name", "event_date", "event_time",
+            "event_location", "event_description",
+            "event_capacity", "event_price"
+        ];
+
+        fields.forEach(field => {
+            let value = document.getElementById(field).value.trim();
+            if (!value) {
+                showError(field, "This field is required.");
+                isValid = false;
+            } else {
+                clearError(field);
+            }
+        });
+
+        let eventDate = document.getElementById("event_date").value;
+        if (eventDate && eventDate < minDate) {
+            showError("event_date", "Event date must be at least 7 days from today.");
+            isValid = false;
+        }
+
+        let eventLocation = document.getElementById("event_location").value.trim();
+        if (!/^[a-zA-Z\s,]+$/.test(eventLocation)) {
+            showError("event_location", "Location must not contain numbers or special characters.");
+            isValid = false;
+        } else {
+            let parts = eventLocation.split(",").map(part => part.trim());
+            if (parts.length < 2 || parts[0].length < 3 || parts[1].length < 3) {
+                showError("event_location", "Enter a specific location and city name (e.g., 'MG Road, Bangalore').");
+                isValid = false;
+            } else {
+                clearError("event_location");
+            }
+        }
+
+        let eventDescription = document.getElementById("event_description").value;
+        if (eventDescription.length < 10) {
+            showError("event_description", "Description should be at least 10 characters long.");
+            isValid = false;
+        }
+
+        let eventSeats = document.getElementById("event_capacity").value;
+        if (eventSeats < 20) {
+            showError("event_capacity", "Maximum seat capacity should be at least 20.");
+            isValid = false;
+        }
+
+        let eventPrice = document.getElementById("event_price").value;
+        if (eventPrice < 100) {
+            showError("event_price", "Ticket price should be at least ₹100.");
+            isValid = false;
+        }
+
+        submitBtn.disabled = !isValid;
+    }
+
+    eventForm.addEventListener("input", validateForm);
+    eventForm.addEventListener("change", validateForm);
+    eventForm.addEventListener("submit", function (event) {
+        validateForm();
+        if (submitBtn.disabled) event.preventDefault();
+    });
+</script>
 
 {% endblock %}

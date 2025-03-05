@@ -60,6 +60,13 @@
         box-shadow: 0 0 8px rgba(240, 97, 97, 0.2);
     }
 
+    .error-message {
+        color: red;
+        font-size: 0.9rem;
+        margin-top: 5px;
+        display: none;
+    }
+
     .submit-btn {
         background: #f06161;
         color: white;
@@ -78,64 +85,179 @@
         background: #d95050;
         transform: scale(1.03);
     }
+
+    .submit-btn:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+    }
 </style>
 
 <div class="container">
-    <form class="event-form" method="POST" enctype="multipart/form-data">
+    <form class="event-form" method="POST" enctype="multipart/form-data" id="eventForm">
         {% csrf_token %}
         <h2>Create a New Event</h2>
 
         <div class="form-group">
             <label>Event Name:</label>
             <input type="text" id="event_name" name="event_name" required placeholder="Enter event name">
+            <span class="error-message" id="event_name_error"></span>
         </div>
 
         <div class="form-group">
             <label>Event Date:</label>
-            <input type="date" id="date" name="event_date" id="event_date" required>
+            <input type="date" id="event_date" name="event_date" required>
+            <span class="error-message" id="event_date_error"></span>
         </div>
 
         <div class="form-group">
             <label>Event Time:</label>
-            <input type="time" id="time" name="event_time" required>
+            <input type="time" id="event_time" name="event_time" required>
+            <span class="error-message" id="event_time_error"></span>
         </div>
 
         <div class="form-group">
             <label>Event Location:</label>
-            <input type="text" id="location" name="event_location" required placeholder="Enter location">
+            <input type="text" id="event_location" name="event_location" required placeholder="Enter location">
+            <span class="error-message" id="event_location_error"></span>
         </div>
 
         <div class="form-group">
             <label>Event Description:</label>
-            <textarea name="event_description" id="description" required rows="4" placeholder="Describe your event"></textarea>
+            <textarea name="event_description" id="event_description" required rows="4" placeholder="Describe your event"></textarea>
+            <span class="error-message" id="event_description_error"></span>
         </div>
 
         <div class="form-group">
             <label>Event Image:</label>
-            <input type="file" name="event_image" id="image" accept="image/*" multiple required>
+            <input type="file" name="event_image" id="event_image" accept="image/*" required>
+            <span class="error-message" id="event_image_error"></span>
         </div>
 
         <div class="form-group">
             <label>Maximum seats:</label>
-            <input type="number" id="seats" name="event_capacity" required min="1" placeholder="Number of seats available">
+            <input type="number" id="event_capacity" name="event_capacity" required min="20" placeholder="Number of seats available">
+            <span class="error-message" id="event_capacity_error"></span>
         </div>
 
         <div class="form-group">
             <label>Ticket Price (₹):</label>
-            <input type="number" id="price" name="event_price" required min="0" step="0.01" placeholder="Enter ticket price">
+            <input type="number" id="event_price" name="event_price" required min="100" step="0.01" placeholder="Enter ticket price">
+            <span class="error-message" id="event_price_error"></span>
         </div>
 
-        <button type="submit" id="create_event" class="submit-btn">Create Event</button>
+        <button type="submit" id="create_event" class="submit-btn" disabled>Create Event</button>
     </form>
 </div>
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        let eventDateInput = document.getElementById("event_date");
         let today = new Date();
-        today.setDate(today.getDate() + 7); 
-        let minDate = today.toISOString().split("T")[0]; 
-        eventDateInput.setAttribute("min", minDate);
+        today.setDate(today.getDate() + 7);
+        document.getElementById("event_date").setAttribute("min", today.toISOString().split("T")[0]);
     });
+    
+    const eventForm = document.getElementById("eventForm");
+    const submitBtn = document.getElementById("create_event");
+    
+    function showError(inputId, message) {
+        let errorElement = document.getElementById(inputId + "_error");
+        errorElement.textContent = message;
+        errorElement.style.display = "block";
+    }
+    
+    function clearError(inputId) {
+        document.getElementById(inputId + "_error").style.display = "none";
+    }
+    
+    function validateEventLocation() {
+        let eventLocation = document.getElementById("event_location").value.trim();
+    
+        if (!/^[a-zA-Z\s,]+$/.test(eventLocation)) {
+            showError("event_location", "Location must not contain numbers or special characters.");
+            return false;
+        }
+    
+        let parts = eventLocation.split(",").map(part => part.trim());
+    
+        if (parts.length < 2 || parts[0].length < 3 || parts[1].length < 3) {
+            showError("event_location", "Enter both a specific location and a city name (e.g., 'MG Road, Bangalore').");
+            return false;
+        }
+    
+        clearError("event_location");
+        return true;
+    }
+    
+    function validateForm() {
+        let isValid = true;
+        let today = new Date();
+        today.setDate(today.getDate() + 7);
+        let minDate = today.toISOString().split("T")[0];
+    
+        let fields = [
+            "event_name", "event_date", "event_time",
+            "event_location", "event_description",
+            "event_capacity", "event_price"
+        ];
+    
+        fields.forEach(field => {
+            let value = document.getElementById(field).value.trim();
+            if (!value) {
+                showError(field, "This field is required.");
+                isValid = false;
+            } else {
+                clearError(field);
+            }
+        });
+    
+        let eventDate = document.getElementById("event_date").value;
+        if (eventDate && eventDate < minDate) {
+            showError("event_date", "Event date must be at least 7 days from today.");
+            isValid = false;
+        }
+    
+        // Call the location validation function
+        if (!validateEventLocation()) {
+            isValid = false;
+        }
+    
+        let eventDescription = document.getElementById("event_description").value;
+        if (eventDescription.length < 10) {
+            showError("event_description", "Description should be at least 10 characters long.");
+            isValid = false;
+        }
+    
+        let eventImage = document.getElementById("event_image").files[0];
+        if (eventImage && !["image/png", "image/jpg", "image/jpeg", "image/webp"].includes(eventImage.type)) {
+            showError("event_image", "Only PNG, JPG, and JPEG images are allowed.");
+            isValid = false;
+        }
+    
+        let eventSeats = document.getElementById("event_capacity").value;
+        if (eventSeats < 20) {
+            showError("event_capacity", "Maximum seat capacity should be 20.");
+            isValid = false;
+        }
+    
+        let eventPrice = document.getElementById("event_price").value;
+        if (eventPrice < 100) {
+            showError("event_price", "Ticket price should be at least ₹100.");
+            isValid = false;
+        }
+    
+        submitBtn.disabled = !isValid;
+    }
+    
+    // Attach live validation for event location
+    document.getElementById("event_location").addEventListener("input", validateEventLocation);
+    
+    eventForm.addEventListener("input", validateForm);
+    eventForm.addEventListener("change", validateForm);
+    eventForm.addEventListener("submit", function (event) {
+        validateForm();
+        if (submitBtn.disabled) event.preventDefault();
+    });
+    
 </script>
+
 {% endblock %}

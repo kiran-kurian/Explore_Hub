@@ -207,7 +207,6 @@
     </div>
 
     <script>
-        // Function to validate individual fields
         function validateField(field, errorElement, condition, message) {
             if (condition) {
                 document.getElementById(errorElement).innerText = message;
@@ -218,20 +217,16 @@
             }
         }
 
-        // Real-time validation for username with AJAX check
         document.getElementById('username').addEventListener('input', function() {
             const username = this.value.trim();
             
-            // Regular expression to ensure username doesn't start with a digit
             const usernamePattern = /^[a-zA-Z][a-zA-Z0-9_]*$/;
             
             if (username === "") {
                 validateField('username', 'usernameError', true, "Username is required.");
             } else if (!usernamePattern.test(username)) {
-                // Check if the username starts with a letter
                 validateField('username', 'usernameError', true, "Enter a valid username");
             } else {
-                // If the username passes the local validation, proceed with AJAX check
                 fetch(`/check_username/?username=${username}`)
                     .then(response => response.json())
                     .then(data => {
@@ -244,7 +239,6 @@
             }
         });
 
-        // Real-time name validation for letters only
         document.getElementById('name').addEventListener('input', function() {
             const namePattern = /^[a-zA-Z\s]+$/;
             validateField('name', 'nameError', !namePattern.test(this.value), "Name should contain only letters.");
@@ -252,21 +246,16 @@
 
         const validTLDs = ['com', 'org', 'net', 'edu', 'gov', 'co', 'in']; 
 
-        // Real-time email validation
         document.getElementById('email').addEventListener('input', function() {
-            // Updated regular expression to validate the email format
             const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
             const email = this.value;
             const domainPart = email.substring(email.lastIndexOf('.') + 1).toLowerCase();
             
-            // Check if the domain ends with a valid TLD
             const isValidTLD = validTLDs.includes(domainPart);
             
-            // Show error if the pattern is invalid or the TLD is not valid
             validateField('email', 'emailError', !emailPattern.test(email) || !isValidTLD, "Please enter a valid email address.");
         });
 
-        // Real-time password and confirm password validation
         document.getElementById('password').addEventListener('input', function() {
             validateField('password', 'passwordError', this.value.trim() === "", "Password is required.");
         });
@@ -276,18 +265,15 @@
             validateField('confirmpassword', 'confirmPasswordError', this.value !== password, "Passwords do not match.");
         });
 
-        // Real-time phone number validation for Indian number
         document.getElementById('number').addEventListener('input', function() {
             const phonePattern = /^[6789]\d{9}$/;
             validateField('number', 'phoneError', !phonePattern.test(this.value), "Enter a valid phone number");
         });
 
-        // Real-time role validation
         document.getElementById('role').addEventListener('blur', function() {
             validateField('role', 'roleError', this.value === "", "Please select a role.");
         });
 
-        // Final validation on form submit
         document.getElementById('registrationForm').addEventListener('submit', function(event) {
             let isValid = true;
 
@@ -309,7 +295,7 @@
             isValid &= validateField('role', 'roleError', document.getElementById('role').value === "", "Please select a role.");
 
             if (!isValid) {
-                event.preventDefault(); // Prevent form submission if validation fails
+                event.preventDefault(); 
             }
         });
     </script>

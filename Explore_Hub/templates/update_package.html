@@ -13,12 +13,13 @@
                 {{ message }}
             </ul>
         {% endif %}
-        <form method="post" enctype="multipart/form-data">
+        <form method="post" enctype="multipart/form-data" id="update-package-form">
             {% csrf_token %}
             
             <div class="form-group">
                 <label for="title">Title</label>
                 <input type="text" id="title" name="title" class="form-control" value="{{ package.title }}" required>
+                <small class="error-message" id="title-error"></small>
             </div>
 
             <div class="form-group">
@@ -29,6 +30,7 @@
             <div class="form-group">
                 <label for="price">Price</label>
                 <input type="number" id="price" name="price" class="form-control" value="{{ package.price }}" step="0.01" required>
+                <small class="error-message" id="price-error"></small>
             </div>
 
             <div class="form-group">
@@ -37,7 +39,7 @@
             </div>
             <div class="form-group">
                 {% for image in package.package_images.all %}
-                    <img src="{{ image.image.url }}" alt="{{ package.title }}" style="max-width: 200px; height: auto; margin-top: 10px; overflow: hidden; display:wrap;">
+                    <img src="{{ image.image.url }}" alt="{{ package.title }}" style="max-width: 200px; height: auto; margin-top: 10px;">
                     <label>
                         <input type="checkbox" name="delete_images" value="{{ image.id }}">
                         Remove
@@ -50,21 +52,25 @@
             <div class="form-group">
                 <label for="origin">Origin</label>
                 <input type="text" id="origin" name="origin" class="form-control" value="{{ package.origin }}" required>
+                <small class="error-message" id="origin-error"></small>
             </div>
 
             <div class="form-group">
                 <label for="destination">Destination</label>
                 <input type="text" id="destination" name="destination" class="form-control" value="{{ package.destination }}" required>
+                <small class="error-message" id="destination-error"></small>
             </div>
 
             <div class="form-group">
                 <label for="number_of_days">Duration</label>
                 <input type="text" id="duration" name="duration" class="form-control" value="{{ package.duration }}" required>
+                <small class="error-message" id="duration-error"></small>
             </div>
 
             <div class="form-group">
                 <label for="departure_day">Discount Percentage (If Any)</label>
-                <input type="number" id="discount_percentage" name="discount_percentage" class="form-control" value="{{ package.discount_percentage }}">
+                <input type="number" id="discount_percentage" name="discount_percentage" class="form-control" value="{{ package.discount_percentage }}" min="0" max="100">
+                <small class="error-message" id="discount-error"></small>
             </div>
 
             <div class="form-group">
@@ -74,9 +80,11 @@
                     <option value="False" {% if not package.cancellation %}selected{% endif %}>No</option>
                 </select>
             </div>
+
             <div class="form-group">
-                <label for="itinerary">Itinerary (Enter details for each day separated by commas or line breaks)</label>
-                <textarea id="itinerary" name="itinerary" class="form-control" rows="6" required> {{ package.itinerary }} </textarea>
+                <label for="itinerary">Itinerary</label>
+                <textarea id="itinerary" name="itinerary" class="form-control" rows="6" required>{{ package.itinerary }}</textarea>
+                <small class="error-message" id="itinerary-error"></small>
             </div>
 
             <div class="form-buttons">
@@ -86,4 +94,120 @@
         </form>
     </div>
 </section>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const form = document.getElementById("update-package-form");
+
+    const title = document.getElementById("title");
+    const price = document.getElementById("price");
+    const origin = document.getElementById("origin");
+    const destination = document.getElementById("destination");
+    const duration = document.getElementById("duration");
+    const discount = document.getElementById("discount_percentage");
+    const itinerary = document.getElementById("itinerary");
+
+    const showError = (input, message) => {
+        const errorElement = document.getElementById(input.id + "-error");
+        errorElement.textContent = message;
+        errorElement.style.color = "red";
+    };
+
+    const clearError = (input) => {
+        const errorElement = document.getElementById(input.id + "-error");
+        errorElement.textContent = "";
+    };
+
+    const validateTitle = () => {
+        if (title.value.trim() === "") {
+            showError(title, "Title is required");
+            return false;
+        }
+        clearError(title);
+        return true;
+    };
+
+    const validatePrice = () => {
+        if (price.value <= 0) {
+            showError(price, "Price must be a positive number");
+            return false;
+        }
+        clearError(price);
+        return true;
+    };
+
+    const validateOrigin = () => {
+        if (origin.value.trim() === "") {
+            showError(origin, "Origin is required");
+            return false;
+        }
+        clearError(origin);
+        return true;
+    };
+
+    const validateDestination = () => {
+        if (destination.value.trim() === "") {
+            showError(destination, "Destination is required");
+            return false;
+        }
+        clearError(destination);
+        return true;
+    };
+
+    const validateDuration = () => {
+        let value = duration.value.trim().toUpperCase(); 
+        let match = value.match(/^(\d+)D\/?(\d*)N?$/); 
+
+        if (!match) {
+            showError(duration, "Enter duration in 'XD/YN' format (e.g., 5D/4N).");
+            return false;
+        }
+        clearError(duration);
+        return true;
+    };
+
+    const validateDiscount = () => {
+        let value = discount.value.trim();
+
+        if (value === "") {
+            clearError(discount);
+            return true; 
+        }
+
+        value = parseFloat(value);
+
+        if (isNaN(value) || value < 0 || value > 100) {
+            showError(discount, "Enter a valid discount percentage (0-100)");
+            return false;
+        }
+
+        clearError(discount);
+        return true;
+    };
+
+    const validateItinerary = () => {
+        if (itinerary.value.trim() === "") {
+            showError(itinerary, "Itinerary is required");
+            return false;
+        }
+        clearError(itinerary);
+        return true;
+    };
+
+    title.addEventListener("input", validateTitle);
+    price.addEventListener("input", validatePrice);
+    origin.addEventListener("input", validateOrigin);
+    destination.addEventListener("input", validateDestination);
+    duration.addEventListener("input", validateDuration);
+    discount.addEventListener("input", validateDiscount);
+    itinerary.addEventListener("input", validateItinerary);
+
+    form.addEventListener("submit", function(event) {
+        if (!validateTitle() || !validatePrice() || !validateOrigin() || !validateDestination() || !validateDuration() || !validateDiscount() || !validateItinerary()) {
+            event.preventDefault();
+        }
+    });
+});
+</script>
+
 {% endblock %}

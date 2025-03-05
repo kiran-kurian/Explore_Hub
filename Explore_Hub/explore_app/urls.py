@@ -50,6 +50,7 @@ urlpatterns = [
     path('manage_archived/', manage_archived_packages, name='manage_archived_packages'),
     path('manageprofile/', ta_manage_profile, name="ta_profile"),
     path('addpackage/', add_package, name="add_package"),
+    path('check-package-title/', check_package_title, name='check_package_title'),
     path('updatepackage/<int:package_id>/', update_package, name="update_package"),
     path('deletepackage/<int:package_id>/', delete_package, name="delete_package"),
     path('ta_bookings/', ta_bookings, name='ta_bookings'),

@@ -547,6 +547,11 @@ def add_package(request):
         return render(request, 'add_package.html')
     else:
         return redirect('login')
+    
+def check_package_title(request):
+    package_title = request.GET.get('title', '').strip()
+    exists = TravelPackage.objects.filter(title__iexact=package_title).exists()
+    return JsonResponse({'exists': exists})
 
 #to update package by the travel agency
 @login_required(login_url='login')
@@ -788,7 +793,7 @@ def delete_group(request, group_id):
         if request.method == 'POST':
             group.is_active = False
             group.save()  
-            return JsonResponse({'message': 'Group deleted successfully.'})
+            return redirect('user_group')
         return redirect('user_group')
     else:
         return redirect('login')
@@ -2141,8 +2146,8 @@ def event_organizer_home(request):
                 })
         except EventOrganizer.DoesNotExist:
             return redirect('login')
-        events = Event_tbl.objects.filter(organizer_id=organizer).count()
-        upcoming_events = Event_tbl.objects.filter(organizer_id=organizer, event_date__gte=timezone.now()).count()
+        events = Event_tbl.objects.filter(organizer_id=organizer, is_active=True).count()
+        upcoming_events = Event_tbl.objects.filter(organizer_id=organizer, event_date__gte=timezone.now(), is_active=True).count()
         booking_count = EventBooking.objects.filter(event__organizer_id=organizer).count()
         return render(request, 'event_organizer_home.html', {'events': events, 'upcoming_events': upcoming_events, 'booking_count': booking_count})
     else:
