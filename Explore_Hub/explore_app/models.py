@@ -226,6 +226,7 @@ class Event_tbl(models.Model):
     views = models.PositiveIntegerField(default=0)
     booking_count = models.PositiveIntegerField(default=0)
     max_seats = models.PositiveIntegerField()
+    deletion_reason = models.TextField(null=True, blank=True)
 
 #model for storing images of the events
 class EventImage(models.Model):
@@ -259,3 +260,5 @@ class EventBooking(models.Model):
     payment_date = models.DateTimeField(null=True, blank=True)
     refunded_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     razorpay_payment_id = models.CharField(max_length=255, blank=True, null=True)
+    is_deleted = models.BooleanField(default=False)
+    deletion_reason = models.TextField(null=True, blank=True)

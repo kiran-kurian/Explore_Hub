@@ -1077,7 +1077,6 @@ def cancel_booking(request, booking_id):
 
         if request.method == 'POST':
             if booking.cancellation:
-            # Check if the trip date is more than a week away
                 if booking.trip_date > current_date + timedelta(weeks=1):
                     booking.is_cancelled = True
                     booking.is_confirmed = False  
@@ -1085,7 +1084,6 @@ def cancel_booking(request, booking_id):
                     client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
 
                     try:
-                        # Create a refund
                         refund_response = client.payment.refund(booking.razorpay_payment_id, {
                             'amount': int(booking.total_amount * 100) 
                         })
@@ -2398,8 +2396,9 @@ def event_organizer_bookings(request):
 def my_events(request):
     if 'organizer' in request.session:
         organizer = EventOrganizer.objects.get(username=request.user.username)
-        events = Event_tbl.objects.filter(organizer_id=organizer, is_active=True)
-        return render(request, 'my_events.html', {'events': events})
+        events = Event_tbl.objects.filter(organizer_id=organizer, is_active=True, event_date__gte=timezone.now().date())
+        has_bookings = EventBooking.objects.filter(event__in=events).exists()
+        return render(request, 'my_events.html', {'events': events, 'has_bookings': has_bookings})
     else:
         return redirect('login')
     
@@ -2425,9 +2424,49 @@ def update_event(request, event_id):
 def delete_event(request, event_id):
     if 'organizer' in request.session:
         event = get_object_or_404(Event_tbl, pk=event_id)
-        event.is_active = False
-        event.save()
-        return redirect('my_events')
+        if event.event_date >= timezone.now().date() + timedelta(days=5):
+            bookings = EventBooking.objects.filter(event=event)
+            reason = request.POST.get('reason', 'Event cancelled by the organizer')
+            print(reason)
+            print(bookings)
+            client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+            for booking in bookings:
+                try:
+                    print(booking.razorpay_payment_id)
+                    refund_response = client.payment.refund(booking.razorpay_payment_id)
+                    print(refund_response)
+                    if refund_response.get('id'):
+                        booking.is_deleted = True
+                        booking.deletion_reason = reason
+                        booking.save()
+                        send_mail(
+                            subject="Event Cancellation & Refund Processed",
+                            message=f"""
+                            Dear {booking.user.first_name},
+
+                            We regret to inform you that the event **"{event.title}"** scheduled on {event.event_date} has been canceled due to unforeseen circumstances.
+
+                            💰 Your payment has been successfully refunded.  
+                            💬 Reason for cancellation: {reason}  
+
+                            We sincerely apologize for the inconvenience caused. Feel free to check out other exciting events on our platform.
+
+                            Best Regards,  
+                            Explore Hub Team
+                            """,
+                            from_email=settings.DEFAULT_FROM_EMAIL,
+                            recipient_list=[booking.user.email],
+                            fail_silently=True
+                        )
+                except Exception as e:
+                        print(f"Refund failed for Booking ID {booking.id}: {str(e)}")
+                        return redirect('my_events')
+            event.is_active = False
+            event.deletion_reason = reason
+            event.save()
+            return redirect('my_events')
+        else:
+            return redirect('my_events')
     else:
         return redirect('login')
     

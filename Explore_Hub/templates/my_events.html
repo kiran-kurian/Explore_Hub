@@ -19,11 +19,11 @@
         box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.15);
     }
 
-    .carousel-inner img {
-        height: 220px;
-        object-fit: cover;
-        border-top-left-radius: 12px;
-        border-top-right-radius: 12px;
+    .image-row {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        flex-wrap: wrap;
     }
 
     .event-info {
@@ -56,6 +56,8 @@
         text-decoration: none;
         background-color: #007bff;
         color: white;
+        border: none;
+        cursor: pointer;
     }
 
     .btn-danger {
@@ -66,30 +68,56 @@
         background-color: #17a2b8;
     }
 
-    .badge-archived {
-        background-color: #ffc107;
-        color: black;
-        padding: 5px 10px;
-        border-radius: 5px;
-        font-size: 0.8rem;
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
     }
 
-    .container {
-        max-width: 1200px;
-        justify-content: center;
-        padding-left: 120px;
+    .modal-content {
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+        width: 400px;
+        margin: 15% auto;
+        text-align: center;
     }
 
-    .image-row {
-        display: flex;
-        justify-content: center;
-        gap: 10px;
-        flex-wrap: wrap;
+    .close {
+        float: right;
+        font-size: 20px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .modal input {
+        width: 90%;
+        padding: 5px;
+        margin: 10px 0;
+    }
+
+    .modal button {
+        margin-top: 10px;
     }
 </style>
 
 <div class="container mt-4">
     <h2 class="mb-4 text-center">My Events</h2>
+
+    {% if messages %}
+        <div class="container">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
 
     {% if events %}
         <div class="row justify-content-center">
@@ -114,7 +142,7 @@
                             </p>
                             <div class="btn-group">
                                 <a href="{% url 'update_event' event.event_id %}" class="btn">✏ Edit</a>
-                                <a href="{% url 'delete_event' event.event_id %}" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this event?')">🗑 Delete</a>
+                                <button class="btn btn-danger" onclick="showDeleteModal('{{ event.event_id }}', {{ has_bookings|yesno:'true,false' }})">🗑 Delete</button>
                                 <a href="{% url 'event_participants' event.event_id %}" class="btn btn-info">👥 Participants</a>
                             </div>
                             {% if event.is_archived %}
@@ -133,5 +161,53 @@
         </div>
     {% endif %}
 </div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h4>Confirm Deletion</h4>
+        <p id="deleteMessage">Are you sure you want to delete this event?</p>
+        <form id="deleteForm" method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="event_id" id="event_id">
+            <input type="text" name="reason" id="deleteReason" placeholder="Enter reason for deletion" required>
+            <br>
+            <button type="button" class="btn btn-danger" onclick="submitDeleteForm()">Delete</button>
+            <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    let eventToDelete = null;
+    let hasBookings = false;
+
+    function showDeleteModal(eventId, bookings) {
+        eventToDelete = eventId;
+        hasBookings = bookings;
+        document.getElementById("deleteModal").style.display = "block";
+        document.getElementById("event_id").value = eventId;
+        
+        if (bookings) {
+            document.getElementById("deleteMessage").textContent = "This event has bookings. Please enter a reason before deleting.";
+            document.getElementById("deleteReason").style.display = "block";
+        } else {
+            document.getElementById("deleteMessage").textContent = "Are you sure you want to delete this event?";
+            document.getElementById("deleteReason").style.display = "none";
+        }
+    }
+
+    function closeModal() {
+        document.getElementById("deleteModal").style.display = "none";
+        document.getElementById("deleteReason").value = "";
+    }
+
+    function submitDeleteForm() {
+        const form = document.getElementById("deleteForm");
+        form.action = `/event_organizer/event/${eventToDelete}/delete/`;
+        form.submit();
+    }
+</script>
 
 {% endblock %}

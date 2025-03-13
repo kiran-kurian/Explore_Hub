@@ -16,6 +16,7 @@
                     <th>Date</th>
                     <th>Location</th>
                     <th>Status</th>
+                    <th>Info</th>
                 </tr>
             </thead>
             <tbody>
@@ -33,6 +34,7 @@
                             <span class="badge bg-danger">Deleted</span>
                         {% endif %}
                     </td>
+                    <td>{% if event.deletion_reason %}{{ event.deletion_reason }}{% endif %}</td>
                 </tr>
                 {% empty %}
                 <tr>

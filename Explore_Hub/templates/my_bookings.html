@@ -133,14 +133,8 @@
                                 {% if booking.event_date < request.now|date %}
                                     <span class="text-success">Completed</span>
                                 {% else %}
-                                    {% if booking.cancellation %} 
-                                        <form action="{% url 'cancel_event_booking' booking.id %}" method="POST" style="display:inline;">
-                                            {% csrf_token %}
-                                            <button type="submit" class="btn btn-danger btn-sm"
-                                                {% if booking.event_date|date <= request.now|date|add:"7" %} disabled {% endif %}>
-                                                Cancel
-                                            </button>
-                                        </form>
+                                    {% if booking.is_deleted %} 
+                                        <span class="text-muted">Event is cancelled for the reason: {{ booking.deletion_reason }}</span>
                                     {% else %}
                                         <span class="text-muted">Cancellation not available</span>
                                     {% endif %}
