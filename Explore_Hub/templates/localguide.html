@@ -31,7 +31,7 @@
                     <p><strong>Languages Known:</strong> {{ guide.languages_known }}</p>
                 </div>
                 <div class="guide-actions">
-                    <a href="{% url 'local_guide_detail' guide.guide_id %}" class="btn_view">View Details</a>
+                    <a href="{% url 'local_guide_detail' guide.guide_id %}" class="btn_view" id="details">View Details</a>
                 </div>
             </div>
         {% empty %}

@@ -141,9 +141,9 @@
                                 💰 <strong>Price:</strong> ₹{{ event.price }} <br>
                             </p>
                             <div class="btn-group">
-                                <a href="{% url 'update_event' event.event_id %}" class="btn">✏ Edit</a>
+                                <a href="{% url 'update_event' event.event_id %}" id="edit" class="btn">✏ Edit</a>
                                 <button class="btn btn-danger" onclick="showDeleteModal('{{ event.event_id }}', {{ has_bookings|yesno:'true,false' }})">🗑 Delete</button>
-                                <a href="{% url 'event_participants' event.event_id %}" class="btn btn-info">👥 Participants</a>
+                                <a href="{% url 'event_participants' event.event_id %}" id="participants" class="btn btn-info">👥 Participants</a>
                             </div>
                             {% if event.is_archived %}
                                 <div class="mt-2 text-center">

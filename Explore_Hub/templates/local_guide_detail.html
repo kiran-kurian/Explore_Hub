@@ -45,8 +45,8 @@
         <h2>Request Location Guidance</h2>
         <form method="post" action="{% url 'request_guidance' guide.guide_id %}">
             {% csrf_token %}
-            <textarea name="location_request" placeholder="Enter the location(s) where you need guidance..." required></textarea>
-            <button type="submit" class="btn-request-guidance">Request Guidance</button>
+            <textarea id="location_request" name="location_request" placeholder="Enter the location(s) where you need guidance..." required></textarea>
+            <button type="submit" id="btn-request" class="btn-request-guidance">Request Guidance</button>
         </form>
     </div>
 

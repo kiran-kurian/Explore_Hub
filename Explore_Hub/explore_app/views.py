@@ -1714,13 +1714,14 @@ def itinerary_planner(request):
         origin_code = get_city_code(origin)
         destination_code = get_city_code(destination)
 
+        origin_station = get_station_code(origin)
+        destination_station = get_station_code(destination)
+
+        print(origin_station, destination_station)
+
         flights = search_flights(origin_code, destination_code, start_date, end_date) if origin_code and destination_code else None
-        # hotels = search_hotels(destination_code)
-        # activities = search_activities(destination)
-        trains = search_trains(origin, destination, start_date)
-        # print("Hotels: ", hotels)
-        # print("Activities: ", activities)
-        # print("Trains: ", trains)
+        trains = search_trains(origin_station, destination_station)
+        print("Trains: ", trains)
 
         transport_options = []
         exchange_rate = get_exchange_rate()
@@ -1749,11 +1750,11 @@ def itinerary_planner(request):
                     "category": "transport"
                 })
 
-        if isinstance(trains, HttpResponse):
-            print("Trains API Error:", trains.content.decode())  # Print error details
-            trains = []
-        else:
-            trains = trains or []
+        # if isinstance(trains, HttpResponse):
+        #     print("Trains API Error:", trains.content.decode())  # Print error details
+        #     trains = []
+        # else:
+        #     trains = trains or []
 
         # if isinstance(trains, dict):
             # for train in trains:
@@ -1917,9 +1918,9 @@ def get_city_code(city_name):
     if response.status_code == 200:
         data = response.json()
         if "data" in data and len(data["data"]) > 0:
-            return data["data"][0]["iataCode"]  # Return IATA code if available
+            return data["data"][0]["iataCode"]
         else:
-            return get_city_code_google(city_name)  # Fallback to Google Places API
+            return get_city_code_google(city_name)  
     else:
         return get_city_code_google(city_name)
 
@@ -1944,50 +1945,58 @@ def get_city_code_google(city_name):
             return None  
     else:
         return None  
+    
+from bs4 import BeautifulSoup
+def get_station_code(city_name):
+    try:
+        url = "https://en.wikipedia.org/wiki/List_of_railway_stations_in_India"
+        response = requests.get(url)
+        
+        if response.status_code != 200:
+            print("Failed to fetch data from Wikipedia")
+            return None
 
-def search_trains(origin, destination, start_date):
-    url = f"https://irctc1.p.rapidapi.com/api/v3/trainBetweenStations"
+        soup = BeautifulSoup(response.text, "html.parser")
+        
+        # Find all table rows
+        rows = soup.find_all("tr")
+        
+        for row in rows:
+            columns = row.find_all("td")
+            if len(columns) >= 2:
+                station_name = columns[0].text.strip()
+                station_code = columns[1].text.strip()
 
-    querystring = {"fromStationCode": origin,
-                    "toStationCode": destination,
-                    "dateOfJourney": start_date}
+                # If station name contains the city name, return the station code
+                if city_name.lower() in station_name.lower():
+                    return station_code
 
-    headers = {
-        "X-RapidAPI-Host": "irctc1.p.rapidapi.com",
-        "X-RapidAPI-Key": "fb8dbe5110mshcf13c98485917cfp100148jsnc69d7b39758b",
-        "x-rapidapi-ua": "RapidAPI-Playground",
-        'x-apihub-key': 'Qvy-r4HSAi7lRciA7nRlNbrHAHJyPYL0NfjANZXE4xCV8s6K24',
-        "x-apihub-host": "IRCTC.allthingsdev.co",
-        'x-apihub-endpoint': 'ba186358-897d-4f31-8c78-33941455b792'
+        return None
+    except Exception as e:
+        print(f"Error fetching station code: {e}")
+        return None
+
+def search_trains(from_station, to_station):
+    API_URL = "https://apis.ausoftwaresolutions.in/v1/train-between-stations/"
+    API_KEY = "l0jB1YnD4SDeo5sGzLbAuyDD4f6Nj7weegmVMn28Q2ok03BTNwWgaE4reWESdqxvUVDl7vhxo86TS8cdBFJLb6JoGESYmicJUncRF8ubUQ"
+    
+    payload = {
+        "from": from_station,
+        "to": to_station,
+        "api_key": API_KEY
     }
     
+    headers = {"Content-Type": "application/json"}
+    
     try:
-        response = requests.get(url, headers=headers, params=querystring)
+        response = requests.post(API_URL, data=json.dumps(payload), headers=headers)
+        response.raise_for_status()  # Raise an error for bad responses (4xx or 5xx)
         
-        if response.status_code == 200:
-            train_data = response.json()
-            
-            if "trains" not in train_data or not train_data["trains"]:
-                return {"error": "No trains found for this route."}
-            
-            train_list = []
-            for train in train_data["trains"]:
-                train_list.append({
-                    "train_number": train["train_number"],
-                    "train_name": train["train_name"],
-                    "departure": train["departure_time"],
-                    "arrival": train["arrival_time"],
-                    "duration": train["duration"],
-                    "fare": train.get("fare", "N/A") 
-                })
-            
-            return train_list
-        
-        return {"error": f"API request failed with status code {response.status_code}"}
+        return response.json()  # Return parsed JSON response
     
     except requests.exceptions.RequestException as e:
-        return {"error": f"API request failed: {e}"}
-    
+        return {"error": f"Failed to fetch train data: {str(e)}"}
+        
 def search_flights(origin, destination, departure_date, return_date=None):
     access_token = get_amadeus_access_token()
     url = f"https://test.api.amadeus.com/v2/shopping/flight-offers"
@@ -2010,58 +2019,6 @@ def search_flights(origin, destination, departure_date, return_date=None):
         return response.json()
     else:
         raise Exception("Error fetching flight data")
-    
-def search_hotels(city_code):
-    access_token = get_amadeus_access_token()
-    url = f"https://test.api.amadeus.com/v1/reference-data/locations/hotels/by-city"
-
-    headers = {
-        "Authorization": f"Bearer {access_token}"
-    }
-
-    params = {
-        "cityCode": get_city_code(city_code),  
-    }
-
-    response = requests.get(url, headers=headers, params=params)
-
-    if response.status_code == 200:
-        return response.json()
-    else:
-        raise Exception("Error fetching hotel data")
-    
-def get_lat_long(location):
-    geocoder = OpenCageGeocode(settings.OPENCAGE_API_KEY)
-    result = geocoder.geocode(location)
-
-    if result and len(result):
-        latitude = result[0]['geometry']['lat']
-        longitude = result[0]['geometry']['lng']
-        return latitude, longitude
-    else:
-        raise Exception(f"Could not find location: {location}")
-    
-def search_activities(location):
-    access_token = get_amadeus_access_token()
-    url = f"https://test.api.amadeus.com/v1/shopping/activities"
-
-    headers = {
-        "Authorization": f"Bearer {access_token}"
-    }
-
-    latitude, longitude = get_lat_long(location)
-
-    params = {
-        "latitude": latitude,  
-        "longitude": longitude
-    }
-
-    response = requests.get(url, headers=headers, params=params)
-
-    if response.status_code == 200:
-        return response.json()
-    else:
-        raise Exception("Error fetching activities data")
     
 def event_organizer_registration(request):
     if request.method == "POST":
