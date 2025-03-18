@@ -1714,14 +1714,19 @@ def itinerary_planner(request):
         origin_code = get_city_code(origin)
         destination_code = get_city_code(destination)
 
-        origin_station = get_station_code(origin)
-        destination_station = get_station_code(destination)
+        origin_station_name = get_station_name(origin)
+        destination_station_name = get_station_name(destination)
+
+        print(origin_station_name, destination_station_name)
+
+        origin_station = get_station_code(origin_station_name)
+        destination_station = get_station_code(destination_station_name)
 
         print(origin_station, destination_station)
 
         flights = search_flights(origin_code, destination_code, start_date, end_date) if origin_code and destination_code else None
-        trains = search_trains(origin_station, destination_station)
-        print("Trains: ", trains)
+        # trains = search_trains(origin_station, destination_station)
+        # print("Trains: ", trains)
 
         transport_options = []
         exchange_rate = get_exchange_rate()
@@ -1945,6 +1950,27 @@ def get_city_code_google(city_name):
             return None  
     else:
         return None  
+    
+def get_station_name(city):
+    try:
+        url = "https://en.wikipedia.org/w/api.php"
+        params = {
+            "action": "query",
+            "format": "json",
+            "list": "search",
+            "srsearch": f"{city} railway station"
+        }
+        response = requests.get(url, params=params)
+        data = response.json()
+        
+        if "query" in data and "search" in data["query"]:
+            station_name = data["query"]["search"][0]["title"]
+            return station_name
+        return None
+
+    except Exception as e:
+        print(f"Error fetching station from Wikimedia: {e}")
+        return None
     
 from bs4 import BeautifulSoup
 def get_station_code(city_name):

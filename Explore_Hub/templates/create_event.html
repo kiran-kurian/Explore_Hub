@@ -106,43 +106,43 @@
         <div class="form-group">
             <label>Event Date:</label>
             <input type="date" id="date" name="event_date" required>
-            <span class="error-message" id="event_date_error"></span>
+            <span class="error-message" id="date_error"></span>
         </div>
 
         <div class="form-group">
             <label>Event Time:</label>
             <input type="time" id="time" name="event_time" required>
-            <span class="error-message" id="event_time_error"></span>
+            <span class="error-message" id="time_error"></span>
         </div>
 
         <div class="form-group">
             <label>Event Location:</label>
             <input type="text" id="location" name="event_location" required placeholder="Enter location">
-            <span class="error-message" id="event_location_error"></span>
+            <span class="error-message" id="location_error"></span>
         </div>
 
         <div class="form-group">
             <label>Event Description:</label>
             <textarea name="event_description" id="description" required rows="4" placeholder="Describe your event"></textarea>
-            <span class="error-message" id="event_description_error"></span>
+            <span class="error-message" id="description_error"></span>
         </div>
 
         <div class="form-group">
             <label>Event Image:</label>
             <input type="file" name="event_image" id="image" accept="image/*" required>
-            <span class="error-message" id="event_image_error"></span>
+            <span class="error-message" id="image_error"></span>
         </div>
 
         <div class="form-group">
             <label>Maximum seats:</label>
             <input type="number" id="seats" name="event_capacity" required min="20" placeholder="Number of seats available">
-            <span class="error-message" id="event_capacity_error"></span>
+            <span class="error-message" id="seats_error"></span>
         </div>
 
         <div class="form-group">
             <label>Ticket Price (₹):</label>
             <input type="number" id="price" name="event_price" required min="100" step="0.01" placeholder="Enter ticket price">
-            <span class="error-message" id="event_price_error"></span>
+            <span class="error-message" id="price_error"></span>
         </div>
 
         <button type="submit" id="create_event" class="submit-btn" disabled>Create Event</button>
@@ -153,7 +153,7 @@
     document.addEventListener("DOMContentLoaded", function () {
         let today = new Date();
         today.setDate(today.getDate() + 7);
-        document.getElementById("event_date").setAttribute("min", today.toISOString().split("T")[0]);
+        document.getElementById("date").setAttribute("min", today.toISOString().split("T")[0]);
     });
     
     const eventForm = document.getElementById("eventForm");
@@ -170,21 +170,21 @@
     }
     
     function validateEventLocation() {
-        let eventLocation = document.getElementById("event_location").value.trim();
+        let eventLocation = document.getElementById("location").value.trim();
     
         if (!/^[a-zA-Z\s,]+$/.test(eventLocation)) {
-            showError("event_location", "Location must not contain numbers or special characters.");
+            showError("location", "Location must not contain numbers or special characters.");
             return false;
         }
     
         let parts = eventLocation.split(",").map(part => part.trim());
     
         if (parts.length < 2 || parts[0].length < 3 || parts[1].length < 3) {
-            showError("event_location", "Enter both a specific location and a city name (e.g., 'MG Road, Bangalore').");
+            showError("location", "Enter both a specific location and a city name (e.g., 'MG Road, Bangalore').");
             return false;
         }
     
-        clearError("event_location");
+        clearError("location");
         return true;
     }
     
@@ -195,9 +195,9 @@
         let minDate = today.toISOString().split("T")[0];
     
         let fields = [
-            "event_name", "event_date", "event_time",
-            "event_location", "event_description",
-            "event_capacity", "event_price"
+            "event_name", "date", "time",
+            "location", "description",
+            "seats", "price"
         ];
     
         fields.forEach(field => {
@@ -210,46 +210,44 @@
             }
         });
     
-        let eventDate = document.getElementById("event_date").value;
+        let eventDate = document.getElementById("date").value;
         if (eventDate && eventDate < minDate) {
-            showError("event_date", "Event date must be at least 7 days from today.");
+            showError("date", "Event date must be at least 7 days from today.");
             isValid = false;
         }
     
-        // Call the location validation function
         if (!validateEventLocation()) {
             isValid = false;
         }
     
-        let eventDescription = document.getElementById("event_description").value;
+        let eventDescription = document.getElementById("description").value;
         if (eventDescription.length < 10) {
-            showError("event_description", "Description should be at least 10 characters long.");
+            showError("description", "Description should be at least 10 characters long.");
             isValid = false;
         }
     
-        let eventImage = document.getElementById("event_image").files[0];
+        let eventImage = document.getElementById("image").files[0];
         if (eventImage && !["image/png", "image/jpg", "image/jpeg", "image/webp"].includes(eventImage.type)) {
-            showError("event_image", "Only PNG, JPG, and JPEG images are allowed.");
+            showError("image", "Only PNG, JPG, and JPEG images are allowed.");
             isValid = false;
         }
     
-        let eventSeats = document.getElementById("event_capacity").value;
+        let eventSeats = document.getElementById("seats").value;
         if (eventSeats < 20) {
-            showError("event_capacity", "Maximum seat capacity should be 20.");
+            showError("seats", "Maximum seat capacity should be 20.");
             isValid = false;
         }
     
-        let eventPrice = document.getElementById("event_price").value;
+        let eventPrice = document.getElementById("price").value;
         if (eventPrice < 100) {
-            showError("event_price", "Ticket price should be at least ₹100.");
+            showError("price", "Ticket price should be at least ₹100.");
             isValid = false;
         }
     
         submitBtn.disabled = !isValid;
     }
     
-    // Attach live validation for event location
-    document.getElementById("event_location").addEventListener("input", validateEventLocation);
+    document.getElementById("location").addEventListener("input", validateEventLocation);
     
     eventForm.addEventListener("input", validateForm);
     eventForm.addEventListener("change", validateForm);
