@@ -29,7 +29,6 @@
                     <th>Seats Booked</th>
                     <th>Booking Date</th>
                     <th>Payment Status</th>
-                    <th>Status</th>
                 </tr>
             </thead>
             <tbody>
@@ -44,13 +43,6 @@
                         <span class="badge {{ booking.payment_status|lower }}">
                             {{ booking.payment_status|title }}
                         </span>
-                    </td>
-                    <td>
-                        {% if booking.is_cancelled %}
-                        <span class="badge badge-cancelled">Cancelled</span>
-                        {% else %}
-                        <span class="badge badge-confirmed">Confirmed</span>
-                        {% endif %}
                     </td>
                 </tr>
                 {% endfor %}

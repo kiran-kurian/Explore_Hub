@@ -32,6 +32,13 @@
         border-radius: 8px;
     }
 
+    .error {
+        color: red;
+        font-size: 0.9rem;
+        margin-top: 5px;
+        display: none;
+    }
+
     .btn-container {
         display: flex;
         justify-content: space-between;
@@ -64,21 +71,28 @@
     .btn-danger:hover {
         background-color: #b52b3b;
     }
+
+    .btn-primary:disabled {
+        background-color: gray;
+        cursor: not-allowed;
+    }
 </style>
 
 <div class="container mt-4">
     <div class="profile-container">
         <h2>Update Profile</h2>
-        <form method="POST">
+        <form method="POST" id="profileForm">
             {% csrf_token %}
             <div class="form-group">
                 <label for="name">Full Name</label>
                 <input type="text" id="name" name="name" value="{{ organizer.name }}" required>
+                <p class="error" id="nameError">Full Name is required.</p>
             </div>
 
             <div class="form-group">
                 <label for="contact">Contact Number</label>
                 <input type="text" id="contact" name="contact" value="{{ organizer.contact }}" required>
+                <p class="error" id="contactError">Phone number must be 10 digits and start with 6, 7, 8, or 9.</p>
             </div>
 
             <div class="form-group">
@@ -89,14 +103,72 @@
             <div class="form-group">
                 <label for="bio">Bio</label>
                 <textarea id="bio" name="bio" rows="4" required>{{ organizer.bio }}</textarea>
+                <p class="error" id="bioError">Bio is required.</p>
             </div>
 
             <div class="btn-container">
-                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <button type="submit" class="btn btn-primary" id="submitBtn" disabled>Save Changes</button>
                 <a href="{% url 'event_organizer_home' %}" class="btn btn-danger">Cancel</a>
             </div>
         </form>
     </div>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const nameInput = document.getElementById("name");
+        const contactInput = document.getElementById("contact");
+        const bioInput = document.getElementById("bio");
+        const nameError = document.getElementById("nameError");
+        const contactError = document.getElementById("contactError");
+        const bioError = document.getElementById("bioError");
+        const submitBtn = document.getElementById("submitBtn");
+
+        function validateName() {
+            if (nameInput.value.trim() === "") {
+                nameError.style.display = "block";
+                return false;
+            } else {
+                nameError.style.display = "none";
+                return true;
+            }
+        }
+
+        function validatePhoneNumber() {
+            const phoneNumber = contactInput.value.trim();
+            const phonePattern = /^[6789]\d{9}$/;
+
+            if (phonePattern.test(phoneNumber)) {
+                contactError.style.display = "none";
+                return true;
+            } else {
+                contactError.style.display = "block";
+                return false;
+            }
+        }
+
+        function validateBio() {
+            if (bioInput.value.trim() === "") {
+                bioError.style.display = "block";
+                return false;
+            } else {
+                bioError.style.display = "none";
+                return true;
+            }
+        }
+
+        function validateForm() {
+            const isNameValid = validateName();
+            const isPhoneValid = validatePhoneNumber();
+            const isBioValid = validateBio();
+
+            submitBtn.disabled = !(isNameValid && isPhoneValid && isBioValid);
+        }
+
+        nameInput.addEventListener("input", validateForm);
+        contactInput.addEventListener("input", validateForm);
+        bioInput.addEventListener("input", validateForm);
+    });
+</script>
 
 {% endblock %}
