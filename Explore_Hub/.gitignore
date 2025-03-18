@@ -79,3 +79,21 @@ coverage.xml
 .mypy_cache/
 .dmypy.json
 dmypy.json
+
+# AWS-related files
+aws/
+awscliv2.zip
+
+# Project-specific generated files
+nohup.out
+explore_hub.sql
+
+# Media and uploaded files
+event_images/
+guide_licenses/
+id_proofs/
+organizer_licenses/
+package_images/
+
+# Remove swap files
+*.swo
