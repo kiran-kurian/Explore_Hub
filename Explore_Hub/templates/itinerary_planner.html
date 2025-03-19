@@ -83,7 +83,7 @@
         {% if itinerary.transport %}
         <h5 class="text-info">🚆/✈ Transport</h5>
         <p><strong>Name:</strong> {{ itinerary.transport.name }}</p>
-        <p><strong>Cost:</strong> ₹{{ itinerary.transport.cost }}</p>
+        {% comment %} <p><strong>Cost:</strong> ₹{{ itinerary.transport.cost }}</p> {% endcomment %}
         <hr>
         {% endif %}
 
@@ -108,7 +108,7 @@
                             <strong>{{ activity.name }}</strong> ({{ activity.type }})<br>
                             <small>⭐ Rating: {{ activity.rating }}</small><br>
                             <small>⏳ Duration: {{ activity.duration }} hrs</small><br>
-                            <small>💰 Cost: ₹{{ activity.cost }}</small>
+                            {% comment %} <small>💰 Cost: ₹{{ activity.cost }}</small> {% endcomment %}
                         </li>
                         {% endfor %}
                     </ul>

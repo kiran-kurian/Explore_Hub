@@ -39,6 +39,7 @@ from django.utils.timezone import now
 import os
 import pandas as pd
 from decimal import Decimal
+import google.generativeai as genai
 
 
 # Create your views here.
@@ -1696,9 +1697,74 @@ def update_guide_profile(request):
         return render(request, 'guide_update_profile.html', {'guide': guide})
     return redirect('login')
 
+def convert_travel_time_to_minutes(travel_time):
+    """Convert travel time format from HH.MM or HH:MM to total minutes."""
+    hours, minutes = travel_time.replace(".", ":").split(":")
+    return int(hours) * 60 + int(minutes)
+
+def best_transport_option(flights, trains, budget, no_of_people, exchange_rate):
+    """Selects the best transport option (flight/train) based on cost, comfort, and travel time."""
+    transport_options = []
+
+    # Process Flights
+    if isinstance(flights, dict) and "data" in flights:
+        carriers = flights.get("dictionaries", {}).get("carriers", {})
+        for flight in flights["data"]:
+            airline_code = flight.get("validatingAirlineCodes", [None])[0]
+            airline_name = carriers.get(airline_code, airline_code)
+            first_segment = flight.get("itineraries", [{}])[0].get("segments", [{}])[0]
+
+            departure = first_segment.get("departure", {}).get("iataCode", "Unknown")
+            arrival = first_segment.get("arrival", {}).get("iataCode", "Unknown")
+            travel_time = first_segment.get("duration", "PT0H0M").replace("PT", "").replace("H", ":").replace("M", "")
+            travel_time_minutes = convert_travel_time_to_minutes(travel_time)
+
+            total_price = float(flight.get("price", {}).get("total", 0)) * no_of_people * exchange_rate
+
+            transport_options.append({
+                "name": f"Flight: {airline_name} ({departure} → {arrival})",
+                "cost": total_price,
+                "travel_time": travel_time_minutes,
+                "category": "Flight",
+                "comfort": 5  # Assuming flights are generally more comfortable
+            })
+
+    # Process Trains
+    if isinstance(trains, dict) and "result" in trains and "found_trains" in trains["result"]:
+        train_list = trains["result"]["found_trains"].values()
+
+        for train in train_list:
+            travel_time_minutes = convert_travel_time_to_minutes(train["travel_time"])
+            price_per_ticket = float(train.get("price", 0)) * exchange_rate
+            total_train_cost = price_per_ticket * no_of_people
+
+            transport_options.append({
+                "name": f"Train: {train.get('train_name', 'Unknown')} ({train.get('from_name', 'Unknown')} → {train.get('to_name', 'Unknown')})",
+                "cost": total_train_cost,
+                "travel_time": travel_time_minutes,
+                "category": "Train",
+                "comfort": 3  # Assuming trains have moderate comfort
+            })
+
+    # Sort transport options based on a weighted score
+    best_transport = None
+    best_score = float("inf")
+
+    for option in transport_options:
+        cost = option["cost"]
+        travel_time = option["travel_time"]
+        comfort = option["comfort"]
+
+        # Weighted scoring: Modify weights based on preference
+        score = cost * 0.5 + travel_time * 0.3 - comfort * 10  # Adjust weights as needed
+
+        if cost <= budget and score < best_score:
+            best_score = score
+            best_transport = option
+
+    return best_transport
+
 def itinerary_planner(request):
-    DATASET_PATH = os.path.join(settings.BASE_DIR, 'Top Indian Places to Visit.csv')
-    df = pd.read_csv(DATASET_PATH)
     if request.method == 'POST':
         budget = float(request.POST.get('budget', 0))
         origin = request.POST.get('origin')
@@ -1717,130 +1783,53 @@ def itinerary_planner(request):
         origin_station_name = get_station_name(origin)
         destination_station_name = get_station_name(destination)
 
-        print(origin_station_name, destination_station_name)
-
         origin_station = get_station_code(origin_station_name)
         destination_station = get_station_code(destination_station_name)
 
-        print(origin_station, destination_station)
-
         flights = search_flights(origin_code, destination_code, start_date, end_date) if origin_code and destination_code else None
-        # trains = search_trains(origin_station, destination_station)
-        # print("Trains: ", trains)
+        print("Flights: ", flights)
+        trains = search_trains(origin_station, destination_station) if origin_station and destination_station else None
+        print("Trains: ", trains)
 
-        transport_options = []
         exchange_rate = get_exchange_rate()
 
-        items = []
+        # **Choose the best transport option within budget**
+        transport_budget = budget * 0.5 if duration <= 3 else budget * 0.4
+        best_transport = best_transport_option(flights, trains, transport_budget, no_of_people, exchange_rate)
 
-        if isinstance(flights, dict) and "data" in flights:
-            carriers = flights.get("dictionaries", {}).get("carriers", {})
+        sightseeing_budget = budget * 0.3 if duration <= 3 else budget * 0.4
+        miscellaneous_budget = budget - (transport_budget + sightseeing_budget)
 
-            for flight in flights["data"]:
-                airline_code = flight.get("validatingAirlineCodes", [None])[0]
-                airline_name = carriers.get(airline_code, airline_code)
+        budget_per_day = sightseeing_budget / duration if duration > 0 else sightseeing_budget
+        destination_activities = get_places_to_visit(destination, duration, preferences, budget_per_day)
 
-                first_itinerary = flight.get("itineraries", [{}])[0]
-                first_segment = first_itinerary.get("segments", [{}])[0]
-                
-                departure = first_segment.get("departure", {}).get("iataCode", "Unknown")
-                arrival = first_segment.get("arrival", {}).get("iataCode", "Unknown")
+        print("Activities received:", destination_activities)
 
-                total_price = float(flight.get("price", {}).get("total", 0)) * no_of_people * exchange_rate
-
-                transport_options.append({
-                    "name": f"Flight: {airline_name} ({departure} → {arrival})",
-                    "cost": total_price,
-                    "value": flight.get("travelerPricings", [{}])[0].get("fareDetailsBySegment", [{}])[0].get("cabin", "Economy"),
-                    "category": "transport"
-                })
-
-        # if isinstance(trains, HttpResponse):
-        #     print("Trains API Error:", trains.content.decode())  # Print error details
-        #     trains = []
-        # else:
-        #     trains = trains or []
-
-        # if isinstance(trains, dict):
-            # for train in trains:
-            #     items.append({
-            #         "name": f"Train: {train.get('train', 'Unknown Train')}",
-            #         "cost": float(train.get("cost", 0)) * no_of_people,
-            #         "value": train.get("rating", 0),
-            #         "category": "transport"
-            #     })
-
-        # if isinstance(hotels, list):
-        #     print("Keys in hotels dictionary:", hotels.keys())
-        #     for hotel in hotels:
-        #         items.append({
-        #             "name": f"Hotel: {hotel.get('name', 'Unknown Hotel')}",
-        #             "cost": float(hotel.get("cost_per_night", 0)) * duration,  
-        #             "value": hotel.get("rating", 0),
-        #             "category": "hotel"
-        #         })
-
-        # if isinstance(activities, list):
-        #     print("Keys in activities dictionary:", activities.keys())
-        #     for activity in activities:
-        #         items.append({
-        #             "name": f"Activity: {activity.get('name', 'Unknown Activity')}",
-        #             "cost": float(activity.get("cost", 0)),
-        #             "value": activity.get("rating", 0),
-        #             "category": "activity"
-        #         })
-
-        transport_options = sorted(transport_options, key=lambda x: x["cost"])
-
-        remaining_budget = budget
-
-        transport = None
-        for option in transport_options:
-            if option["cost"] <= budget * 0.9:  
-                transport = option
-                remaining_budget -= option["cost"]
-                break
-
-        # hotel = None
-        # if isinstance(hotels, list) and hotels:
-        #     hotels = sorted(hotels, key=lambda x: x["cost_per_night"])
-        #     for h in hotels:
-        #         total_hotel_cost = float(h["cost_per_night"]) * duration
-        #         if total_hotel_cost <= budget * 0.3:  # Allocate max 30% to hotel
-        #             hotel = h
-        #             budget -= total_hotel_cost
-        #             break
-
-        destination_activities = df[df["City"].str.lower() == destination.lower()]
-        destination_activities = destination_activities.to_dict(orient="records")
         itinerary_schedule = []
         available_hours_per_day = 8  
         assigned_activities = set()
 
-        for day in range(duration):
-            day_schedule = {"day": day + 1, "activities": [], "total_time": 0}
+        for day, activities in destination_activities.items():
+            day_schedule = {"day": day, "activities": [], "total_time": 0}
             remaining_hours = available_hours_per_day
 
-            for activity in destination_activities:
-                activity_name = activity.get("Name", "Unknown")
+            for activity in activities:
+                activity_name = activity.get("name", "Unknown")
 
                 if activity_name in assigned_activities:
                     continue  
 
-                activity_cost = activity["Entrance Fee in INR"] * no_of_people
+                activity_cost = activity["cost"] * no_of_people
 
-                if remaining_budget >= activity_cost and remaining_hours >= activity["time needed to visit in hrs"]:
+                if sightseeing_budget >= activity_cost and remaining_hours >= activity["duration"]:
                     day_schedule["activities"].append({
                         "name": activity_name,
-                        "type": activity["Type"],
-                        "duration": activity["time needed to visit in hrs"],
-                        "rating": activity["Google review rating"],
-                        "significance": activity["Significance"],
+                        "duration": activity["duration"],
                         "cost": activity_cost
                     })
-                    assigned_activities.add(activity_name)  # Mark as assigned
-                    remaining_budget -= activity_cost
-                    remaining_hours -= activity["time needed to visit in hrs"]
+                    assigned_activities.add(activity_name)
+                    sightseeing_budget -= activity_cost
+                    remaining_hours -= activity["duration"]
 
             itinerary_schedule.append(day_schedule)
 
@@ -1849,14 +1838,93 @@ def itinerary_planner(request):
             "start_date": start_date,
             "end_date": end_date.isoformat(),
             "budget": budget,
-            "transport": transport,
-            # "hotel": hotel,
+            "transport": best_transport,
             "schedule": itinerary_schedule
         }
+
         return render(request, 'itinerary_planner.html', {'itinerary': planned_itinerary})
     
     return render(request, 'itinerary_planner.html')
 
+
+def get_places_to_visit(destination, travel_days, preferences, budget_per_day):
+    genai.configure(api_key=settings.GEMINI_API_KEY)
+
+    try:
+        model = genai.GenerativeModel("gemini-1.5-flash")
+
+        prompt = (
+            f"Generate a personalized trip itinerary for a {travel_days}-day trip to {destination}, "
+            "(Currency: INR). "
+            f"Suggest must-visit places based on the preference: {preferences}. "
+            "For each place, provide: Place Name, Entrance Fee (INR), Estimated Duration (Hours). "
+            "Format the response like this exactly:\n\n"
+            "Place Name: [Place Name]\n"
+            "Entrance Fee: [Fee] INR\n"
+            "Estimated Duration: [Duration] Hours\n\n"
+            "Place Name: [Place Name]\n"
+            "Entrance Fee: [Fee] INR\n"
+            "Estimated Duration: [Duration] Hours\n\n"
+            "... and so on."
+        )
+
+        response = model.generate_content(prompt)
+
+        if not response or not response.text.strip():
+            print("No response received from Gemini.")
+            return {}
+
+        raw_text = response.text.strip()
+        print("🔍 Raw response text:\n", raw_text)
+
+        # Regex patterns for extracting places, fees, and durations
+        place_pattern = re.compile(r"Place Name:\s*(.*?)\n", re.IGNORECASE)
+        fee_pattern = re.compile(r"Entrance Fee:\s*(?:INR\s*)?([\d,]+|Free|Varies)", re.IGNORECASE)
+        duration_pattern = re.compile(r"Estimated Duration:\s*(\d+)\s*(?:hrs?|hours?)", re.IGNORECASE)
+
+        places = place_pattern.findall(raw_text)
+        fees = fee_pattern.findall(raw_text)
+        durations = duration_pattern.findall(raw_text)
+
+        # Ensure we have valid extracted data
+        if not places:
+            print("⚠️ No valid places extracted. Check response formatting.")
+            return {}
+
+        formatted_places = []
+        for i in range(len(places)):
+            name = places[i].strip()
+            cost = fees[i] if i < len(fees) else "Free"
+            duration = durations[i] if i < len(durations) else "1"
+
+            # Convert cost to numeric value
+            if cost.lower() in ["free", "varies"]:
+                cost = 0
+            else:
+                cost = float(cost.replace(",", "").strip())
+
+            formatted_places.append({
+                "name": name,
+                "cost": cost,
+                "duration": float(duration)
+            })
+
+        print("✅ Extracted Places:", formatted_places)
+
+        itinerary = {f"Day {i+1}": [] for i in range(travel_days)}
+
+        sorted_places = sorted(formatted_places, key=lambda x: x["duration"], reverse=True)
+
+        for index, place in enumerate(sorted_places):
+            day = f"Day {(index % travel_days) + 1}"
+            itinerary[day].append(place)
+
+        return itinerary
+
+    except Exception as e:
+        print("❌ Error fetching places from Gemini:", e)
+        return {}
+    
 def get_exchange_rate():
     try:
         url = "https://api.exchangerate-api.com/v4/latest/EUR"
@@ -1972,31 +2040,17 @@ def get_station_name(city):
         print(f"Error fetching station from Wikimedia: {e}")
         return None
     
-from bs4 import BeautifulSoup
 def get_station_code(city_name):
+    DATASET_PATH = os.path.join(settings.BASE_DIR, 'station_details.csv')
+    df = pd.read_csv(DATASET_PATH, encoding="utf-8")
     try:
-        url = "https://en.wikipedia.org/wiki/List_of_railway_stations_in_India"
-        response = requests.get(url)
+        city_name = re.sub(r'\brailway station\b', '', city_name, flags=re.IGNORECASE).strip().lower()
+        first_word = city_name.split()[0]
+        matches = df[df["Station Name"].str.lower().str.contains(first_word, na=False)]
         
-        if response.status_code != 200:
-            print("Failed to fetch data from Wikipedia")
-            return None
-
-        soup = BeautifulSoup(response.text, "html.parser")
+        if not matches.empty:
+            return str(matches["Station Code"].values[0]).strip()
         
-        # Find all table rows
-        rows = soup.find_all("tr")
-        
-        for row in rows:
-            columns = row.find_all("td")
-            if len(columns) >= 2:
-                station_name = columns[0].text.strip()
-                station_code = columns[1].text.strip()
-
-                # If station name contains the city name, return the station code
-                if city_name.lower() in station_name.lower():
-                    return station_code
-
         return None
     except Exception as e:
         print(f"Error fetching station code: {e}")
