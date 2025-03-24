@@ -83,7 +83,7 @@
         {% if itinerary.transport %}
         <h5 class="text-info">🚆/✈ Transport</h5>
         <p><strong>Name:</strong> {{ itinerary.transport.name }}</p>
-        {% comment %} <p><strong>Cost:</strong> ₹{{ itinerary.transport.cost }}</p> {% endcomment %}
+        <p><strong>Cost:</strong> ₹{{ itinerary.transport.cost|floatformat:2 }}</p>
         <hr>
         {% endif %}
 
@@ -100,15 +100,15 @@
         <h5 class="text-success">📅 Daily Plan</h5>
         {% for day in itinerary.schedule %}
             <div class="mb-3">
-                <h6 class="text-primary">Day {{ day.day }}</h6>
+                <h6 class="text-primary">{{ day.day }}</h6>
                 {% if day.activities %}
                     <ul class="list-group">
                         {% for activity in day.activities %}
                         <li class="list-group-item">
                             <strong>{{ activity.name }}</strong> ({{ activity.type }})<br>
-                            <small>⭐ Rating: {{ activity.rating }}</small><br>
+                            {% comment %} <small>⭐ Rating: {{ activity.rating }}</small><br> {% endcomment %}
                             <small>⏳ Duration: {{ activity.duration }} hrs</small><br>
-                            {% comment %} <small>💰 Cost: ₹{{ activity.cost }}</small> {% endcomment %}
+                            <small>💰 Cost: ₹{{ activity.cost }}</small>
                         </li>
                         {% endfor %}
                     </ul>

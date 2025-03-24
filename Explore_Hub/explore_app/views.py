@@ -1698,26 +1698,44 @@ def update_guide_profile(request):
     return redirect('login')
 
 def convert_travel_time_to_minutes(travel_time):
-    """Convert travel time format from HH.MM or HH:MM to total minutes."""
-    hours, minutes = travel_time.replace(".", ":").split(":")
-    return int(hours) * 60 + int(minutes)
+    if "PT" in travel_time:
+        hours_match = re.search(r'(\d+)H', travel_time)
+        minutes_match = re.search(r'(\d+)M', travel_time)
+
+        hours = int(hours_match.group(1)) if hours_match else 0
+        minutes = int(minutes_match.group(1)) if minutes_match else 0
+    elif ":" in travel_time:
+        try:
+            hours, minutes = map(int, travel_time.split(":"))
+        except ValueError:
+            hours, minutes = 0, 0
+    else:
+        hours = int(travel_time.replace("H", "").strip()) if "H" in travel_time else 0
+        minutes = int(travel_time.replace("M", "").strip()) if "M" in travel_time else 0
+
+    total_minutes = hours * 60 + minutes 
+
+    return total_minutes
 
 def best_transport_option(flights, trains, budget, no_of_people, exchange_rate):
-    """Selects the best transport option (flight/train) based on cost, comfort, and travel time."""
     transport_options = []
 
     # Process Flights
     if isinstance(flights, dict) and "data" in flights:
         carriers = flights.get("dictionaries", {}).get("carriers", {})
+
         for flight in flights["data"]:
             airline_code = flight.get("validatingAirlineCodes", [None])[0]
             airline_name = carriers.get(airline_code, airline_code)
-            first_segment = flight.get("itineraries", [{}])[0].get("segments", [{}])[0]
+
+            first_itinerary = flight.get("itineraries", [{}])[0]
+            first_segment = first_itinerary.get("segments", [{}])[0]
 
             departure = first_segment.get("departure", {}).get("iataCode", "Unknown")
             arrival = first_segment.get("arrival", {}).get("iataCode", "Unknown")
-            travel_time = first_segment.get("duration", "PT0H0M").replace("PT", "").replace("H", ":").replace("M", "")
-            travel_time_minutes = convert_travel_time_to_minutes(travel_time)
+
+            travel_time_str = first_itinerary.get("duration", "PT0M")
+            travel_time_minutes = convert_travel_time_to_minutes(travel_time_str)
 
             total_price = float(flight.get("price", {}).get("total", 0)) * no_of_people * exchange_rate
 
@@ -1725,8 +1743,9 @@ def best_transport_option(flights, trains, budget, no_of_people, exchange_rate):
                 "name": f"Flight: {airline_name} ({departure} → {arrival})",
                 "cost": total_price,
                 "travel_time": travel_time_minutes,
-                "category": "Flight",
-                "comfort": 5  # Assuming flights are generally more comfortable
+                "value": flight.get("travelerPricings", [{}])[0].get("fareDetailsBySegment", [{}])[0].get("cabin", "Economy"),
+                "category": "transport",
+                "comfort" : 5
             })
 
     # Process Trains
@@ -1735,18 +1754,24 @@ def best_transport_option(flights, trains, budget, no_of_people, exchange_rate):
 
         for train in train_list:
             travel_time_minutes = convert_travel_time_to_minutes(train["travel_time"])
-            price_per_ticket = float(train.get("price", 0)) * exchange_rate
+            distance_km = float(train.get("distance", 0))  
+            travel_class = train.get("class", "SL")  
+            dynamic_fare = float(train.get("dynamic_fare", 0))
+            train_number = train.get("train_no", "Unknown")
+
+            price_per_ticket = calculate_train_fare(distance_km, travel_class, dynamic_fare)
             total_train_cost = price_per_ticket * no_of_people
 
             transport_options.append({
                 "name": f"Train: {train.get('train_name', 'Unknown')} ({train.get('from_name', 'Unknown')} → {train.get('to_name', 'Unknown')})",
                 "cost": total_train_cost,
+                "train_number": train_number,
                 "travel_time": travel_time_minutes,
                 "category": "Train",
-                "comfort": 3  # Assuming trains have moderate comfort
+                "travel_class": travel_class,
+                "comfort": 3
             })
 
-    # Sort transport options based on a weighted score
     best_transport = None
     best_score = float("inf")
 
@@ -1755,14 +1780,37 @@ def best_transport_option(flights, trains, budget, no_of_people, exchange_rate):
         travel_time = option["travel_time"]
         comfort = option["comfort"]
 
-        # Weighted scoring: Modify weights based on preference
-        score = cost * 0.5 + travel_time * 0.3 - comfort * 10  # Adjust weights as needed
+        score = cost * 0.5 + travel_time * 0.3 - comfort * 10 
 
         if cost <= budget and score < best_score:
             best_score = score
             best_transport = option
+    
+    if best_transport is None and transport_options:
+        best_transport = min(transport_options, key=lambda x: x["cost"])
 
     return best_transport
+
+def calculate_train_fare(distance_km, travel_class, dynamic_fare=0, gst_percentage=5):
+    base_fare_per_km = {
+        "1A": 3.00, "EC": 2.90, "2A": 2.00, "3A": 1.50, "CC": 1.60, "SL": 0.70, "2S": 0.45
+    }
+    
+    reservation_charge = {
+        "1A": 60, "EC": 60, "2A": 50, "3A": 40, "CC": 40, "SL": 20, "2S": 15
+    }
+    
+    superfast_charge = {
+        "1A": 60, "EC": 60, "2A": 50, "3A": 40, "CC": 40, "SL": 20, "2S": 15
+    }
+
+    base_fare = base_fare_per_km.get(travel_class, 0) * distance_km
+    total_fare = base_fare + reservation_charge.get(travel_class, 0) + superfast_charge.get(travel_class, 0)
+    total_fare += dynamic_fare
+    gst_amount = (total_fare * gst_percentage) / 100
+    total_fare += gst_amount
+
+    return round(total_fare, 2)
 
 def itinerary_planner(request):
     if request.method == 'POST':
@@ -1793,9 +1841,9 @@ def itinerary_planner(request):
 
         exchange_rate = get_exchange_rate()
 
-        # **Choose the best transport option within budget**
         transport_budget = budget * 0.5 if duration <= 3 else budget * 0.4
         best_transport = best_transport_option(flights, trains, transport_budget, no_of_people, exchange_rate)
+        print(best_transport)
 
         sightseeing_budget = budget * 0.3 if duration <= 3 else budget * 0.4
         miscellaneous_budget = budget - (transport_budget + sightseeing_budget)
@@ -1846,6 +1894,18 @@ def itinerary_planner(request):
     
     return render(request, 'itinerary_planner.html')
 
+def get_train_fare(train_number, origin, destination):
+    api_key = "17981ea9f32427b6eee64f9286b1216d"
+    url = f"http://indianrailapi.com/api/v2/TrainFare/apikey/{api_key}/TrainNumber/{train_number}/From/{origin}/To/{destination}/Quota/GN"
+    response = requests.get(url)
+
+    if response.status_code == 200:
+        fare_data = response.json()
+        print(fare_data)
+        return fare_data
+    else:
+        print("Error:", response.status_code, response.text)
+
 
 def get_places_to_visit(destination, travel_days, preferences, budget_per_day):
     genai.configure(api_key=settings.GEMINI_API_KEY)
@@ -1875,7 +1935,6 @@ def get_places_to_visit(destination, travel_days, preferences, budget_per_day):
             return {}
 
         raw_text = response.text.strip()
-        print("🔍 Raw response text:\n", raw_text)
 
         # Regex patterns for extracting places, fees, and durations
         place_pattern = re.compile(r"Place Name:\s*(.*?)\n", re.IGNORECASE)
@@ -1908,8 +1967,6 @@ def get_places_to_visit(destination, travel_days, preferences, budget_per_day):
                 "cost": cost,
                 "duration": float(duration)
             })
-
-        print("✅ Extracted Places:", formatted_places)
 
         itinerary = {f"Day {i+1}": [] for i in range(travel_days)}
 
